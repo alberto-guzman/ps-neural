@@ -1,0 +1,2148 @@
+decay
+len<-length(size)#
+asam_am_net<-asam_aw_net<-vector(length=len)#
+set.seed(15)#
+for (j in 1:len){ #
+masb_aw<-masb_am<-list()#
+ masb_aw <- funsim_tp(data,"nnet", tp=c(TRUE,size[j],decay[j]))$masb_aw#
+ masb_am<- funsim_tp(data,"nnet", tp=c(TRUE,size[j],decay[j]))$masb_am	#
+ asam_am_net[ j ]<-mean(unlist(masb_am))#
+ asam_aw_net[ j ]<-mean(unlist(masb_aw))#
+ }
+j
+len<-length(size)#
+asam_am_net<-asam_aw_net<-vector(length=len)#
+set.seed(15)#
+for (j in 1:len){ #
+masb_aw<-masb_am<-list()#
+ masb_aw <- funsim_tp(data,"nnet", tp=c(TRUE,size[j],decay[j]))$masb_aw#
+ masb_am<- funsim_tp(data,"nnet", tp=c(TRUE,size[j],decay[j]))$masb_am	#
+ asam_am_net[ j ]<-mean(unlist(masb_am))#
+ asam_aw_net[ j ]<-mean(unlist(masb_aw))#
+ }
+size
+decay
+# use caret for tuning net#
+ control <- trainControl(method="repeatedcv", number=10, repeats=1, search="random")#
+nnet_random <- train(factor(T)~w1+w2+w3+w4+w5+w6+w7+w8+w9+w10,#
+data=data, method="nnet", metric=metric, tuneLength=15, trControl=control)#
+print(nnet_random)#
+plot(nnet_random)#
+# find random tuning values#
+size<-nnet_random$results[,"size"]#
+decay<-nnet_random$results[,"decay"]#
+nnetacc<-nnet_random$results[,"Accuracy"]
+size
+decay
+len<-length(size)#
+asam_am_net<-asam_aw_net<-vector(length=len)#
+for (j in 1:len){ #
+masb_aw<-masb_am<-list()#
+ masb_aw <- funsim_tp(data,"nnet", tp=c(TRUE,size[j],decay[j]))$masb_aw#
+ masb_am<- funsim_tp(data,"nnet", tp=c(TRUE,size[j],decay[j]))$masb_am	#
+ asam_am_net[ j ]<-mean(unlist(masb_am))#
+ asam_aw_net[ j ]<-mean(unlist(masb_aw))#
+ }
+asam_am_net
+asam_aw_net
+# find optimal values of mtry for accuracy and balance#
+ mtry[which.max(rfacc)]#
+ mtry[which.min(asam_am_rf)]#
+ mtry[which.min(asam_aw_rf)]
+# find optimal value of cp for accuracy and balance#
+  cp[which.max(rpartacc)]#
+ cp[which.min(asam_am_tree)]#
+ cp[which.min(asam_aw_tree)]
+# # find optimal value of size and decay for balance#
+   size[which.max(nnetacc)]; decay[which.max(nnetacc)]#
+  size[which.min(asam_am_net)]; decay[which.min(asam_am_net)]#
+  size[which.min(asam_aw_net)]; decay[which.min(asam_aw_net)]
+asam_am_net
+source("functions_case_study.r")
+bal.rf       <- funbalance( data, "randomforest",outcome=TRUE)
+bal.tree   <- funbalance( data, "tree",outcome=TRUE)
+bal.nnm     <- funbalance( data, "nnm",outcome=TRUE)#
+bal.nnw     <- funbalance( data, "nnw",outcome=TRUE)
+source("functions_case_study.r")
+source("case_study/functions_case_study.r")
+bal.rf       <- funbalance( data, "randomforest",outcome=TRUE)
+bal.tree   <- funbalance( data, "tree",outcome=TRUE)
+bal.nnm     <- funbalance( data, "nnm",outcome=TRUE)#
+bal.nnw     <- funbalance( data, "nnw",outcome=TRUE)
+bal.rf
+head(bal.rf)
+head(bal.tree)
+bal.tree$masb_am
+bal.nnm$masb_am
+bal.nnw$masb_aw
+bal.nnw$masb_am
+asam_am_rf
+asam_aw_rf
+mtry
+bal.rf$masb_am
+bal.rf$masb_aw
+# load functions#
+source("functions.R")
+# load packages and functions#
+source("functions_case_study.r")
+source("case_study/functions_case_study.r")
+bal.rf       <- funbalance( data, "randomforest",outcome=TRUE)
+bal.nnm     <- funbalance( data, "nnm",outcome=TRUE)#
+bal.nnw     <- funbalance( data, "nnw",outcome=TRUE)
+bal.rf$masb_am
+bal.rf$masb_aw
+bal.rf       <- funbalance( data, "randomforest",outcome=TRUE)
+bal.rf$masb_aw
+bal.rf$masb_am
+bal.rf       <- funbalance( data, "randomforest",outcome=TRUE)
+bal.rf$masb_aw
+bal.rf$masb_am
+asam_aw_rf
+asam_am_rf
+# load packages and functions#
+source("functions_case_study.r")
+bal.rf       <- funbalance( data, "randomforest",outcome=TRUE)
+bal.rf$masb_aw
+bal.rf$masb_am
+bal.rf       <- funbalance( data, "randomforest",outcome=TRUE)
+bal.rf$masb_aw
+bal.rf$masb_am
+bal.nnm     <- funbalance( data, "nnm",outcome=TRUE)#
+bal.nnw     <- funbalance( data, "nnw",outcome=TRUE)
+bal.nnw$masb_aw
+bal.nnm$masb_am
+# load functions#
+source("functions.R")#
+# load data#
+load("case_study/cs_data/clean_data_10cov.Rdata")#
+# add label for k-fold cross-validation#
+#set.seed(7)#
+#k=10#
+#data$fold = cut(sample(1:nrow(data),nrow(data)), breaks=k, labels=F)#
+ data$fold = 1:dim(data)[1] #leave-one-out#
+# load package#
+require(caret)#
+metric <- "Accuracy"
+# use caret with random search for random forest#
+# Random Search#
+control <- trainControl(method="repeatedcv", number=10, repeats=1, search="random")#
+set.seed(4)#
+#mtry <- sqrt(ncol(data))#
+rf_random <- train(factor(T)~w1+w2+w3+w4+w5+w6+w7+w8+w9+w10,#
+data=data, method="rf", metric=metric, tuneLength=15, trControl=control)#
+print(rf_random)#
+#plot(rf_random)#
+# find balance for random tuning values#
+mtry<-rf_random$results[,"mtry"]#
+rfacc<-rf_random$results[,"Accuracy"]#
+rfkap<-rf_random$results[,"Kappa"]#
+len<-length(mtry)#
+asam_am_rf<-asam_aw_rf<-vector(length=len)#
+for (j in 1:len){#
+masb_aw<-masb_am<-list()#
+for (i in 1:10) {#
+ masb_aw[[i]] <- funsim_tp(data[data$fold!=i,],"randomforest", tp=mtry[j] )$masb_aw#
+ masb_am[[i]] <- funsim_tp(data[data$fold!=i,],"randomforest", tp=mtry[j] )$masb_am	#
+ }#
+ asam_am_rf[ j ]<-mean(unlist(masb_am))#
+ asam_aw_rf[ j ]<-mean(unlist(masb_aw))#
+ }#
+ # find optimal values of mtry for accuracy and balance#
+ mtry[which.max(rfacc)]#1#
+ mtry[which.min(asam_am_rf)]#2#
+ mtry[which.min(asam_aw_rf)]#3
+# find optimal values of mtry for accuracy and balance#
+ mtry[which.max(rfacc)]#1#
+ mtry[which.min(asam_am_rf)]#2#
+ mtry[which.min(asam_aw_rf)]#3
+asam_am_rf
+source("functions.R")
+# use caret with random search for random forest#
+# Random Search#
+control <- trainControl(method="repeatedcv", number=10, repeats=1, search="random")#
+set.seed(4)#
+#mtry <- sqrt(ncol(data))#
+rf_random <- train(factor(T)~w1+w2+w3+w4+w5+w6+w7+w8+w9+w10,#
+data=data, method="rf", metric=metric, tuneLength=15, trControl=control)#
+print(rf_random)#
+#plot(rf_random)#
+# find balance for random tuning values#
+mtry<-rf_random$results[,"mtry"]#
+rfacc<-rf_random$results[,"Accuracy"]#
+rfkap<-rf_random$results[,"Kappa"]#
+len<-length(mtry)#
+asam_am_rf<-asam_aw_rf<-vector(length=len)#
+for (j in 1:len){#
+masb_aw<-masb_am<-list()#
+for (i in 1:10) {#
+ masb_aw[[i]] <- funsim_tp(data[data$fold!=i,],"randomforest", tp=mtry[j] )$masb_aw#
+ masb_am[[i]] <- funsim_tp(data[data$fold!=i,],"randomforest", tp=mtry[j] )$masb_am	#
+ }#
+ asam_am_rf[ j ]<-mean(unlist(masb_am))#
+ asam_aw_rf[ j ]<-mean(unlist(masb_aw))#
+ }#
+ # find optimal values of mtry for accuracy and balance#
+ mtry[which.max(rfacc)]#1#
+ mtry[which.min(asam_am_rf)]#2#
+ mtry[which.min(asam_aw_rf)]#3
+source("functions.R")
+# use caret with random search for random forest#
+# Random Search#
+control <- trainControl(method="repeatedcv", number=10, repeats=1, search="random")#
+set.seed(4)#
+#mtry <- sqrt(ncol(data))#
+rf_random <- train(factor(T)~w1+w2+w3+w4+w5+w6+w7+w8+w9+w10,#
+data=data, method="rf", metric=metric, tuneLength=15, trControl=control)#
+print(rf_random)#
+#plot(rf_random)#
+# find balance for random tuning values#
+mtry<-rf_random$results[,"mtry"]#
+rfacc<-rf_random$results[,"Accuracy"]#
+rfkap<-rf_random$results[,"Kappa"]#
+len<-length(mtry)#
+asam_am_rf<-asam_aw_rf<-vector(length=len)#
+for (j in 1:len){#
+masb_aw<-masb_am<-list()#
+for (i in 1:10) {#
+ masb_aw[[i]] <- funsim_tp(data[data$fold!=i,],"randomforest", tp=mtry[j] )$masb_aw#
+ masb_am[[i]] <- funsim_tp(data[data$fold!=i,],"randomforest", tp=mtry[j] )$masb_am	#
+ }#
+ asam_am_rf[ j ]<-mean(unlist(masb_am))#
+ asam_aw_rf[ j ]<-mean(unlist(masb_aw))#
+ }#
+ # find optimal values of mtry for accuracy and balance#
+ mtry[which.max(rfacc)]#1#
+ mtry[which.min(asam_am_rf)]#2#
+ mtry[which.min(asam_aw_rf)]#3
+asam_am_rf
+asam_aw_rf
+# Using caret for random search for rpart #
+# Random Search#
+control <- trainControl(method="repeatedcv", number=10, repeats=1, search="random")#
+set.seed(7)#
+rpart_random <- train(factor(T)~w1+w2+w3+w4+w5+w6+w7+w8+w9+w10,#
+data=data, method="rpart", metric=metric, tuneLength=7, trControl=control)#
+print(rpart_random)#
+# plot(rpart_random)#
+# find balance for random tuning values#
+cp<-rpart_random$results[,"cp"]#;cp<-cp[cp<0.03]#
+rpartacc<-rpart_random$results[,"Accuracy"]#
+rpartkap<-rpart_random$results[,"Kappa"]#
+len<-length(cp)#
+asam_am_tree<-asam_aw_tree<-vector(length=len)#
+for (j in 1:len){#
+masb_aw<-masb_am<-list()#
+for (i in 1:10) {#
+ masb_aw[[i]] <- funsim_tp(data[data$fold!=i,],"tree", tp=cp[j] )$masb_aw#
+ masb_am[[i]] <- funsim_tp(data[data$fold!=i,],"tree", tp=cp[j] )$masb_am	#
+ }#
+ asam_am_tree[ j ]<-mean(unlist(masb_am))#
+ asam_aw_tree[ j ]<-mean(unlist(masb_aw))#
+ }#
+ # find optimal value of cp for accuracy and balance#
+ cp[which.max(rpartacc)]#0.0017#
+ cp[which.min(asam_am_tree)]#0.0015#
+ cp[which.min(asam_aw_tree)]#0.0015
+# use caret for tuning net#
+ control <- trainControl(method="repeatedcv", number=10, repeats=1, search="random")#
+nnet_random <- train(factor(T)~w1+w2+w3+w4+w5+w6+w7+w8+w9+w10,#
+data=data, method="nnet", metric=metric, tuneLength=15, trControl=control)#
+print(nnet_random)#
+plot(nnet_random)#
+# find random tuning values#
+size<-nnet_random$results[,"size"]#
+decay<-nnet_random$results[,"decay"]#
+nnetacc<-nnet_random$results[,"Accuracy"]
+cp[which.max(rpartacc)]#0.0017#
+ cp[which.min(asam_am_tree)]#0.0015#
+ cp[which.min(asam_aw_tree)]#0.0015
+mtry[which.max(rfacc)]#1#
+ mtry[which.min(asam_am_rf)]#2#
+ mtry[which.min(asam_aw_rf)]#3
+# decay_opt<-decay[which.max(nnetacc)]#
+len<-length(size)#
+asam_am_net<-asam_aw_net<-vector(length=len)#
+for (j in 1:len){ #
+masb_aw<-masb_am<-list()#
+ masb_aw <- funsim_tp(data[data$fold!=i,],"nnet", tp=c(TRUE,size[j],decay[j]))$masb_aw#
+ masb_am<- funsim_tp(data[data$fold!=i,],"nnet", tp=c(TRUE,size[j],decay[j]))$masb_am	#
+ asam_am_net[ j ]<-mean(unlist(masb_am))#
+ asam_aw_net[ j ]<-mean(unlist(masb_aw))#
+ }#
+ # # find optimal value of size and decay for balance#
+  size[which.max(nnetacc)]; decay[which.max(nnetacc)]#2;0.0002#
+  size[which.min(asam_am_net)]; decay[which.min(asam_am_net)]#20,0.1#
+  size[which.min(asam_aw_net)]; decay[which.min(asam_aw_net)]#16,4.2
+asam_am_net
+asam_aw_net
+size
+decay
+table(data$fold)
+masb_aw
+masb_am
+asam_am_net
+length(unique(data$fold))
+# use caret with random search for random forest#
+# Random Search#
+control <- trainControl(method="repeatedcv", number=10, repeats=1, search="random")#
+set.seed(4)#
+#mtry <- sqrt(ncol(data))#
+rf_random <- train(factor(T)~w1+w2+w3+w4+w5+w6+w7+w8+w9+w10,#
+data=data, method="rf", metric=metric, tuneLength=15, trControl=control)#
+print(rf_random)#
+#plot(rf_random)#
+# find balance for random tuning values#
+mtry<-rf_random$results[,"mtry"]#
+rfacc<-rf_random$results[,"Accuracy"]#
+rfkap<-rf_random$results[,"Kappa"]#
+len<-length(mtry)#
+asam_am_rf<-asam_aw_rf<-vector(length=len)#
+for (j in 1:len){#
+masb_aw<-masb_am<-list()#
+for (i in 1:length(unique(data$fold))) {#
+ masb_aw[[i]] <- funsim_tp(data[data$fold!=i,],"randomforest", tp=mtry[j] )$masb_aw#
+ masb_am[[i]] <- funsim_tp(data[data$fold!=i,],"randomforest", tp=mtry[j] )$masb_am	#
+ }#
+ asam_am_rf[ j ]<-mean(unlist(masb_am))#
+ asam_aw_rf[ j ]<-mean(unlist(masb_aw))#
+ }#
+ # find optimal values of mtry for accuracy and balance#
+ mtry[which.max(rfacc)]#1#
+ mtry[which.min(asam_am_rf)]#2#
+ mtry[which.min(asam_aw_rf)]#3#
+# Using caret for random search for rpart #
+# Random Search#
+control <- trainControl(method="repeatedcv", number=10, repeats=1, search="random")#
+set.seed(7)#
+rpart_random <- train(factor(T)~w1+w2+w3+w4+w5+w6+w7+w8+w9+w10,#
+data=data, method="rpart", metric=metric, tuneLength=7, trControl=control)#
+print(rpart_random)#
+# plot(rpart_random)#
+# find balance for random tuning values#
+cp<-rpart_random$results[,"cp"]#;cp<-cp[cp<0.03]#
+rpartacc<-rpart_random$results[,"Accuracy"]#
+rpartkap<-rpart_random$results[,"Kappa"]#
+len<-length(cp)#
+asam_am_tree<-asam_aw_tree<-vector(length=len)#
+for (j in 1:len){#
+masb_aw<-masb_am<-list()#
+for (i in 1:length(unique(data$fold))) {#
+ masb_aw[[i]] <- funsim_tp(data[data$fold!=i,],"tree", tp=cp[j] )$masb_aw#
+ masb_am[[i]] <- funsim_tp(data[data$fold!=i,],"tree", tp=cp[j] )$masb_am	#
+ }#
+ asam_am_tree[ j ]<-mean(unlist(masb_am))#
+ asam_aw_tree[ j ]<-mean(unlist(masb_aw))#
+ }#
+ # find optimal value of cp for accuracy and balance#
+ cp[which.max(rpartacc)]#0.0017#
+ cp[which.min(asam_am_tree)]#0.0015#
+ cp[which.min(asam_aw_tree)]#0.0015
+mean(c(2,3,NA))
+mean(c(2,3,NA),rm.na=TRUE)
+mean(c(2,3,NA),na.rm=TRUE)
+load("/Users/massimo/Dropbox/Working Papers/ps matching and ML/Paper and ppt versions/submission BIOMETRICAL JOURNAL/R&R/R&R2/code_and_data(da inviare con seconda revisione)/case_study/cs_results/tuningresults.RData")
+###############################
+ # plot together accuracy and balance#
+ ###############################
+ # define window #
+ par(mfrow=c(2,3))#
+  # plot rf#
+ par(mar = c(5,5,2,4))#
+ plot(mtry, rfacc, #
+type = "l", lwd = 2, col ="black" , ylab = "Accuracy", ,lty="dashed",#
+ xlab = paste0("mtry: #randomly selected predictors"), #
+main = paste0("random forest"), #
+#ylim = c(min(rfacc)-0.01, max(rfacc)+0.01))#
+ylim=c(0.6,0.7))#
+points(mtry,rfacc,col="black",pch=17)#
+#add balance#
+par(new=T)#
+plot(mtry,asam_am_rf,col=gray(0.8),pch=19,axes=F,xlab=NA,ylab=NA,#
+#ylim=c(min(c(asam_am,asam_aw)),max(c(asam_am,asam_aw)))#
+ylim=c(0,15)#
+)#
+axis(side=4)#
+mtext(side=4,line=3,"ASAM")#
+#points(mtry,asam_am,col=gray(0.8),pch=17)#
+lines(mtry, asam_am_rf, lwd = 2, col = gray(0.8))#col = "darkgreen"#
+points(mtry,asam_aw_rf,col=gray(0.4),pch=19)#
+lines(mtry, asam_aw_rf, lwd = 2, col = gray(0.4))#
+#abline(v=0.01,col="red")#default value of cp#
+#text(0.01+0.01,asamb-2,labels="cp default=0.01",col="red",cex=0.8)#
+abline(v=3,col="black",lty="dotted")#default value of mtry#
+#text(3.7,6,labels="mtry default = 3",col="black",cex=0.8)#
+# plot rpart#
+# plot together accuracy and balance#
+ par(mar = c(5,5,2,4))#
+ plot(cp, rpartacc, #
+type = "l", lwd = 1, col ="black" , ylab = "Accuracy",lty="dashed",#
+ xlab = paste0("cp: complexity parameter"), #
+main = paste0("classification tree"), #
+#xlim=c(min(cp)-0.01, max(cp)+0.01),#
+ylim=c(0.6,0.7)#
+#ylim = c(min(rpartacc)-0.01, max(rpartacc)+0.01)#
+)#
+points(cp,rpartacc,col="black",pch=17)#
+#add balance#
+par(new=T)#
+plot(cp,asam_am_tree,col=gray(0.8),pch=19,axes=F,xlab=NA,ylab=NA,#
+#xlim=c(0,0.1),#
+#yim<-c(6,17)#
+ylim=c(min(c(asam_am_tree,asam_aw_tree)),max(c(asam_am_tree,asam_aw_tree)))#
+)#
+axis(side=4)#
+mtext(side=4,line=3,"ASAM")#
+abline(v=0.01,col="black",lty="dotted")#default value of cp#
+#points(mtry,asam_am,col=gray(0.8),pch=17)#
+lines(cp, asam_am_tree, lwd = 1, col = gray(0.8))#col = "darkgreen"#
+points(cp,asam_aw_tree,col=gray(0.4),pch=19)#
+lines(cp, asam_aw_tree, lwd = 1, col = gray(0.4))#
+#text(0.01+0.01,asamb-2,labels="cp default=0.01",col="red",cex=0.8)#
+cpdef <- 0.01#
+#text(3.7,6,labels="mtry default = 3",col="black",cex=0.8)#
+#add legend#
+plot.new()#
+legend(x = "topleft", legend = c("Accuracy","ASAM after matching","ASAM after weighting"), #
+ lty = c(2,1, 1), pch=c(17,19,19),lwd = rep(1, 3), col = c("black", gray(0.9),gray(0.4)), #
+ text.width = 1.6, cex = 0.75,bty="n")
+# plot nnet#
+ # plot accuracy, asam_am and asam_aw for nete#
+ nnet_tab<-cbind(nnet_grid$results,asam_am_net,asam_aw_net)#
+ par(mar = c(4,4,4,3))#
+for (i in unique(nnet_tab$decay)){#
+	    dataplot<-nnet_tab[nnet_tab$decay==i,]#
+ plot(dataplot$size, dataplot$Accuracy, #
+type = "l", lwd = 1, col =gray(1/(i+1)), ylab = "Accuracy",lty="solid",#
+ xlab = paste0("size: # of hidden units"), #
+#main = paste0("neural network"),#
+#xlim=c(0,0.05),#
+ylim = c(min(nnetacc)-0.00001, max(nnetacc)+0.0001)#
+)#
+points(dataplot$size, dataplot$Accuracy,col=gray(1/(i+1)) ,pch=i+1)#
+par(new=T)#
+}#
+#asam_am#
+par(new=F)#
+for (i in unique(nnet_tab$decay)){#
+	    dataplot<-nnet_tab[nnet_tab$decay==i,]#
+ plot(dataplot$size, dataplot$asam_am_net, #
+type = "l", lwd = 1, col =gray(1/(i+1)) , ylab = "ASAM after matching",lty="solid",#
+ xlab = paste0("size: # of hidden units"), #
+ #xlab = paste0("size: # of hidden units"), #
+main = paste0("neural network"),#
+#xlim=c(0,0.05),#
+#ylim = c(min(asam_am_net)-0.00001, max(asam_am_net)+0.0001)#
+ylim=c(2,12)#
+)#
+points(dataplot$size, dataplot$asam_am_net,col=gray(1/(i+1)),pch=i+1)#
+par(new=T)#
+}#
+#asam_aw#
+par(new=F)#
+for (i in unique(nnet_tab$decay)){#
+	    dataplot<-nnet_tab[nnet_tab$decay==i,]#
+ plot(dataplot$size, dataplot$asam_aw_net, #
+type = "l", lwd = 1, col =gray(1/(i+1)) , ylab = "ASAM after weighting",lty="solid",#
+ xlab = paste0("size: # of hidden units"), #
+#main = paste0("neural network"),#
+#xlim=c(0,0.05),#
+ylim=c(2,12)#
+#ylim = c(min(asam_am_net)-0.00001, max(asam_am_net)+0.0001)#
+)#
+points(dataplot$size, dataplot$asam_aw_net,col=gray(1/(i+1)),pch=i+1)#
+par(new=T)#
+}#
+par(xpd=TRUE)#
+leglab<-rep(1,10)/unique(nnet_tab$decay)#
+legend(x = "bottomright",title="Decay", legend = unique(nnet_tab$decay), horiz=FALSE,inset=c(-0.2,0),#
+ lty = rep(1,length(leglab)), pch=unique(nnet_tab$decay)+1,lwd = rep(1, length(leglab)), #
+ col = gray(leglab-0.1), #
+ text.width = 1.6, cex = 0.75,bty="n")
+# load packages and functions#
+source("functions_case_study.r")#
+#
+# load data#
+ load("cs_data/clean_data_10cov.Rdata")
+#  Balance before #
+bbefore<-MatchBalance(T~.-Y,data=data)
+# outcome analysis for best balancing ps model #
+# eg, if logit:#
+bal.log    <- funbalance( data, "logit",outcome=TRUE)#
+# else one of the following#
+bal.rf       <- funbalance( data, "randomforest",outcome=TRUE)
+bal.tree   <- funbalance( data, "tree",outcome=TRUE)
+bal.nnm     <- funbalance( data, "nnm",outcome=TRUE)#
+bal.nnw     <- funbalance( data, "nnw",outcome=TRUE)
+bal.rf
+bal.tree
+bal.nnm
+bal.nnw
+funsim_tp(data[data$fold!=i,],"nnet", tp=c(TRUE,15,2))$masb_am
+#####################################
+#
+ funsim_tp <- function(x,psmethod,par="ATT",tp=NULL){#
+#
+#~~ estimate ps           #
+if (psmethod =="truelogit")#
+{   	#
+	  mod = glm(T~ w1 + w2 + w3 + w4, data=x, family=binomial)#
+	  ps = mod$fitted#
+} else if (psmethod == "logit"){#
+    mod = glm(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x ,family=binomial)#
+	 ps = mod$fitted#
+} else if (psmethod == "tree"){#
+#
+    mod = rpart(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10,method="class",data=x, #
+    cp=tp )#
+	 ps = predict(mod)[,2]     #
+}  else if (psmethod == "randomforest"){#
+      	mod = randomForest(factor(T)~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, ntree= 500,#
+      	mtry=tp)#
+ 	   ps<-predict(mod , type="prob")[,2]#
+}  else if (psmethod == "gbm"){#
+     mod = gbm(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, distribution = "bernoulli", interaction.depth = 1, #
+     n.trees = tp)  #
+	  ps = predict.gbm(mod,data=x,n.trees=100, type="response") #
+}  else if (psmethod == "gbmtwang"){#
+   mod = ps(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, n.trees = 10000,interaction.depth = 3,verbose=FALSE,shrinkage = 0.0005)#
+   ps = as.vector(mod$ps[,1]) #
+} else if (psmethod == "bag"){#
+   mod = bagging(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, #
+   cp=tp,data=x)#
+   ps =  predict(mod,newdata=x,type="prob")    #
+}#
+    else if (psmethod == "nnet")    {	#
+   mod= nnet(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10,#
+   data=x, entropy=tp[1],#
+   size=tp[2],#
+   decay=tp[3],maxit=100,trace=F)#
+   ps<-as.numeric(mod$fitted.values)#
+   #ps = as.numeric(predict(mod, type='raw')) #nb: anche predizioni fuori da [0,1]#
+   #ps=exp(ps)/(1+exp(ps))          #
+                               }#
+    else if (psmethod == "nb")     {#
+	 mod = naiveBayes(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x,#
+	 laplace=tp)#
+      ps = predict(mod,newdata=x,type="raw")[,2] #
+}#
+#### true (sample) att:#
+#
+g <- mean(x$indeff[x$T==1]) #
+#
+## true (sample) ate#
+#
+if(par=="ATE") {g <- mean(x$indeff) }#
+#
+#### estimating ATT via propensity score weighting#
+#
+weights     <- ifelse(x$T==1,1,ps/(1-ps))#
+#
+#### estimating ATE via propensity score weighting#
+#
+if(par=="ATE") { weights     <- ifelse(x$T==1,1/ps,1/(1-ps)) }#
+#
+hatg          <- wtd.mean(x$Y[x$T==1],weights=weights[x$T==1])-wtd.mean(x$Y[x$T==0],weights=weights[x$T==0])#
+#
+ absrbias    <- abs((hatg -g)/g)*100 #
+varhatg      <- (hatg-g)^2 #
+#
+modw     <- lm( Y ~ T , data=x, weight=weights)#
+hatgsew <- summary(modw)$coefficients[c("T"),c("Std. Error")]#
+covw <- ifelse(g > hatg-2*hatgsew  & g < hatg + 2*hatgsew , 1, 0)#
+# estimating ATT via matching with caliper#
+#
+rr = Match(Y=x$Y, Tr=x$T, X=ps, caliper=0.25, M=1, replace=TRUE,ties=FALSE)#
+#
+if(par=="ATE"){#
+rr = Match(Y=x$Y, Tr=x$T, X=ps, caliper=0.25,M=1,estimand=par,replace=TRUE,ties=FALSE)#
+}#
+#
+allmdata<-rbind(x[rr$index.treated,],x[rr$index.control,])#
+#
+hatgm          <-rr$est#
+absrbiasm    <- abs((hatgm -g)/g)*100 #
+varhatgm      <- (hatgm-g)^2 #
+#
+ hatgsem          <-rr$se.standard#
+ covm <- ifelse(g > hatgm-2*hatgsem  & g < hatgm + 2*hatgsem , 1, 0)#
+# ~  size of matched dataset#
+#
+orig.nobs   <-rr$orig.nobs#
+orig.tnobs  <-rr$orig.treated.nobs#
+#match.nobs   <-rr$nobs # this is wrong! it is the nobs inthe unmatched dataset#
+match.nobs   <-length(rr$mdata$Tr)#
+match.tnobs  <-length(rr$mdata$Tr[rr$mdata$Tr==1])	      #
+# Balance BEFORE for w1 ... w10#
+#
+bb = MatchBalance(T ~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10#
++w1*w2+w1*w3+w1*w4+w1*w5+w1*w6+w1*w7+w1*w8+w1*w9+w1*w10#
++w2*w3+w2*w4+w2*w5+w2*w6+w2*w7+w2*w8+w2*w9+w2*w10#
++w3*w4+w3*w5+w3*w6+w3*w7+w3*w8+w3*w9+w3*w10#
++w4*w5+w4*w6+w4*w7+w4*w8+w4*w9+w4*w10#
++w5*w6+w5*w7+w5*w8+w5*w9+w5*w10#
++w6*w7+w6*w8+w6*w9+w6*w10#
++w7*w8+w7*w9+w7*w10#
++w8*w9+w8*w10#
++w9*w10, data=x, ks = FALSE, nboots=0, print.level=0) #
+# ASAM#
+asb_b    <-vector();for(i in 1:10){asb_b[[i]] <- bb$BeforeMatching[[i]]$sdiff}#
+#
+# ASAM with interactions#
+interasbb<-vector();for(i in 1:(length(bb$BeforeMatching))){interasbb[[i]] <- bb$BeforeMatching[[i]]$sdiff}#
+#
+# # qq mean difference raw#
+# vecqqmeanrawb    <-vector();for(i in 1:10){vecqqmeanrawb[[i]] <- bb$BeforeMatching[[i]]$qqsummary.raw$meandiff}#
+#
+# # qq mean diff#
+# vecqqmeanb<-vector();for(i in 1:10){vecqqmeanb[[i]] <- bb$BeforeMatching[[i]]$qqsummary$meandiff}#
+# interqqb<-vector();for(i in 1:length(bb$BeforeMatching)){interqqb[[i]] <- bb$BeforeMatching[[i]]$qqsummary$meandiff}#
+#
+# # qq max difference#
+# vecqqmaxb<-vector();for(i in 1:10){vecqqmaxb[[i]] <- bb$BeforeMatching[[i]]$qqsummary$maxdiff}#
+#
+# # qq max with difference#
+# interqqmaxb<-vector();for(i in 1:(length(bb$BeforeMatching))){interqqmaxb[[i]] <- bb$BeforeMatching[[i]]$qqsummary$maxdiff} #
+#
+# # variance ratio #
+# # i.e. before log (var ratio) for ps; reference: Imbens-Rubin Ch 10, eq. 14.5 and tobacco litigation       #
+# varratio_b =abs(log(var(ps[x$T==1])/var(ps[x$T==0])))  #
+#
+# # L1 distance#
+# #l1b=(imbalance(group = x$T, data = x[c("w1", "w2", "w3", "w4", "w5","w6", "w7", "w8", "w9", "w10")])$L1)[1]#
+#~~ performance metrics: balance AFTER weighting for w1 ...w10#
+#
+ba = MatchBalance(T ~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10#
++w1*w2+w1*w3+w1*w4+w1*w5+w1*w6+w1*w7+w1*w8+w1*w9+w1*w10#
++w2*w3+w2*w4+w2*w5+w2*w6+w2*w7+w2*w8+w2*w9+w2*w10#
++w3*w4+w3*w5+w3*w6+w3*w7+w3*w8+w3*w9+w3*w10#
++w4*w5+w4*w6+w4*w7+w4*w8+w4*w9+w4*w10#
++w5*w6+w5*w7+w5*w8+w5*w9+w5*w10#
++w6*w7+w6*w8+w6*w9+w6*w10#
++w7*w8+w7*w9+w7*w10#
++w8*w9+w8*w10#
++w9*w10, data=x,weights=weights, ks = FALSE, nboots=0, print.level=0)#
+#
+# ASAM#
+asb_a    <-vector()#
+for(i in 1:10){asb_a[[i]] <- ba$BeforeMatching[[i]]$sdiff}#
+# ASAM with interactions #
+interasba<-vector()#
+for(i in 1:(length(ba$BeforeMatching))){interasba[[i]] <- ba$BeforeMatching[[i]]$sdiff}#
+# # QQ mean raw#
+# # # mean difference of empirical quantiles for w1 with weights applied#
+# # # (cannot use weighths with matchBalance forr qq measure)#
+# covnames          <- colnames(x[,-which(names(x)%in%c("Y","T"))])#
+# vecqqmeanrawaw <- vector() #
+# for(i in 1:length(covnames) ) {#
+	# vecqqmeanrawaw[i] <- abs(#
+ # mean(wtd.quantile(x[x$T==1,] [, covnames[i] ],probs=seq(0.01,1-0.01,0.01),weights=weights[x$T==1])-mean(wtd.quantile(x[x$T==0,] [, covnames[i] ],probs=seq(0.01,1-0.01,0.01),weights=weights[x$T==0]))))#
+	# }#
+#
+# #mean and max differences of ecdf after weighting (nb: non si possono usare pesi con matchbalance per qq)#
+# covnames          <- colnames(x[,-which(names(x)%in%c("Y","T"))])#
+# vecqqmeanaw <- vecqqmaxaw<-vector() #
+# for(i in 1:length(covnames) ) {#
+	# vals <- sort(unique(x[, covnames[i] ]))#
+	# wt <- stepfun(wtd.Ecdf(x[x$T==1,][, covnames[i] ],weights=weights[x$T==1])$x[-1],wtd.Ecdf(x[x$T==1,][, covnames[i] ],weights=weights[x$T==1])$ecdf)#
+# swt <- wt(vals)#
+# wc <- stepfun(wtd.Ecdf(x[x$T==0,][, covnames[i] ],weights=weights[x$T==0])$x[-1],wtd.Ecdf(x[x$T==0,][, covnames[i] ],weights=weights[x$T==0])$ecdf)#
+# swc <- wc(vals)#
+	# vecqqmeanaw[i]        <- mean(abs(swt - swc))#
+	# vecqqmaxaw[i] <- max(abs(swt - swc))#
+	# }#
+# # variance ratio#
+# varratio_a =abs(log(wtd.var(ps[x$T==1],weights=weights[x$T==1])/wtd.var(ps[x$T==0],weights=weights[x$T==0])))  # log (var ratio) after weighting; reference in Inbens-Rubin Ch 10, eq. 14.5 and tobacco litigation#
+#~~ performance metrics: balance AFTER matching for w1 ...w10#
+#
+bam = MatchBalance(T ~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10#
++w1*w2+w1*w3+w1*w4+w1*w5+w1*w6+w1*w7+w1*w8+w1*w9+w1*w10#
++w2*w3+w2*w4+w2*w5+w2*w6+w2*w7+w2*w8+w2*w9+w2*w10#
++w3*w4+w3*w5+w3*w6+w3*w7+w3*w8+w3*w9+w3*w10#
++w4*w5+w4*w6+w4*w7+w4*w8+w4*w9+w4*w10#
++w5*w6+w5*w7+w5*w8+w5*w9+w5*w10#
++w6*w7+w6*w8+w6*w9+w6*w10#
++w7*w8+w7*w9+w7*w10#
++w8*w9+w8*w10#
++w9*w10, data=allmdata, ks = FALSE, nboots=0, print.level=0) #
+#
+# ASAM after matching#
+asb_am    <-vector()#
+for(i in 1:10){asb_am[[i]] <- bam$BeforeMatching[[i]]$sdiff}#
+#
+# ASAM with interactions after matching#
+interasbam<-vector()#
+for(i in 1:(length(bam$BeforeMatching))){interasbam[[i]] <- bam$BeforeMatching[[i]]$sdiff}#
+# # mean difference of empirical quantiles after matching. #
+#
+# vecqqmeanrawam    <-vector()#
+# for(i in 1:10){vecqqmeanrawam[[i]] <- bam$BeforeMatching[[i]]$qqsummary.raw$meandiff}#
+#
+# # mean diff in ecdf after matching#
+# # eg for W1: abs(bam$BeforeMatching[[1]]$qqsummary$meandiff)#
+# vecqqmeanam    <-vector()#
+# for(i in 1:10){vecqqmeanam[[i]] <- bam$BeforeMatching[[i]]$qqsummary$meandiff}#
+#
+# interqqam<-vector()#
+# for(i in 1:(length(bam$BeforeMatching))){interqqam[[i]] <- bam$BeforeMatching[[i]]$qqsummary$meandiff}#
+#
+# # standardized max difference of ecdfs after matching#
+#
+# vecqqmaxam    <-vector()#
+# for(i in 1:10){vecqqmaxam[[i]] <- bam$BeforeMatching[[i]]$qqsummary$maxdiff}#
+#
+# interqqmaxam<-vector()#
+# for(i in 1:(length(bam$BeforeMatching))){interqqmaxam[[i]] <- bam$BeforeMatching[[i]]$qqsummary$maxdiff} #
+ # # variance ratio#
+ # varratio_am =abs(log(var(ps[rr$index.treated])/var(ps[rr$index.control])))  # abs log (var ratio) after matching#
+#~~collect output#
+output<-list( #
+#"auc"=auc,#
+"hatgw"=hatg,"absrbiasw"=absrbias,"varhatgw"=varhatg,#
+"hatgm"=hatgm,"absrbiasm"=absrbiasm,"varhatgm"=varhatgm,#
+"hatgsem"=hatgsem,"hatgsew"=hatgsew,#
+"covw"=covw,"covm"=covm,#
+#  mean (over covariates) of balance summaries : #
+# asam#
+"masb_b"=mean(abs(asb_b)),#
+"masb_aw"=mean(abs(asb_a)),#
+"masb_am"=mean(abs(asb_am)),#
+# mean asam>20#
+"over20masb_b"=sum(abs(asb_b[which(abs(asb_b)>20)])-20)/length(asb_b),#
+"over20masb_aw"=sum(abs(asb_a[which(abs(asb_a)>20)])-20)/length(asb_a),#
+"over20masb_am"=sum(abs(asb_am[which(abs(asb_am)>20)])-20)/length(asb_am),#
+# mean asam>10#
+"over10masb_b"=sum(abs(asb_b[which(abs(asb_b)>10)])-10)/length(asb_b),#
+"over10masb_aw"=sum(abs(asb_a[which(abs(asb_a)>10)])-10)/length(asb_a),#
+"over10masb_am"=sum(abs(asb_am[which(abs(asb_am)>10)])-10)/length(asb_am),#
+# asam with interactions#
+"masbinter_b"=mean(abs(interasbb)),#
+"masbinter_aw"=mean(abs(interasba)),#
+"masbinter_am"=mean(abs(interasbam))#
+#"KLdivb"=KLdivb,"KLdivaw"=KLdivaw,"KLdivam"=KLdivam,#
+# # #
+# "qqmeanraw_b"=mean(vecqqmeanrawb),#
+# "qqmeanraw_aw"=mean(vecqqmeanrawaw),#
+# "qqmeanraw_am"=mean(vecqqmeanam),#
+# ##
+# "qqmean_b"=mean(vecqqmeanb),#
+# "qqmean_aw"=mean(vecqqmeanaw),#
+# "qqmean_am"=mean(vecqqmeanam),#
+# #"qqmeaninter_b"=mean(abs(interqqb)),"qqmeaninter_am"=mean(abs(interqqam)),#
+# "qqmax_b"=mean(vecqqmaxb),#
+# "qqmax_aw"=mean(vecqqmaxaw),#
+# "qqmax_am"=mean(vecqqmaxam),#
+# #"qqmaxinter_b"=mean(abs(interqqmaxb)),#
+# #"qqmaxinter_am"=mean(abs(interqqmaxam)),#
+# # variance ratio#
+# "varratio_b"=varratio_b,#
+# "varratio_aw"=varratio_a,#
+# "varratio_am"=varratio_am,#
+# ##
+# "match.tnobs"=match.tnobs,"match.nobs"=match.nobs#
+)#
+ return(output)#
+ }
+funsim_tp(data[data$fold!=i,],"nnet", tp=c(TRUE,15,2))$masb_am
+funsim_tp(data,"nnet", tp=c(TRUE,15,2))$masb_am
+funsim_tp(data,"nnet", tp=c(TRUE,15,2))$masb_aw
+bal.nb     <- funsim_tp(data,"nb", tp=c(FALSE))
+bal.nb
+bal.nnm     <- funsim_tp(data,"nnet", tp=c(TRUE,15,2))
+bal.nnm
+mean(data$indeff[data$T==1])
+head(data)
+#####################################
+# code funsim with additional argument:#
+# tp := tuning parameter#
+######################################
+#
+ funsim_tp <- function(x,psmethod,par="ATT",tp=NULL){#
+#
+#~~ estimate ps           #
+if (psmethod =="truelogit")#
+{   	#
+	  mod = glm(T~ w1 + w2 + w3 + w4, data=x, family=binomial)#
+	  ps = mod$fitted#
+} else if (psmethod == "logit"){#
+    mod = glm(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x ,family=binomial)#
+	 ps = mod$fitted#
+} else if (psmethod == "tree"){#
+#
+    mod = rpart(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10,method="class",data=x, #
+    cp=tp )#
+	 ps = predict(mod)[,2]     #
+}  else if (psmethod == "randomforest"){#
+      	mod = randomForest(factor(T)~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, ntree= 500,#
+      	mtry=tp)#
+ 	   ps<-predict(mod , type="prob")[,2]#
+}  else if (psmethod == "gbm"){#
+     mod = gbm(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, distribution = "bernoulli", interaction.depth = 1, #
+     n.trees = tp)  #
+	  ps = predict.gbm(mod,data=x,n.trees=100, type="response") #
+}  else if (psmethod == "gbmtwang"){#
+   mod = ps(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, n.trees = 10000,interaction.depth = 3,verbose=FALSE,shrinkage = 0.0005)#
+   ps = as.vector(mod$ps[,1]) #
+} else if (psmethod == "bag"){#
+   mod = bagging(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, #
+   cp=tp,data=x)#
+   ps =  predict(mod,newdata=x,type="prob")    #
+}#
+    else if (psmethod == "nnet")    {	#
+   mod= nnet(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10,#
+   data=x, entropy=tp[1],#
+   size=tp[2],#
+   decay=tp[3],maxit=100,trace=F)#
+   ps<-as.numeric(mod$fitted.values)#
+   #ps = as.numeric(predict(mod, type='raw')) #nb: anche predizioni fuori da [0,1]#
+   #ps=exp(ps)/(1+exp(ps))          #
+                               }#
+    else if (psmethod == "nb")     {#
+	 mod = naiveBayes(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x,#
+	 laplace=tp)#
+      ps = predict(mod,newdata=x,type="raw")[,2] #
+}#
+#
+#### estimating ATT via propensity score weighting#
+weights     <- ifelse(x$T==1,1,ps/(1-ps))#
+if(par=="ATE") { weights     <- ifelse(x$T==1,1/ps,1/(1-ps)) }#
+modw     <- lm( Y ~ T , data=x, weights=weights)#
+hatgw <- summary(modw)$coefficients[c("T"),c("Estimate")]#
+sdhatgw <- summary(modw)$coefficients[c("T"),c("Std. Error")]#
+# estimating ATT via matching with caliper#
+#
+rr = Match(Y=x$Y, Tr=x$T, X=ps, caliper=0.25, M=1, estimand="ATT",replace=TRUE,ties=FALSE)#
+#
+if(par=="ATE"){#
+rr = Match(Y=x$Y, Tr=x$T, X=ps, caliper=0.25,M=1,estimand="ATE",replace=TRUE,ties=FALSE)#
+}#
+allmdata<-rbind(x[rr$index.treated,],x[rr$index.control,])#
+modm     <- lm( Y ~ T , data=allmdata )#
+hatgm <- summary(modm)$coefficients[c("T"),c("Estimate")]#
+sdhatgm <- summary(modm)$coefficients[c("T"),c("Std. Error")]#
+#
+# ~  size of matched dataset#
+#
+orig.nobs   <-rr$orig.nobs#
+orig.tnobs  <-rr$orig.treated.nobs#
+#match.nobs   <-rr$nobs # this is wrong! it is the nobs inthe unmatched dataset#
+match.nobs   <-length(rr$mdata$Tr)#
+match.tnobs  <-length(rr$mdata$Tr[rr$mdata$Tr==1])	      #
+# Balance BEFORE for w1 ... w10#
+#
+bb = MatchBalance(T ~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10#
++w1*w2+w1*w3+w1*w4+w1*w5+w1*w6+w1*w7+w1*w8+w1*w9+w1*w10#
++w2*w3+w2*w4+w2*w5+w2*w6+w2*w7+w2*w8+w2*w9+w2*w10#
++w3*w4+w3*w5+w3*w6+w3*w7+w3*w8+w3*w9+w3*w10#
++w4*w5+w4*w6+w4*w7+w4*w8+w4*w9+w4*w10#
++w5*w6+w5*w7+w5*w8+w5*w9+w5*w10#
++w6*w7+w6*w8+w6*w9+w6*w10#
++w7*w8+w7*w9+w7*w10#
++w8*w9+w8*w10#
++w9*w10, data=x, ks = FALSE, nboots=0, print.level=0) #
+# ASAM#
+asb_b    <-vector();for(i in 1:10){asb_b[[i]] <- bb$BeforeMatching[[i]]$sdiff}#
+#
+# ASAM with interactions#
+interasbb<-vector();for(i in 1:(length(bb$BeforeMatching))){interasbb[[i]] <- bb$BeforeMatching[[i]]$sdiff}#
+#
+# # qq mean difference raw#
+# vecqqmeanrawb    <-vector();for(i in 1:10){vecqqmeanrawb[[i]] <- bb$BeforeMatching[[i]]$qqsummary.raw$meandiff}#
+#
+# # qq mean diff#
+# vecqqmeanb<-vector();for(i in 1:10){vecqqmeanb[[i]] <- bb$BeforeMatching[[i]]$qqsummary$meandiff}#
+# interqqb<-vector();for(i in 1:length(bb$BeforeMatching)){interqqb[[i]] <- bb$BeforeMatching[[i]]$qqsummary$meandiff}#
+#
+# # qq max difference#
+# vecqqmaxb<-vector();for(i in 1:10){vecqqmaxb[[i]] <- bb$BeforeMatching[[i]]$qqsummary$maxdiff}#
+#
+# # qq max with difference#
+# interqqmaxb<-vector();for(i in 1:(length(bb$BeforeMatching))){interqqmaxb[[i]] <- bb$BeforeMatching[[i]]$qqsummary$maxdiff} #
+#
+# # variance ratio #
+# # i.e. before log (var ratio) for ps; reference: Imbens-Rubin Ch 10, eq. 14.5 and tobacco litigation       #
+# varratio_b =abs(log(var(ps[x$T==1])/var(ps[x$T==0])))  #
+#
+# # L1 distance#
+# #l1b=(imbalance(group = x$T, data = x[c("w1", "w2", "w3", "w4", "w5","w6", "w7", "w8", "w9", "w10")])$L1)[1]#
+#~~ performance metrics: balance AFTER weighting for w1 ...w10#
+#
+ba = MatchBalance(T ~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10#
++w1*w2+w1*w3+w1*w4+w1*w5+w1*w6+w1*w7+w1*w8+w1*w9+w1*w10#
++w2*w3+w2*w4+w2*w5+w2*w6+w2*w7+w2*w8+w2*w9+w2*w10#
++w3*w4+w3*w5+w3*w6+w3*w7+w3*w8+w3*w9+w3*w10#
++w4*w5+w4*w6+w4*w7+w4*w8+w4*w9+w4*w10#
++w5*w6+w5*w7+w5*w8+w5*w9+w5*w10#
++w6*w7+w6*w8+w6*w9+w6*w10#
++w7*w8+w7*w9+w7*w10#
++w8*w9+w8*w10#
++w9*w10, data=x,weights=weights, ks = FALSE, nboots=0, print.level=0)#
+#
+# ASAM#
+asb_a    <-vector()#
+for(i in 1:10){asb_a[[i]] <- ba$BeforeMatching[[i]]$sdiff}#
+# ASAM with interactions #
+interasba<-vector()#
+for(i in 1:(length(ba$BeforeMatching))){interasba[[i]] <- ba$BeforeMatching[[i]]$sdiff}#
+# # QQ mean raw#
+# # # mean difference of empirical quantiles for w1 with weights applied#
+# # # (cannot use weighths with matchBalance forr qq measure)#
+# covnames          <- colnames(x[,-which(names(x)%in%c("Y","T"))])#
+# vecqqmeanrawaw <- vector() #
+# for(i in 1:length(covnames) ) {#
+	# vecqqmeanrawaw[i] <- abs(#
+ # mean(wtd.quantile(x[x$T==1,] [, covnames[i] ],probs=seq(0.01,1-0.01,0.01),weights=weights[x$T==1])-mean(wtd.quantile(x[x$T==0,] [, covnames[i] ],probs=seq(0.01,1-0.01,0.01),weights=weights[x$T==0]))))#
+	# }#
+#
+# #mean and max differences of ecdf after weighting (nb: non si possono usare pesi con matchbalance per qq)#
+# covnames          <- colnames(x[,-which(names(x)%in%c("Y","T"))])#
+# vecqqmeanaw <- vecqqmaxaw<-vector() #
+# for(i in 1:length(covnames) ) {#
+	# vals <- sort(unique(x[, covnames[i] ]))#
+	# wt <- stepfun(wtd.Ecdf(x[x$T==1,][, covnames[i] ],weights=weights[x$T==1])$x[-1],wtd.Ecdf(x[x$T==1,][, covnames[i] ],weights=weights[x$T==1])$ecdf)#
+# swt <- wt(vals)#
+# wc <- stepfun(wtd.Ecdf(x[x$T==0,][, covnames[i] ],weights=weights[x$T==0])$x[-1],wtd.Ecdf(x[x$T==0,][, covnames[i] ],weights=weights[x$T==0])$ecdf)#
+# swc <- wc(vals)#
+	# vecqqmeanaw[i]        <- mean(abs(swt - swc))#
+	# vecqqmaxaw[i] <- max(abs(swt - swc))#
+	# }#
+# # variance ratio#
+# varratio_a =abs(log(wtd.var(ps[x$T==1],weights=weights[x$T==1])/wtd.var(ps[x$T==0],weights=weights[x$T==0])))  # log (var ratio) after weighting; reference in Inbens-Rubin Ch 10, eq. 14.5 and tobacco litigation#
+#~~ performance metrics: balance AFTER matching for w1 ...w10#
+#
+bam = MatchBalance(T ~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10#
++w1*w2+w1*w3+w1*w4+w1*w5+w1*w6+w1*w7+w1*w8+w1*w9+w1*w10#
++w2*w3+w2*w4+w2*w5+w2*w6+w2*w7+w2*w8+w2*w9+w2*w10#
++w3*w4+w3*w5+w3*w6+w3*w7+w3*w8+w3*w9+w3*w10#
++w4*w5+w4*w6+w4*w7+w4*w8+w4*w9+w4*w10#
++w5*w6+w5*w7+w5*w8+w5*w9+w5*w10#
++w6*w7+w6*w8+w6*w9+w6*w10#
++w7*w8+w7*w9+w7*w10#
++w8*w9+w8*w10#
++w9*w10, data=allmdata, ks = FALSE, nboots=0, print.level=0) #
+#
+# ASAM after matching#
+asb_am    <-vector()#
+for(i in 1:10){asb_am[[i]] <- bam$BeforeMatching[[i]]$sdiff}#
+#
+# ASAM with interactions after matching#
+interasbam<-vector()#
+for(i in 1:(length(bam$BeforeMatching))){interasbam[[i]] <- bam$BeforeMatching[[i]]$sdiff}#
+# # mean difference of empirical quantiles after matching. #
+#
+# vecqqmeanrawam    <-vector()#
+# for(i in 1:10){vecqqmeanrawam[[i]] <- bam$BeforeMatching[[i]]$qqsummary.raw$meandiff}#
+#
+# # mean diff in ecdf after matching#
+# # eg for W1: abs(bam$BeforeMatching[[1]]$qqsummary$meandiff)#
+# vecqqmeanam    <-vector()#
+# for(i in 1:10){vecqqmeanam[[i]] <- bam$BeforeMatching[[i]]$qqsummary$meandiff}#
+#
+# interqqam<-vector()#
+# for(i in 1:(length(bam$BeforeMatching))){interqqam[[i]] <- bam$BeforeMatching[[i]]$qqsummary$meandiff}#
+#
+# # standardized max difference of ecdfs after matching#
+#
+# vecqqmaxam    <-vector()#
+# for(i in 1:10){vecqqmaxam[[i]] <- bam$BeforeMatching[[i]]$qqsummary$maxdiff}#
+#
+# interqqmaxam<-vector()#
+# for(i in 1:(length(bam$BeforeMatching))){interqqmaxam[[i]] <- bam$BeforeMatching[[i]]$qqsummary$maxdiff} #
+ # # variance ratio#
+ # varratio_am =abs(log(var(ps[rr$index.treated])/var(ps[rr$index.control])))  # abs log (var ratio) after matching#
+#~~collect output#
+output<-list( #
+#"auc"=auc,#
+"hatgw"=hatg,"absrbiasw"=absrbias,"varhatgw"=varhatg,#
+"hatgm"=hatgm,"absrbiasm"=absrbiasm,"varhatgm"=varhatgm,#
+"hatgsem"=hatgsem,"hatgsew"=hatgsew,#
+#"covw"=covw,"covm"=covm,#
+#  mean (over covariates) of balance summaries : #
+# asam#
+"masb_b"=mean(abs(asb_b)),#
+"masb_aw"=mean(abs(asb_a)),#
+"masb_am"=mean(abs(asb_am)),#
+# mean asam>20#
+"over20masb_b"=sum(abs(asb_b[which(abs(asb_b)>20)])-20)/length(asb_b),#
+"over20masb_aw"=sum(abs(asb_a[which(abs(asb_a)>20)])-20)/length(asb_a),#
+"over20masb_am"=sum(abs(asb_am[which(abs(asb_am)>20)])-20)/length(asb_am),#
+# mean asam>10#
+"over10masb_b"=sum(abs(asb_b[which(abs(asb_b)>10)])-10)/length(asb_b),#
+"over10masb_aw"=sum(abs(asb_a[which(abs(asb_a)>10)])-10)/length(asb_a),#
+"over10masb_am"=sum(abs(asb_am[which(abs(asb_am)>10)])-10)/length(asb_am),#
+# asam with interactions#
+"masbinter_b"=mean(abs(interasbb)),#
+"masbinter_aw"=mean(abs(interasba)),#
+"masbinter_am"=mean(abs(interasbam))#
+#"KLdivb"=KLdivb,"KLdivaw"=KLdivaw,"KLdivam"=KLdivam,#
+# # #
+# "qqmeanraw_b"=mean(vecqqmeanrawb),#
+# "qqmeanraw_aw"=mean(vecqqmeanrawaw),#
+# "qqmeanraw_am"=mean(vecqqmeanam),#
+# ##
+# "qqmean_b"=mean(vecqqmeanb),#
+# "qqmean_aw"=mean(vecqqmeanaw),#
+# "qqmean_am"=mean(vecqqmeanam),#
+# #"qqmeaninter_b"=mean(abs(interqqb)),"qqmeaninter_am"=mean(abs(interqqam)),#
+# "qqmax_b"=mean(vecqqmaxb),#
+# "qqmax_aw"=mean(vecqqmaxaw),#
+# "qqmax_am"=mean(vecqqmaxam),#
+# #"qqmaxinter_b"=mean(abs(interqqmaxb)),#
+# #"qqmaxinter_am"=mean(abs(interqqmaxam)),#
+# # variance ratio#
+# "varratio_b"=varratio_b,#
+# "varratio_aw"=varratio_a,#
+# "varratio_am"=varratio_am,#
+# ##
+# "match.tnobs"=match.tnobs,"match.nobs"=match.nobs#
+)#
+ return(output)#
+ }
+bal.nnm     <- funsim_tp(data,"nnet", tp=c(TRUE,15,2))
+#####################################
+# code funsim with additional argument:#
+# tp := tuning parameter#
+######################################
+#
+ funsim_tp <- function(x,psmethod,par="ATT",tp=NULL){#
+#
+#~~ estimate ps           #
+if (psmethod =="truelogit")#
+{   	#
+	  mod = glm(T~ w1 + w2 + w3 + w4, data=x, family=binomial)#
+	  ps = mod$fitted#
+} else if (psmethod == "logit"){#
+    mod = glm(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x ,family=binomial)#
+	 ps = mod$fitted#
+} else if (psmethod == "tree"){#
+#
+    mod = rpart(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10,method="class",data=x, #
+    cp=tp )#
+	 ps = predict(mod)[,2]     #
+}  else if (psmethod == "randomforest"){#
+      	mod = randomForest(factor(T)~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, ntree= 500,#
+      	mtry=tp)#
+ 	   ps<-predict(mod , type="prob")[,2]#
+}  else if (psmethod == "gbm"){#
+     mod = gbm(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, distribution = "bernoulli", interaction.depth = 1, #
+     n.trees = tp)  #
+	  ps = predict.gbm(mod,data=x,n.trees=100, type="response") #
+}  else if (psmethod == "gbmtwang"){#
+   mod = ps(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, n.trees = 10000,interaction.depth = 3,verbose=FALSE,shrinkage = 0.0005)#
+   ps = as.vector(mod$ps[,1]) #
+} else if (psmethod == "bag"){#
+   mod = bagging(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, #
+   cp=tp,data=x)#
+   ps =  predict(mod,newdata=x,type="prob")    #
+}#
+    else if (psmethod == "nnet")    {	#
+   mod= nnet(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10,#
+   data=x, entropy=tp[1],#
+   size=tp[2],#
+   decay=tp[3],maxit=100,trace=F)#
+   ps<-as.numeric(mod$fitted.values)#
+   #ps = as.numeric(predict(mod, type='raw')) #nb: anche predizioni fuori da [0,1]#
+   #ps=exp(ps)/(1+exp(ps))          #
+                               }#
+    else if (psmethod == "nb")     {#
+	 mod = naiveBayes(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x,#
+	 laplace=tp)#
+      ps = predict(mod,newdata=x,type="raw")[,2] #
+}#
+#
+#### estimating ATT via propensity score weighting#
+weights     <- ifelse(x$T==1,1,ps/(1-ps))#
+if(par=="ATE") { weights     <- ifelse(x$T==1,1/ps,1/(1-ps)) }#
+modw     <- lm( Y ~ T , data=x, weights=weights)#
+hatgw <- summary(modw)$coefficients[c("T"),c("Estimate")]#
+sdhatgw <- summary(modw)$coefficients[c("T"),c("Std. Error")]#
+# estimating ATT via matching with caliper#
+#
+rr = Match(Y=x$Y, Tr=x$T, X=ps, caliper=0.25, M=1, estimand="ATT",replace=TRUE,ties=FALSE)#
+#
+if(par=="ATE"){#
+rr = Match(Y=x$Y, Tr=x$T, X=ps, caliper=0.25,M=1,estimand="ATE",replace=TRUE,ties=FALSE)#
+}#
+allmdata<-rbind(x[rr$index.treated,],x[rr$index.control,])#
+modm     <- lm( Y ~ T , data=allmdata )#
+hatgm <- summary(modm)$coefficients[c("T"),c("Estimate")]#
+sdhatgm <- summary(modm)$coefficients[c("T"),c("Std. Error")]#
+#
+# ~  size of matched dataset#
+#
+orig.nobs   <-rr$orig.nobs#
+orig.tnobs  <-rr$orig.treated.nobs#
+#match.nobs   <-rr$nobs # this is wrong! it is the nobs inthe unmatched dataset#
+match.nobs   <-length(rr$mdata$Tr)#
+match.tnobs  <-length(rr$mdata$Tr[rr$mdata$Tr==1])	      #
+# Balance BEFORE for w1 ... w10#
+#
+bb = MatchBalance(T ~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10#
++w1*w2+w1*w3+w1*w4+w1*w5+w1*w6+w1*w7+w1*w8+w1*w9+w1*w10#
++w2*w3+w2*w4+w2*w5+w2*w6+w2*w7+w2*w8+w2*w9+w2*w10#
++w3*w4+w3*w5+w3*w6+w3*w7+w3*w8+w3*w9+w3*w10#
++w4*w5+w4*w6+w4*w7+w4*w8+w4*w9+w4*w10#
++w5*w6+w5*w7+w5*w8+w5*w9+w5*w10#
++w6*w7+w6*w8+w6*w9+w6*w10#
++w7*w8+w7*w9+w7*w10#
++w8*w9+w8*w10#
++w9*w10, data=x, ks = FALSE, nboots=0, print.level=0) #
+# ASAM#
+asb_b    <-vector();for(i in 1:10){asb_b[[i]] <- bb$BeforeMatching[[i]]$sdiff}#
+#
+# ASAM with interactions#
+interasbb<-vector();for(i in 1:(length(bb$BeforeMatching))){interasbb[[i]] <- bb$BeforeMatching[[i]]$sdiff}#
+#
+# # qq mean difference raw#
+# vecqqmeanrawb    <-vector();for(i in 1:10){vecqqmeanrawb[[i]] <- bb$BeforeMatching[[i]]$qqsummary.raw$meandiff}#
+#
+# # qq mean diff#
+# vecqqmeanb<-vector();for(i in 1:10){vecqqmeanb[[i]] <- bb$BeforeMatching[[i]]$qqsummary$meandiff}#
+# interqqb<-vector();for(i in 1:length(bb$BeforeMatching)){interqqb[[i]] <- bb$BeforeMatching[[i]]$qqsummary$meandiff}#
+#
+# # qq max difference#
+# vecqqmaxb<-vector();for(i in 1:10){vecqqmaxb[[i]] <- bb$BeforeMatching[[i]]$qqsummary$maxdiff}#
+#
+# # qq max with difference#
+# interqqmaxb<-vector();for(i in 1:(length(bb$BeforeMatching))){interqqmaxb[[i]] <- bb$BeforeMatching[[i]]$qqsummary$maxdiff} #
+#
+# # variance ratio #
+# # i.e. before log (var ratio) for ps; reference: Imbens-Rubin Ch 10, eq. 14.5 and tobacco litigation       #
+# varratio_b =abs(log(var(ps[x$T==1])/var(ps[x$T==0])))  #
+#
+# # L1 distance#
+# #l1b=(imbalance(group = x$T, data = x[c("w1", "w2", "w3", "w4", "w5","w6", "w7", "w8", "w9", "w10")])$L1)[1]#
+#~~ performance metrics: balance AFTER weighting for w1 ...w10#
+#
+ba = MatchBalance(T ~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10#
++w1*w2+w1*w3+w1*w4+w1*w5+w1*w6+w1*w7+w1*w8+w1*w9+w1*w10#
++w2*w3+w2*w4+w2*w5+w2*w6+w2*w7+w2*w8+w2*w9+w2*w10#
++w3*w4+w3*w5+w3*w6+w3*w7+w3*w8+w3*w9+w3*w10#
++w4*w5+w4*w6+w4*w7+w4*w8+w4*w9+w4*w10#
++w5*w6+w5*w7+w5*w8+w5*w9+w5*w10#
++w6*w7+w6*w8+w6*w9+w6*w10#
++w7*w8+w7*w9+w7*w10#
++w8*w9+w8*w10#
++w9*w10, data=x,weights=weights, ks = FALSE, nboots=0, print.level=0)#
+#
+# ASAM#
+asb_a    <-vector()#
+for(i in 1:10){asb_a[[i]] <- ba$BeforeMatching[[i]]$sdiff}#
+# ASAM with interactions #
+interasba<-vector()#
+for(i in 1:(length(ba$BeforeMatching))){interasba[[i]] <- ba$BeforeMatching[[i]]$sdiff}#
+# # QQ mean raw#
+# # # mean difference of empirical quantiles for w1 with weights applied#
+# # # (cannot use weighths with matchBalance forr qq measure)#
+# covnames          <- colnames(x[,-which(names(x)%in%c("Y","T"))])#
+# vecqqmeanrawaw <- vector() #
+# for(i in 1:length(covnames) ) {#
+	# vecqqmeanrawaw[i] <- abs(#
+ # mean(wtd.quantile(x[x$T==1,] [, covnames[i] ],probs=seq(0.01,1-0.01,0.01),weights=weights[x$T==1])-mean(wtd.quantile(x[x$T==0,] [, covnames[i] ],probs=seq(0.01,1-0.01,0.01),weights=weights[x$T==0]))))#
+	# }#
+#
+# #mean and max differences of ecdf after weighting (nb: non si possono usare pesi con matchbalance per qq)#
+# covnames          <- colnames(x[,-which(names(x)%in%c("Y","T"))])#
+# vecqqmeanaw <- vecqqmaxaw<-vector() #
+# for(i in 1:length(covnames) ) {#
+	# vals <- sort(unique(x[, covnames[i] ]))#
+	# wt <- stepfun(wtd.Ecdf(x[x$T==1,][, covnames[i] ],weights=weights[x$T==1])$x[-1],wtd.Ecdf(x[x$T==1,][, covnames[i] ],weights=weights[x$T==1])$ecdf)#
+# swt <- wt(vals)#
+# wc <- stepfun(wtd.Ecdf(x[x$T==0,][, covnames[i] ],weights=weights[x$T==0])$x[-1],wtd.Ecdf(x[x$T==0,][, covnames[i] ],weights=weights[x$T==0])$ecdf)#
+# swc <- wc(vals)#
+	# vecqqmeanaw[i]        <- mean(abs(swt - swc))#
+	# vecqqmaxaw[i] <- max(abs(swt - swc))#
+	# }#
+# # variance ratio#
+# varratio_a =abs(log(wtd.var(ps[x$T==1],weights=weights[x$T==1])/wtd.var(ps[x$T==0],weights=weights[x$T==0])))  # log (var ratio) after weighting; reference in Inbens-Rubin Ch 10, eq. 14.5 and tobacco litigation#
+#~~ performance metrics: balance AFTER matching for w1 ...w10#
+#
+bam = MatchBalance(T ~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10#
++w1*w2+w1*w3+w1*w4+w1*w5+w1*w6+w1*w7+w1*w8+w1*w9+w1*w10#
++w2*w3+w2*w4+w2*w5+w2*w6+w2*w7+w2*w8+w2*w9+w2*w10#
++w3*w4+w3*w5+w3*w6+w3*w7+w3*w8+w3*w9+w3*w10#
++w4*w5+w4*w6+w4*w7+w4*w8+w4*w9+w4*w10#
++w5*w6+w5*w7+w5*w8+w5*w9+w5*w10#
++w6*w7+w6*w8+w6*w9+w6*w10#
++w7*w8+w7*w9+w7*w10#
++w8*w9+w8*w10#
++w9*w10, data=allmdata, ks = FALSE, nboots=0, print.level=0) #
+#
+# ASAM after matching#
+asb_am    <-vector()#
+for(i in 1:10){asb_am[[i]] <- bam$BeforeMatching[[i]]$sdiff}#
+#
+# ASAM with interactions after matching#
+interasbam<-vector()#
+for(i in 1:(length(bam$BeforeMatching))){interasbam[[i]] <- bam$BeforeMatching[[i]]$sdiff}#
+# # mean difference of empirical quantiles after matching. #
+#
+# vecqqmeanrawam    <-vector()#
+# for(i in 1:10){vecqqmeanrawam[[i]] <- bam$BeforeMatching[[i]]$qqsummary.raw$meandiff}#
+#
+# # mean diff in ecdf after matching#
+# # eg for W1: abs(bam$BeforeMatching[[1]]$qqsummary$meandiff)#
+# vecqqmeanam    <-vector()#
+# for(i in 1:10){vecqqmeanam[[i]] <- bam$BeforeMatching[[i]]$qqsummary$meandiff}#
+#
+# interqqam<-vector()#
+# for(i in 1:(length(bam$BeforeMatching))){interqqam[[i]] <- bam$BeforeMatching[[i]]$qqsummary$meandiff}#
+#
+# # standardized max difference of ecdfs after matching#
+#
+# vecqqmaxam    <-vector()#
+# for(i in 1:10){vecqqmaxam[[i]] <- bam$BeforeMatching[[i]]$qqsummary$maxdiff}#
+#
+# interqqmaxam<-vector()#
+# for(i in 1:(length(bam$BeforeMatching))){interqqmaxam[[i]] <- bam$BeforeMatching[[i]]$qqsummary$maxdiff} #
+ # # variance ratio#
+ # varratio_am =abs(log(var(ps[rr$index.treated])/var(ps[rr$index.control])))  # abs log (var ratio) after matching#
+#~~collect output#
+output<-list( #
+#"auc"=auc,#
+"hatgw"=hatgw,"absrbiasw"=absrbiasw,"varhatgw"=varhatgw,#
+"hatgm"=hatgm,"absrbiasm"=absrbiasm,"varhatgm"=varhatgm,#
+"hatgsem"=hatgsem,"hatgsew"=hatgsew,#
+#"covw"=covw,"covm"=covm,#
+#  mean (over covariates) of balance summaries : #
+# asam#
+"masb_b"=mean(abs(asb_b)),#
+"masb_aw"=mean(abs(asb_a)),#
+"masb_am"=mean(abs(asb_am)),#
+# mean asam>20#
+"over20masb_b"=sum(abs(asb_b[which(abs(asb_b)>20)])-20)/length(asb_b),#
+"over20masb_aw"=sum(abs(asb_a[which(abs(asb_a)>20)])-20)/length(asb_a),#
+"over20masb_am"=sum(abs(asb_am[which(abs(asb_am)>20)])-20)/length(asb_am),#
+# mean asam>10#
+"over10masb_b"=sum(abs(asb_b[which(abs(asb_b)>10)])-10)/length(asb_b),#
+"over10masb_aw"=sum(abs(asb_a[which(abs(asb_a)>10)])-10)/length(asb_a),#
+"over10masb_am"=sum(abs(asb_am[which(abs(asb_am)>10)])-10)/length(asb_am),#
+# asam with interactions#
+"masbinter_b"=mean(abs(interasbb)),#
+"masbinter_aw"=mean(abs(interasba)),#
+"masbinter_am"=mean(abs(interasbam))#
+#"KLdivb"=KLdivb,"KLdivaw"=KLdivaw,"KLdivam"=KLdivam,#
+# # #
+# "qqmeanraw_b"=mean(vecqqmeanrawb),#
+# "qqmeanraw_aw"=mean(vecqqmeanrawaw),#
+# "qqmeanraw_am"=mean(vecqqmeanam),#
+# ##
+# "qqmean_b"=mean(vecqqmeanb),#
+# "qqmean_aw"=mean(vecqqmeanaw),#
+# "qqmean_am"=mean(vecqqmeanam),#
+# #"qqmeaninter_b"=mean(abs(interqqb)),"qqmeaninter_am"=mean(abs(interqqam)),#
+# "qqmax_b"=mean(vecqqmaxb),#
+# "qqmax_aw"=mean(vecqqmaxaw),#
+# "qqmax_am"=mean(vecqqmaxam),#
+# #"qqmaxinter_b"=mean(abs(interqqmaxb)),#
+# #"qqmaxinter_am"=mean(abs(interqqmaxam)),#
+# # variance ratio#
+# "varratio_b"=varratio_b,#
+# "varratio_aw"=varratio_a,#
+# "varratio_am"=varratio_am,#
+# ##
+# "match.tnobs"=match.tnobs,"match.nobs"=match.nobs#
+)#
+ return(output)#
+ }
+bal.nnm     <- funsim_tp(data,"nnet", tp=c(TRUE,15,2))
+#####################################
+# code funsim with additional argument:#
+# tp := tuning parameter#
+######################################
+#
+ funsim_tp <- function(x,psmethod,par="ATT",tp=NULL){#
+#
+#~~ estimate ps           #
+if (psmethod =="truelogit")#
+{   	#
+	  mod = glm(T~ w1 + w2 + w3 + w4, data=x, family=binomial)#
+	  ps = mod$fitted#
+} else if (psmethod == "logit"){#
+    mod = glm(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x ,family=binomial)#
+	 ps = mod$fitted#
+} else if (psmethod == "tree"){#
+#
+    mod = rpart(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10,method="class",data=x, #
+    cp=tp )#
+	 ps = predict(mod)[,2]     #
+}  else if (psmethod == "randomforest"){#
+      	mod = randomForest(factor(T)~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, ntree= 500,#
+      	mtry=tp)#
+ 	   ps<-predict(mod , type="prob")[,2]#
+}  else if (psmethod == "gbm"){#
+     mod = gbm(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, distribution = "bernoulli", interaction.depth = 1, #
+     n.trees = tp)  #
+	  ps = predict.gbm(mod,data=x,n.trees=100, type="response") #
+}  else if (psmethod == "gbmtwang"){#
+   mod = ps(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, n.trees = 10000,interaction.depth = 3,verbose=FALSE,shrinkage = 0.0005)#
+   ps = as.vector(mod$ps[,1]) #
+} else if (psmethod == "bag"){#
+   mod = bagging(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, #
+   cp=tp,data=x)#
+   ps =  predict(mod,newdata=x,type="prob")    #
+}#
+    else if (psmethod == "nnet")    {	#
+   mod= nnet(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10,#
+   data=x, entropy=tp[1],#
+   size=tp[2],#
+   decay=tp[3],maxit=100,trace=F)#
+   ps<-as.numeric(mod$fitted.values)#
+   #ps = as.numeric(predict(mod, type='raw')) #nb: anche predizioni fuori da [0,1]#
+   #ps=exp(ps)/(1+exp(ps))          #
+                               }#
+    else if (psmethod == "nb")     {#
+	 mod = naiveBayes(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x,#
+	 laplace=tp)#
+      ps = predict(mod,newdata=x,type="raw")[,2] #
+}#
+#
+#### estimating ATT via propensity score weighting#
+weights     <- ifelse(x$T==1,1,ps/(1-ps))#
+if(par=="ATE") { weights     <- ifelse(x$T==1,1/ps,1/(1-ps)) }#
+modw     <- lm( Y ~ T , data=x, weights=weights)#
+hatgw <- summary(modw)$coefficients[c("T"),c("Estimate")]#
+sdhatgw <- summary(modw)$coefficients[c("T"),c("Std. Error")]#
+# estimating ATT via matching with caliper#
+#
+rr = Match(Y=x$Y, Tr=x$T, X=ps, caliper=0.25, M=1, estimand="ATT",replace=TRUE,ties=FALSE)#
+#
+if(par=="ATE"){#
+rr = Match(Y=x$Y, Tr=x$T, X=ps, caliper=0.25,M=1,estimand="ATE",replace=TRUE,ties=FALSE)#
+}#
+allmdata<-rbind(x[rr$index.treated,],x[rr$index.control,])#
+modm     <- lm( Y ~ T , data=allmdata )#
+hatgm <- summary(modm)$coefficients[c("T"),c("Estimate")]#
+sdhatgm <- summary(modm)$coefficients[c("T"),c("Std. Error")]#
+#
+# ~  size of matched dataset#
+#
+orig.nobs   <-rr$orig.nobs#
+orig.tnobs  <-rr$orig.treated.nobs#
+#match.nobs   <-rr$nobs # this is wrong! it is the nobs inthe unmatched dataset#
+match.nobs   <-length(rr$mdata$Tr)#
+match.tnobs  <-length(rr$mdata$Tr[rr$mdata$Tr==1])	      #
+# Balance BEFORE for w1 ... w10#
+#
+bb = MatchBalance(T ~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10#
++w1*w2+w1*w3+w1*w4+w1*w5+w1*w6+w1*w7+w1*w8+w1*w9+w1*w10#
++w2*w3+w2*w4+w2*w5+w2*w6+w2*w7+w2*w8+w2*w9+w2*w10#
++w3*w4+w3*w5+w3*w6+w3*w7+w3*w8+w3*w9+w3*w10#
++w4*w5+w4*w6+w4*w7+w4*w8+w4*w9+w4*w10#
++w5*w6+w5*w7+w5*w8+w5*w9+w5*w10#
++w6*w7+w6*w8+w6*w9+w6*w10#
++w7*w8+w7*w9+w7*w10#
++w8*w9+w8*w10#
++w9*w10, data=x, ks = FALSE, nboots=0, print.level=0) #
+# ASAM#
+asb_b    <-vector();for(i in 1:10){asb_b[[i]] <- bb$BeforeMatching[[i]]$sdiff}#
+#
+# ASAM with interactions#
+interasbb<-vector();for(i in 1:(length(bb$BeforeMatching))){interasbb[[i]] <- bb$BeforeMatching[[i]]$sdiff}#
+#
+# # qq mean difference raw#
+# vecqqmeanrawb    <-vector();for(i in 1:10){vecqqmeanrawb[[i]] <- bb$BeforeMatching[[i]]$qqsummary.raw$meandiff}#
+#
+# # qq mean diff#
+# vecqqmeanb<-vector();for(i in 1:10){vecqqmeanb[[i]] <- bb$BeforeMatching[[i]]$qqsummary$meandiff}#
+# interqqb<-vector();for(i in 1:length(bb$BeforeMatching)){interqqb[[i]] <- bb$BeforeMatching[[i]]$qqsummary$meandiff}#
+#
+# # qq max difference#
+# vecqqmaxb<-vector();for(i in 1:10){vecqqmaxb[[i]] <- bb$BeforeMatching[[i]]$qqsummary$maxdiff}#
+#
+# # qq max with difference#
+# interqqmaxb<-vector();for(i in 1:(length(bb$BeforeMatching))){interqqmaxb[[i]] <- bb$BeforeMatching[[i]]$qqsummary$maxdiff} #
+#
+# # variance ratio #
+# # i.e. before log (var ratio) for ps; reference: Imbens-Rubin Ch 10, eq. 14.5 and tobacco litigation       #
+# varratio_b =abs(log(var(ps[x$T==1])/var(ps[x$T==0])))  #
+#
+# # L1 distance#
+# #l1b=(imbalance(group = x$T, data = x[c("w1", "w2", "w3", "w4", "w5","w6", "w7", "w8", "w9", "w10")])$L1)[1]#
+#~~ performance metrics: balance AFTER weighting for w1 ...w10#
+#
+ba = MatchBalance(T ~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10#
++w1*w2+w1*w3+w1*w4+w1*w5+w1*w6+w1*w7+w1*w8+w1*w9+w1*w10#
++w2*w3+w2*w4+w2*w5+w2*w6+w2*w7+w2*w8+w2*w9+w2*w10#
++w3*w4+w3*w5+w3*w6+w3*w7+w3*w8+w3*w9+w3*w10#
++w4*w5+w4*w6+w4*w7+w4*w8+w4*w9+w4*w10#
++w5*w6+w5*w7+w5*w8+w5*w9+w5*w10#
++w6*w7+w6*w8+w6*w9+w6*w10#
++w7*w8+w7*w9+w7*w10#
++w8*w9+w8*w10#
++w9*w10, data=x,weights=weights, ks = FALSE, nboots=0, print.level=0)#
+#
+# ASAM#
+asb_a    <-vector()#
+for(i in 1:10){asb_a[[i]] <- ba$BeforeMatching[[i]]$sdiff}#
+# ASAM with interactions #
+interasba<-vector()#
+for(i in 1:(length(ba$BeforeMatching))){interasba[[i]] <- ba$BeforeMatching[[i]]$sdiff}#
+# # QQ mean raw#
+# # # mean difference of empirical quantiles for w1 with weights applied#
+# # # (cannot use weighths with matchBalance forr qq measure)#
+# covnames          <- colnames(x[,-which(names(x)%in%c("Y","T"))])#
+# vecqqmeanrawaw <- vector() #
+# for(i in 1:length(covnames) ) {#
+	# vecqqmeanrawaw[i] <- abs(#
+ # mean(wtd.quantile(x[x$T==1,] [, covnames[i] ],probs=seq(0.01,1-0.01,0.01),weights=weights[x$T==1])-mean(wtd.quantile(x[x$T==0,] [, covnames[i] ],probs=seq(0.01,1-0.01,0.01),weights=weights[x$T==0]))))#
+	# }#
+#
+# #mean and max differences of ecdf after weighting (nb: non si possono usare pesi con matchbalance per qq)#
+# covnames          <- colnames(x[,-which(names(x)%in%c("Y","T"))])#
+# vecqqmeanaw <- vecqqmaxaw<-vector() #
+# for(i in 1:length(covnames) ) {#
+	# vals <- sort(unique(x[, covnames[i] ]))#
+	# wt <- stepfun(wtd.Ecdf(x[x$T==1,][, covnames[i] ],weights=weights[x$T==1])$x[-1],wtd.Ecdf(x[x$T==1,][, covnames[i] ],weights=weights[x$T==1])$ecdf)#
+# swt <- wt(vals)#
+# wc <- stepfun(wtd.Ecdf(x[x$T==0,][, covnames[i] ],weights=weights[x$T==0])$x[-1],wtd.Ecdf(x[x$T==0,][, covnames[i] ],weights=weights[x$T==0])$ecdf)#
+# swc <- wc(vals)#
+	# vecqqmeanaw[i]        <- mean(abs(swt - swc))#
+	# vecqqmaxaw[i] <- max(abs(swt - swc))#
+	# }#
+# # variance ratio#
+# varratio_a =abs(log(wtd.var(ps[x$T==1],weights=weights[x$T==1])/wtd.var(ps[x$T==0],weights=weights[x$T==0])))  # log (var ratio) after weighting; reference in Inbens-Rubin Ch 10, eq. 14.5 and tobacco litigation#
+#~~ performance metrics: balance AFTER matching for w1 ...w10#
+#
+bam = MatchBalance(T ~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10#
++w1*w2+w1*w3+w1*w4+w1*w5+w1*w6+w1*w7+w1*w8+w1*w9+w1*w10#
++w2*w3+w2*w4+w2*w5+w2*w6+w2*w7+w2*w8+w2*w9+w2*w10#
++w3*w4+w3*w5+w3*w6+w3*w7+w3*w8+w3*w9+w3*w10#
++w4*w5+w4*w6+w4*w7+w4*w8+w4*w9+w4*w10#
++w5*w6+w5*w7+w5*w8+w5*w9+w5*w10#
++w6*w7+w6*w8+w6*w9+w6*w10#
++w7*w8+w7*w9+w7*w10#
++w8*w9+w8*w10#
++w9*w10, data=allmdata, ks = FALSE, nboots=0, print.level=0) #
+#
+# ASAM after matching#
+asb_am    <-vector()#
+for(i in 1:10){asb_am[[i]] <- bam$BeforeMatching[[i]]$sdiff}#
+#
+# ASAM with interactions after matching#
+interasbam<-vector()#
+for(i in 1:(length(bam$BeforeMatching))){interasbam[[i]] <- bam$BeforeMatching[[i]]$sdiff}#
+# # mean difference of empirical quantiles after matching. #
+#
+# vecqqmeanrawam    <-vector()#
+# for(i in 1:10){vecqqmeanrawam[[i]] <- bam$BeforeMatching[[i]]$qqsummary.raw$meandiff}#
+#
+# # mean diff in ecdf after matching#
+# # eg for W1: abs(bam$BeforeMatching[[1]]$qqsummary$meandiff)#
+# vecqqmeanam    <-vector()#
+# for(i in 1:10){vecqqmeanam[[i]] <- bam$BeforeMatching[[i]]$qqsummary$meandiff}#
+#
+# interqqam<-vector()#
+# for(i in 1:(length(bam$BeforeMatching))){interqqam[[i]] <- bam$BeforeMatching[[i]]$qqsummary$meandiff}#
+#
+# # standardized max difference of ecdfs after matching#
+#
+# vecqqmaxam    <-vector()#
+# for(i in 1:10){vecqqmaxam[[i]] <- bam$BeforeMatching[[i]]$qqsummary$maxdiff}#
+#
+# interqqmaxam<-vector()#
+# for(i in 1:(length(bam$BeforeMatching))){interqqmaxam[[i]] <- bam$BeforeMatching[[i]]$qqsummary$maxdiff} #
+ # # variance ratio#
+ # varratio_am =abs(log(var(ps[rr$index.treated])/var(ps[rr$index.control])))  # abs log (var ratio) after matching#
+#~~collect output#
+output<-list( #
+#"auc"=auc,#
+"hatgw"=hatgw,# "absrbiasw"=absrbiasw,"varhatgw"=varhatgw,#
+"hatgm"=hatgm,# "absrbiasm"=absrbiasm,"varhatgm"=varhatgm,#
+"hatgsem"=hatgsem,"hatgsew"=hatgsew,#
+#"covw"=covw,"covm"=covm,#
+#  mean (over covariates) of balance summaries : #
+# asam#
+"masb_b"=mean(abs(asb_b)),#
+"masb_aw"=mean(abs(asb_a)),#
+"masb_am"=mean(abs(asb_am)),#
+# mean asam>20#
+"over20masb_b"=sum(abs(asb_b[which(abs(asb_b)>20)])-20)/length(asb_b),#
+"over20masb_aw"=sum(abs(asb_a[which(abs(asb_a)>20)])-20)/length(asb_a),#
+"over20masb_am"=sum(abs(asb_am[which(abs(asb_am)>20)])-20)/length(asb_am),#
+# mean asam>10#
+"over10masb_b"=sum(abs(asb_b[which(abs(asb_b)>10)])-10)/length(asb_b),#
+"over10masb_aw"=sum(abs(asb_a[which(abs(asb_a)>10)])-10)/length(asb_a),#
+"over10masb_am"=sum(abs(asb_am[which(abs(asb_am)>10)])-10)/length(asb_am),#
+# asam with interactions#
+"masbinter_b"=mean(abs(interasbb)),#
+"masbinter_aw"=mean(abs(interasba)),#
+"masbinter_am"=mean(abs(interasbam))#
+#"KLdivb"=KLdivb,"KLdivaw"=KLdivaw,"KLdivam"=KLdivam,#
+# # #
+# "qqmeanraw_b"=mean(vecqqmeanrawb),#
+# "qqmeanraw_aw"=mean(vecqqmeanrawaw),#
+# "qqmeanraw_am"=mean(vecqqmeanam),#
+# ##
+# "qqmean_b"=mean(vecqqmeanb),#
+# "qqmean_aw"=mean(vecqqmeanaw),#
+# "qqmean_am"=mean(vecqqmeanam),#
+# #"qqmeaninter_b"=mean(abs(interqqb)),"qqmeaninter_am"=mean(abs(interqqam)),#
+# "qqmax_b"=mean(vecqqmaxb),#
+# "qqmax_aw"=mean(vecqqmaxaw),#
+# "qqmax_am"=mean(vecqqmaxam),#
+# #"qqmaxinter_b"=mean(abs(interqqmaxb)),#
+# #"qqmaxinter_am"=mean(abs(interqqmaxam)),#
+# # variance ratio#
+# "varratio_b"=varratio_b,#
+# "varratio_aw"=varratio_a,#
+# "varratio_am"=varratio_am,#
+# ##
+# "match.tnobs"=match.tnobs,"match.nobs"=match.nobs#
+)#
+ return(output)#
+ }
+bal.nnm     <- funsim_tp(data,"nnet", tp=c(TRUE,15,2))
+funsim_tp <- function(x,psmethod,par="ATT",tp=NULL){#
+#
+#~~ estimate ps           #
+if (psmethod =="truelogit")#
+{   	#
+	  mod = glm(T~ w1 + w2 + w3 + w4, data=x, family=binomial)#
+	  ps = mod$fitted#
+} else if (psmethod == "logit"){#
+    mod = glm(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x ,family=binomial)#
+	 ps = mod$fitted#
+} else if (psmethod == "tree"){#
+#
+    mod = rpart(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10,method="class",data=x, #
+    cp=tp )#
+	 ps = predict(mod)[,2]     #
+}  else if (psmethod == "randomforest"){#
+      	mod = randomForest(factor(T)~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, ntree= 500,#
+      	mtry=tp)#
+ 	   ps<-predict(mod , type="prob")[,2]#
+}  else if (psmethod == "gbm"){#
+     mod = gbm(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, distribution = "bernoulli", interaction.depth = 1, #
+     n.trees = tp)  #
+	  ps = predict.gbm(mod,data=x,n.trees=100, type="response") #
+}  else if (psmethod == "gbmtwang"){#
+   mod = ps(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, n.trees = 10000,interaction.depth = 3,verbose=FALSE,shrinkage = 0.0005)#
+   ps = as.vector(mod$ps[,1]) #
+} else if (psmethod == "bag"){#
+   mod = bagging(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, #
+   cp=tp,data=x)#
+   ps =  predict(mod,newdata=x,type="prob")    #
+}#
+    else if (psmethod == "nnet")    {	#
+   mod= nnet(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10,#
+   data=x, entropy=tp[1],#
+   size=tp[2],#
+   decay=tp[3],maxit=100,trace=F)#
+   ps<-as.numeric(mod$fitted.values)#
+   #ps = as.numeric(predict(mod, type='raw')) #nb: anche predizioni fuori da [0,1]#
+   #ps=exp(ps)/(1+exp(ps))          #
+                               }#
+    else if (psmethod == "nb")     {#
+	 mod = naiveBayes(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x,#
+	 laplace=tp)#
+      ps = predict(mod,newdata=x,type="raw")[,2] #
+}#
+#
+#### estimating ATT via propensity score weighting#
+weights     <- ifelse(x$T==1,1,ps/(1-ps))#
+if(par=="ATE") { weights     <- ifelse(x$T==1,1/ps,1/(1-ps)) }#
+modw     <- lm( Y ~ T , data=x, weights=weights)#
+hatgw <- summary(modw)$coefficients[c("T"),c("Estimate")]#
+sdhatgw <- summary(modw)$coefficients[c("T"),c("Std. Error")]#
+# estimating ATT via matching with caliper#
+#
+rr = Match(Y=x$Y, Tr=x$T, X=ps, caliper=0.25, M=1, estimand="ATT",replace=TRUE,ties=FALSE)#
+#
+if(par=="ATE"){#
+rr = Match(Y=x$Y, Tr=x$T, X=ps, caliper=0.25,M=1,estimand="ATE",replace=TRUE,ties=FALSE)#
+}#
+allmdata<-rbind(x[rr$index.treated,],x[rr$index.control,])#
+modm     <- lm( Y ~ T , data=allmdata )#
+hatgm <- summary(modm)$coefficients[c("T"),c("Estimate")]#
+sdhatgm <- summary(modm)$coefficients[c("T"),c("Std. Error")]#
+#
+# ~  size of matched dataset#
+#
+orig.nobs   <-rr$orig.nobs#
+orig.tnobs  <-rr$orig.treated.nobs#
+#match.nobs   <-rr$nobs # this is wrong! it is the nobs inthe unmatched dataset#
+match.nobs   <-length(rr$mdata$Tr)#
+match.tnobs  <-length(rr$mdata$Tr[rr$mdata$Tr==1])	      #
+# Balance BEFORE for w1 ... w10#
+#
+bb = MatchBalance(T ~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10#
++w1*w2+w1*w3+w1*w4+w1*w5+w1*w6+w1*w7+w1*w8+w1*w9+w1*w10#
++w2*w3+w2*w4+w2*w5+w2*w6+w2*w7+w2*w8+w2*w9+w2*w10#
++w3*w4+w3*w5+w3*w6+w3*w7+w3*w8+w3*w9+w3*w10#
++w4*w5+w4*w6+w4*w7+w4*w8+w4*w9+w4*w10#
++w5*w6+w5*w7+w5*w8+w5*w9+w5*w10#
++w6*w7+w6*w8+w6*w9+w6*w10#
++w7*w8+w7*w9+w7*w10#
++w8*w9+w8*w10#
++w9*w10, data=x, ks = FALSE, nboots=0, print.level=0) #
+# ASAM#
+asb_b    <-vector();for(i in 1:10){asb_b[[i]] <- bb$BeforeMatching[[i]]$sdiff}#
+#
+# ASAM with interactions#
+interasbb<-vector();for(i in 1:(length(bb$BeforeMatching))){interasbb[[i]] <- bb$BeforeMatching[[i]]$sdiff}#
+#
+# # qq mean difference raw#
+# vecqqmeanrawb    <-vector();for(i in 1:10){vecqqmeanrawb[[i]] <- bb$BeforeMatching[[i]]$qqsummary.raw$meandiff}#
+#
+# # qq mean diff#
+# vecqqmeanb<-vector();for(i in 1:10){vecqqmeanb[[i]] <- bb$BeforeMatching[[i]]$qqsummary$meandiff}#
+# interqqb<-vector();for(i in 1:length(bb$BeforeMatching)){interqqb[[i]] <- bb$BeforeMatching[[i]]$qqsummary$meandiff}#
+#
+# # qq max difference#
+# vecqqmaxb<-vector();for(i in 1:10){vecqqmaxb[[i]] <- bb$BeforeMatching[[i]]$qqsummary$maxdiff}#
+#
+# # qq max with difference#
+# interqqmaxb<-vector();for(i in 1:(length(bb$BeforeMatching))){interqqmaxb[[i]] <- bb$BeforeMatching[[i]]$qqsummary$maxdiff} #
+#
+# # variance ratio #
+# # i.e. before log (var ratio) for ps; reference: Imbens-Rubin Ch 10, eq. 14.5 and tobacco litigation       #
+# varratio_b =abs(log(var(ps[x$T==1])/var(ps[x$T==0])))  #
+#
+# # L1 distance#
+# #l1b=(imbalance(group = x$T, data = x[c("w1", "w2", "w3", "w4", "w5","w6", "w7", "w8", "w9", "w10")])$L1)[1]#
+#~~ performance metrics: balance AFTER weighting for w1 ...w10#
+#
+ba = MatchBalance(T ~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10#
++w1*w2+w1*w3+w1*w4+w1*w5+w1*w6+w1*w7+w1*w8+w1*w9+w1*w10#
++w2*w3+w2*w4+w2*w5+w2*w6+w2*w7+w2*w8+w2*w9+w2*w10#
++w3*w4+w3*w5+w3*w6+w3*w7+w3*w8+w3*w9+w3*w10#
++w4*w5+w4*w6+w4*w7+w4*w8+w4*w9+w4*w10#
++w5*w6+w5*w7+w5*w8+w5*w9+w5*w10#
++w6*w7+w6*w8+w6*w9+w6*w10#
++w7*w8+w7*w9+w7*w10#
++w8*w9+w8*w10#
++w9*w10, data=x,weights=weights, ks = FALSE, nboots=0, print.level=0)#
+#
+# ASAM#
+asb_a    <-vector()#
+for(i in 1:10){asb_a[[i]] <- ba$BeforeMatching[[i]]$sdiff}#
+# ASAM with interactions #
+interasba<-vector()#
+for(i in 1:(length(ba$BeforeMatching))){interasba[[i]] <- ba$BeforeMatching[[i]]$sdiff}#
+# # QQ mean raw#
+# # # mean difference of empirical quantiles for w1 with weights applied#
+# # # (cannot use weighths with matchBalance forr qq measure)#
+# covnames          <- colnames(x[,-which(names(x)%in%c("Y","T"))])#
+# vecqqmeanrawaw <- vector() #
+# for(i in 1:length(covnames) ) {#
+	# vecqqmeanrawaw[i] <- abs(#
+ # mean(wtd.quantile(x[x$T==1,] [, covnames[i] ],probs=seq(0.01,1-0.01,0.01),weights=weights[x$T==1])-mean(wtd.quantile(x[x$T==0,] [, covnames[i] ],probs=seq(0.01,1-0.01,0.01),weights=weights[x$T==0]))))#
+	# }#
+#
+# #mean and max differences of ecdf after weighting (nb: non si possono usare pesi con matchbalance per qq)#
+# covnames          <- colnames(x[,-which(names(x)%in%c("Y","T"))])#
+# vecqqmeanaw <- vecqqmaxaw<-vector() #
+# for(i in 1:length(covnames) ) {#
+	# vals <- sort(unique(x[, covnames[i] ]))#
+	# wt <- stepfun(wtd.Ecdf(x[x$T==1,][, covnames[i] ],weights=weights[x$T==1])$x[-1],wtd.Ecdf(x[x$T==1,][, covnames[i] ],weights=weights[x$T==1])$ecdf)#
+# swt <- wt(vals)#
+# wc <- stepfun(wtd.Ecdf(x[x$T==0,][, covnames[i] ],weights=weights[x$T==0])$x[-1],wtd.Ecdf(x[x$T==0,][, covnames[i] ],weights=weights[x$T==0])$ecdf)#
+# swc <- wc(vals)#
+	# vecqqmeanaw[i]        <- mean(abs(swt - swc))#
+	# vecqqmaxaw[i] <- max(abs(swt - swc))#
+	# }#
+# # variance ratio#
+# varratio_a =abs(log(wtd.var(ps[x$T==1],weights=weights[x$T==1])/wtd.var(ps[x$T==0],weights=weights[x$T==0])))  # log (var ratio) after weighting; reference in Inbens-Rubin Ch 10, eq. 14.5 and tobacco litigation#
+#~~ performance metrics: balance AFTER matching for w1 ...w10#
+#
+bam = MatchBalance(T ~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10#
++w1*w2+w1*w3+w1*w4+w1*w5+w1*w6+w1*w7+w1*w8+w1*w9+w1*w10#
++w2*w3+w2*w4+w2*w5+w2*w6+w2*w7+w2*w8+w2*w9+w2*w10#
++w3*w4+w3*w5+w3*w6+w3*w7+w3*w8+w3*w9+w3*w10#
++w4*w5+w4*w6+w4*w7+w4*w8+w4*w9+w4*w10#
++w5*w6+w5*w7+w5*w8+w5*w9+w5*w10#
++w6*w7+w6*w8+w6*w9+w6*w10#
++w7*w8+w7*w9+w7*w10#
++w8*w9+w8*w10#
++w9*w10, data=allmdata, ks = FALSE, nboots=0, print.level=0) #
+#
+# ASAM after matching#
+asb_am    <-vector()#
+for(i in 1:10){asb_am[[i]] <- bam$BeforeMatching[[i]]$sdiff}#
+#
+# ASAM with interactions after matching#
+interasbam<-vector()#
+for(i in 1:(length(bam$BeforeMatching))){interasbam[[i]] <- bam$BeforeMatching[[i]]$sdiff}#
+# # mean difference of empirical quantiles after matching. #
+#
+# vecqqmeanrawam    <-vector()#
+# for(i in 1:10){vecqqmeanrawam[[i]] <- bam$BeforeMatching[[i]]$qqsummary.raw$meandiff}#
+#
+# # mean diff in ecdf after matching#
+# # eg for W1: abs(bam$BeforeMatching[[1]]$qqsummary$meandiff)#
+# vecqqmeanam    <-vector()#
+# for(i in 1:10){vecqqmeanam[[i]] <- bam$BeforeMatching[[i]]$qqsummary$meandiff}#
+#
+# interqqam<-vector()#
+# for(i in 1:(length(bam$BeforeMatching))){interqqam[[i]] <- bam$BeforeMatching[[i]]$qqsummary$meandiff}#
+#
+# # standardized max difference of ecdfs after matching#
+#
+# vecqqmaxam    <-vector()#
+# for(i in 1:10){vecqqmaxam[[i]] <- bam$BeforeMatching[[i]]$qqsummary$maxdiff}#
+#
+# interqqmaxam<-vector()#
+# for(i in 1:(length(bam$BeforeMatching))){interqqmaxam[[i]] <- bam$BeforeMatching[[i]]$qqsummary$maxdiff} #
+ # # variance ratio#
+ # varratio_am =abs(log(var(ps[rr$index.treated])/var(ps[rr$index.control])))  # abs log (var ratio) after matching#
+#~~collect output#
+output<-list( #
+#"auc"=auc,#
+ "hatgw"=hatgw, "sdhatgw"=sdhatgw,#
+ "hatgm"=hatgm, "sdhatgm"=sdhatgm,#
+#"covw"=covw,"covm"=covm,#
+#  mean (over covariates) of balance summaries : #
+# asam#
+"masb_b"=mean(abs(asb_b)),#
+"masb_aw"=mean(abs(asb_a)),#
+"masb_am"=mean(abs(asb_am)),#
+# mean asam>20#
+"over20masb_b"=sum(abs(asb_b[which(abs(asb_b)>20)])-20)/length(asb_b),#
+"over20masb_aw"=sum(abs(asb_a[which(abs(asb_a)>20)])-20)/length(asb_a),#
+"over20masb_am"=sum(abs(asb_am[which(abs(asb_am)>20)])-20)/length(asb_am),#
+# mean asam>10#
+"over10masb_b"=sum(abs(asb_b[which(abs(asb_b)>10)])-10)/length(asb_b),#
+"over10masb_aw"=sum(abs(asb_a[which(abs(asb_a)>10)])-10)/length(asb_a),#
+"over10masb_am"=sum(abs(asb_am[which(abs(asb_am)>10)])-10)/length(asb_am),#
+# asam with interactions#
+"masbinter_b"=mean(abs(interasbb)),#
+"masbinter_aw"=mean(abs(interasba)),#
+"masbinter_am"=mean(abs(interasbam))#
+#"KLdivb"=KLdivb,"KLdivaw"=KLdivaw,"KLdivam"=KLdivam,#
+# # #
+# "qqmeanraw_b"=mean(vecqqmeanrawb),#
+# "qqmeanraw_aw"=mean(vecqqmeanrawaw),#
+# "qqmeanraw_am"=mean(vecqqmeanam),#
+# ##
+# "qqmean_b"=mean(vecqqmeanb),#
+# "qqmean_aw"=mean(vecqqmeanaw),#
+# "qqmean_am"=mean(vecqqmeanam),#
+# #"qqmeaninter_b"=mean(abs(interqqb)),"qqmeaninter_am"=mean(abs(interqqam)),#
+# "qqmax_b"=mean(vecqqmaxb),#
+# "qqmax_aw"=mean(vecqqmaxaw),#
+# "qqmax_am"=mean(vecqqmaxam),#
+# #"qqmaxinter_b"=mean(abs(interqqmaxb)),#
+# #"qqmaxinter_am"=mean(abs(interqqmaxam)),#
+# # variance ratio#
+# "varratio_b"=varratio_b,#
+# "varratio_aw"=varratio_a,#
+# "varratio_am"=varratio_am,#
+# ##
+# "match.tnobs"=match.tnobs,"match.nobs"=match.nobs#
+)#
+ return(output)#
+ }
+bal.nnm     <- funsim_tp(data,"nnet", tp=c(TRUE,15,2))
+bal.nnm$masb_am
+bal.nnw     <- funsim_tp(data,"nnet", tp=c(TRUE,15,2))
+bal.nnm$masb_aw
+bal.nnm$masb_am
+bal.nnw$masb_am
+# outcome analysis on raw data#
+t.test(data$Y[data$T==1],data$Y[data$T==0],alternative="two.sided")
+bal.tree   <- funsim_tp(data,"tree", tp=0.0015)#
+bal.nb     <- funsim_tp(data,"nb", tp=c(FALSE))#
+bal.nnm     <- funsim_tp(data,"nnet", tp=c(TRUE,15,2))#
+bal.nnw     <- funsim_tp(data,"nnet", tp=c(TRUE,15,2))
+bal.log    <- funsim_tp(data,"logit")#
+# else one of the following#
+bal.rf       <- funsim_tp(data,"randomforest", mtry=2)#
+bal.bag   <- funsim_tp(data,"tree", cp=0.0015)
+bal.rf       <- funsim_tp(data,"randomforest", cp=2)
+bal.rf       <- funsim_tp(data,"randomforest", mtry=2)
+bal.bag   <- funsim_tp(data,"tree", cp=0.0015)
+bal.bag   <- funsim_tp(data,"tree", tp=0.0015)
+bal.rf       <- funsim_tp(data,"randomforest", tp=2)
+bal.log    <- funsim_tp(data,"logit")$masb_am
+bal.log
+bal.tree.m   <- funsim_tp(data,"tree", tp=0.0015)$masb_am#
+bal.tree.w   <- funsim_tp(data,"tree", tp=0.0015)$masb_aw#
+#
+bal.nb.m     <- funsim_tp(data,"nb", tp=c(FALSE))$masb_am#
+bal.nb.w     <- funsim_tp(data,"nb", tp=c(FALSE))$masb_aw#
+#
+bal.nnm     <- funsim_tp(data,"nnet", tp=c(TRUE,15,2))$masb_am#
+bal.nnw     <- funsim_tp(data,"nnet", tp=c(TRUE,15,2))$masb_aw
+# Balance after optimal tuning with logit ps model:#
+bal.log.m    <- funsim_tp(data,"logit")$masb_am#
+bal.log.w    <- funsim_tp(data,"logit")$masb_aw#
+# else one of the following#
+bal.rf.m       <- funsim_tp(data,"randomforest", tp=2)$masb_am#
+bal.rf.w       <- funsim_tp(data,"randomforest", tp=2)$masb_aw#
+#
+bal.bag.m   <- funsim_tp(data,"tree", tp=0.0015)$masb_am#
+bal.bag.w   <- funsim_tp(data,"tree", tp=0.0015)$masb_aw
+bal.log.m
+bal.log.w
+bal.rf.m
+bal.rf.w
+bal.bag.m
+bal.bag.w
+bal.tree.m
+bal.tree.w
+bal.nb.m
+bal.nb.w
+bal.nn.m
+bal.nn.m     <- funsim_tp(data,"nnet", tp=c(TRUE,15,2))$masb_am
+bal.nn.m
+bal.nnw
+# outcome analysis on raw data#
+t.test(data$Y[data$T==1],data$Y[data$T==0],alternative="two.sided")#
+#sd
+funsim_tp(data,"logit")$hatgw
+log.hatgm    <- funsim_tp(data,"logit")$hatgm#
+log.sdhatgm    <- funsim_tp(data,"logit")$sdhatgm
+log.hatgm
+log.sdhatgm
+log.hatgw
+log.hatgw    <- funsim_tp(data,"logit")$hatgw#
+log.sdhatgw    <- funsim_tp(data,"logit")$sdhatgw
+log.hatgw
+log.sdhatgw
+ls()
+load("/Users/massimo/Dropbox/Working Papers/ps matching and ML/Paper and ppt versions/submission BIOMETRICAL JOURNAL/R&R/R&R2/code_and_data(da inviare con seconda revisione)/case_study/cs_results/empsim_R500.Rdata")
+ls()
+# load packages and functions#
+source("functions_case_study.r")#
+#
+# load data#
+ load("cs_data/clean_data_10cov.Rdata")
+#  Balance before #
+bbefore<-MatchBalance(T~.-Y,data=data)#
+#
+# Balance after optimal tuning #
+bal.log.m    <- funsim_tp(data,"logit")$masb_am#
+bal.log.w    <- funsim_tp(data,"logit")$masb_aw#
+#
+bal.rf.m       <- funsim_tp(data,"randomforest", tp=2)$masb_am#
+bal.rf.w       <- funsim_tp(data,"randomforest", tp=2)$masb_aw#
+#
+bal.bag.m   <- funsim_tp(data,"tree", tp=0.0015)$masb_am#
+bal.bag.w   <- funsim_tp(data,"tree", tp=0.0015)$masb_aw
+bal.tree.m   <- funsim_tp(data,"tree", tp=0.0015)$masb_am#
+bal.tree.w   <- funsim_tp(data,"tree", tp=0.0015)$masb_aw#
+#
+bal.nb.m     <- funsim_tp(data,"nb", tp=c(FALSE))$masb_am#
+bal.nb.w     <- funsim_tp(data,"nb", tp=c(FALSE))$masb_aw#
+#
+bal.nn.m     <- funsim_tp(data,"nnet", tp=c(TRUE,15,2))$masb_am#
+bal.nnw     <- funsim_tp(data,"nnet", tp=c(TRUE,15,2))$masb_aw#
+#
+# outcome analysis on raw data#
+t.test(data$Y[data$T==1],data$Y[data$T==0],alternative="two.sided")#
+#sd
+# load packages and functions#
+source("../functions.r")
+# Balance after optimal tuning #
+bal.log.m    <- funsim_tp(data,"logit")$masb_am#
+bal.log.w    <- funsim_tp(data,"logit")$masb_aw#
+#
+bal.rf.m       <- funsim_tp(data,"randomforest", tp=2)$masb_am#
+bal.rf.w       <- funsim_tp(data,"randomforest", tp=2)$masb_aw#
+#
+bal.bag.m   <- funsim_tp(data,"tree", tp=0.0015)$masb_am#
+bal.bag.w   <- funsim_tp(data,"tree", tp=0.0015)$masb_aw
+bal.tree.m   <- funsim_tp(data,"tree", tp=0.0015)$masb_am#
+bal.tree.w   <- funsim_tp(data,"tree", tp=0.0015)$masb_aw#
+#
+bal.nb.m     <- funsim_tp(data,"nb", tp=c(FALSE))$masb_am#
+bal.nb.w     <- funsim_tp(data,"nb", tp=c(FALSE))$masb_aw#
+#
+bal.nn.m     <- funsim_tp(data,"nnet", tp=c(TRUE,15,2))$masb_am#
+bal.nnw     <- funsim_tp(data,"nnet", tp=c(TRUE,15,2))$masb_aw
+log.hatgw
+log.hatgw    <- funsim_tp(data,"logit")$hatgw#
+log.sdhatgw    <- funsim_tp(data,"logit")$sdhatgw#
+log.hatgm    <- funsim_tp(data,"logit")$hatgm#
+log.sdhatgm    <- funsim_tp(data,"logit")$sdhatgm#
+# rf#
+rf.hatgw    <- funsim_tp(data,"randomforest")$hatgw#
+rf.sdhatgw    <- funsim_tp(data,"randomforest")$sdhatgw#
+rf.hatgm    <- funsim_tp(data,"randomforest")$hatgm#
+rf.sdhatgm    <- funsim_tp(data,"randomforest")$sdhatgm
+rf.hatgw    <- funsim_tp(data,"randomforest",tp=2)$hatgw#
+rf.sdhatgw    <- funsim_tp(data,"randomforest",tp=2)$sdhatgw#
+rf.hatgm    <- funsim_tp(data,"randomforest",tp=2)$hatgm#
+rf.sdhatgm    <- funsim_tp(data,"randomforest",tp=2)$sdhatgm
+tree   <- funsim_tp(data,"tree", tp=0.0015)#
+#
+nb     <- funsim_tp(data,"nb", tp=c(FALSE))#
+#
+nn    <- funsim_tp(data,"nnet", tp=c(TRUE,15,2))
+log   <- funsim_tp(data,"logit")#
+#
+rf      <- funsim_tp(data,"randomforest", tp=2)#
+bag   <- funsim_tp(data,"tree", tp=0.0015)
+baltab<-rbind(log$asam_am,log$asam_aw,rf$asam_am,rf$asam_aw,bag$asam_am,bag$asam_aw,tree$asam_am,tree$asam_aw,nb$asam_am,nb$asam_aw,nn$asam_am,nn$asam_aw)#
+rownames(baltab)<-c("log_m","log_w","rf_m","rf_w","bag_m","bag_w","tree_m","tree_w","nb_m","nb_w","nn_m","nn_w")
+dim(baltap)
+dim(baltab)
+baltab
+baltab<-rbind(log$asam_am,log$asam_aw,rf$asam_am,rf$asam_aw,bag$asam_am,bag$asam_aw,tree$asam_am,tree$asam_aw,nb$asam_am,nb$asam_aw,nn$asam_am,nn$asam_aw)
+baltab
+og
+log
+log$asam_am
+baltab<-rbind(log$masb_am,log$masb_aw,rf$masb_am,rf$masb_aw,bag$masb_am,bag$masb_aw,tree$masb_am,tree$masb_aw,nb$masb_am,nb$masb_aw,nn$masb_am,nn$masb_aw)
+rownames(baltab)<-c("log_m","log_w","rf_m","rf_w","bag_m","bag_w","tree_m","tree_w","nb_m","nb_w","nn_m","nn_w")
+baltab
+bbefore
+log$masb_b
+log
+asam<-rbind(log$masb_am,log$masb_aw,rf$masb_am,rf$masb_aw,bag$masb_am,bag$masb_aw,tree$masb_am,tree$masb_aw,nb$masb_am,nb$masb_aw,nn$masb_am,nn$masb_aw)#
+asam_inter<-rbind(log$masbinter_am,log$masbinter_aw,rf$masbinter_am,rf$masbinter_aw,bag$masbinter_am,bag$masbinter_aw,tree$masbinter_am,tree$masbinter_aw,nb$masbinter_am,nb$masbinter_aw,nn$masbinter_am,nn$masbinter_aw)#
+asam20<-rbind(log$over20masb_am,log$over20masb_aw,rf$over20masb_am,rf$over20masb_aw,bag$over20masb_am,bag$over20masb_aw,tree$over20masb_am,tree$over20masb_aw,nb$over20masb_am,nb$over20masb_aw,nn$over20masb_am,nn$over20masb_aw)#
+asam10<-rbind(log$over10masb_am,log$over10masb_aw,rf$over10masb_am,rf$over10masb_aw,bag$over10masb_am,bag$over10masb_aw,tree$over10masb_am,tree$over10masb_aw,nb$over10masb_am,nb$over10masb_aw,nn$over10masb_am,nn$over10masb_aw)#
+baltab<-cbind(asam,asam_inter,asam20,asam10)#
+#
+rownames(baltab)<-c("log_m","log_w","rf_m","rf_w","bag_m","bag_w","tree_m","tree_w","nb_m","nb_w","nn_m","nn_w")#
+colnames(baltab)<-c("asam","asam_inter","asam20","asam10")
+baltab
+# tree#
+tree.hatgw    <- funsim_tp(data,"tree",tp=2)$hatgw#
+tree.sdhatgw    <- funsim_tp(data,"tree",tp=2)$sdhatgw#
+tree.hatgm    <- funsim_tp(data,"tree",tp=2)$hatgm#
+tree.sdhatgm    <- funsim_tp(data,"tree",tp=2)$sdhatgm#
+# bag#
+bag.hatgw    <- funsim_tp(data,"bag",tp=2)$hatgw#
+bag.sdhatgw    <- funsim_tp(data,"bag",tp=2)$sdhatgw#
+bag.hatgm    <- funsim_tp(data,"bag",tp=2)$hatgm#
+bag.sdhatgm    <- funsim_tp(data,"bag",tp=2)$sdhatgm#
+# nn#
+net.hatgw    <- funsim_tp(data,"nnet",tp=2)$hatgw#
+net.sdhatgw    <- funsim_tp(data,"nnet",tp=2)$sdhatgw#
+net.hatgm    <- funsim_tp(data,"nnet",tp=2)$hatgm#
+net.sdhatgm    <- funsim_tp(data,"nnet",tp=2)$sdhatgm#
+# nb#
+nb.hatgw    <- funsim_tp(data,"nb",tp=2)$hatgw#
+nb.sdhatgw    <- funsim_tp(data,"nb",tp=2)$sdhatgw#
+nb.hatgm    <- funsim_tp(data,"nb",tp=2)$hatgm#
+nb.sdhatgm    <- funsim_tp(data,"nb",tp=2)$sdhatgm
+tree.hatgw    <- tree$hatgw
+# outcome analysis for best balancing ps model (logit)#
+log.hatgw    <- log$hatgw#
+log.sdhatgw    <- log$sdhatgw#
+log.hatgm    <- log$hatgm#
+log.sdhatgm    <- log$sdhatgm#
+# rf#
+rf.hatgw        <- rf$hatgw#
+rf.sdhatgw    <- rf$sdhatgw#
+rf.hatgm        <- rf$hatgm#
+rf.sdhatgm    <- rf$sdhatgm#
+# tree#
+tree.hatgw        <- tree$hatgw#
+tree.sdhatgw    <- tree$sdhatgw#
+tree.hatgm        <- tree$hatgm#
+tree.sdhatgm    <- tree$sdhatgm#
+# bag#
+bag.hatgw        <- bag$hatgw#
+bag.sdhatgw    <- bag$sdhatgw#
+bag.hatgm       <-  bag$hatgm#
+bag.sdhatgm    <- bag$sdhatgm#
+# nn#
+net.hatgw    <- net$hatgw#
+net.sdhatgw    <- net$sdhatgw#
+net.hatgm    <- net$hatgm#
+net.sdhatgm    <- net$sdhatgm#
+# nb#
+nb.hatgw    <- nb$hatgw#
+nb.sdhatgw    <- nb$sdhatgw#
+nb.hatgm    <- nb$hatgm#
+nb.sdhatgm    <- nb$sdhatgm
+net.hatgw    <- nn$hatgw#
+net.sdhatgw    <- nn$sdhatgw#
+net.hatgm    <- nn$hatgm#
+net.sdhatgm    <- nn$sdhatgm
+sdhatg<-c(log.sdhatgw,logsdhatgm,rf.sdhatgw,rf.sdhatgm,bag.sdhatgw,bag.sdhatgm,net.sdhatgw,net.sdhatgm,nb.sdhatgw,nb.sdhatgm )
+hatg<-c(log.hatgw,log.hatgm,rf.hatgw,rf.hatgm,bag.hatgw,bag.hatgm,net.hatgw,net.hatgm,nb.hatgw,nb.hatgm )#
+sdhatg<-c(log.sdhatgw,log.sdhatgm,rf.sdhatgw,rf.sdhatgm,bag.sdhatgw,bag.sdhatgm,net.sdhatgw,net.sdhatgm,nb.sdhatgw,nb.sdhatgm )
+cbind(baltab,hatg,sdhatg)
+hatg<-rbind(log$hatgw,log$hatgm,rf$hatgw,rf$hatgm,bag$hatgw,bag$hatgm,tree$hatgw,tree$hatgm,nb$hatgw,nb$hatgm,nn$hatgw,nn$hatgm)#
+sdhatg<-rbind(log$sdhatgw,log$sdhatgm,rf$sdhatgw,rf$sdhatgm,bag$sdhatgw,bag$sdhatgm,tree$sdhatgw,tree$sdhatgm,nb$sdhatgw,nb$sdhatgm,nn$sdhatgw,nn$sdhatgm)
+baltab<-cbind(asam,asam_inter,asam20,asam10)
+baltab
+rownames(baltab)<-c("log_m","log_w","rf_m","rf_w","bag_m","bag_w","tree_m","tree_w","nb_m","nb_w","nn_m","nn_w")#
+colnames(baltab)<-c("asam","asam_inter","asam20","asam10");baltab
+tab<-cbind(baltab,hatg,sdhatg);tab
+ciw_left<-tab$hatgw-2*tab$sdhatgw#
+ciw_right<-tab$hatgw+2*tab$sdhatgw#
+#
+cim_left<-tab$hatgm-2*tab$sdhatgm#
+cim_right<-tab$hatgm+2*tab$sdhatgm
+tab$hatgw
+# final table#
+tab<-cbind(baltab,hatg,sdhatg)#
+colnames(tab)<-c(colnames(baltab),"hatg","sd.hatg");baltab
+ciw.left<-tab$hatgw-2*tab$sdhatgw#
+ciw.right<-tab$hatgw+2*tab$sdhatgw#
+#
+cim.left<-tab$hatgm-2*tab$sdhatgm#
+cim.right<-tab$hatgm+2*tab$sdhatgm
+tab$hatgw
+ciw.left<-hatgw-2*sdhatgw#
+ciw.right<-hatgw+2*sdhatgw#
+#
+cim.left<-hatgm-2*sdhatgm#
+cim.right<-hatgm+2*sdhatgm
+hatgw
+ci.left<-hatg-2*sdhatg#
+ci.right<-hatg+2*sdhatg
+ci.left
+ci.right
+tab
+cbind(tab,cileft,ciright)
+cbind(tab,ci.left,ci.right)
+tw      <- funsim_tp(data,"gbmtwang")
+log
+ls()
+# load data#
+load(file="cs_results/empsim_R500.Rdata")
+getwd()
+load("case_study/cs_data/tuningresults.Rdata")
+load("cs_data/tuningresults.Rdata")
+load("tuningresults.Rdata")
+load("cs_data/tuningresults.Rdata")
+load("cs_results/tuningresults.Rdata")
+ls()
+# define window #
+ par(mfrow=c(2,3))#
+  # plot rf#
+ par(mar = c(5,5,2,4))#
+ plot(mtry, rfacc, #
+type = "l", lwd = 2, col ="black" , ylab = "Accuracy", ,lty="dashed",#
+ xlab = paste0("mtry: #randomly selected predictors"), #
+main = paste0("random forest"), #
+#ylim = c(min(rfacc)-0.01, max(rfacc)+0.01))#
+ylim=c(0.6,0.7))#
+points(mtry,rfacc,col="black",pch=17)#
+#add balance#
+par(new=T)#
+plot(mtry,asam_am_rf,col=gray(0.8),pch=19,axes=F,xlab=NA,ylab=NA,#
+#ylim=c(min(c(asam_am,asam_aw)),max(c(asam_am,asam_aw)))#
+ylim=c(0,15)#
+)#
+axis(side=4)#
+mtext(side=4,line=3,"ASAM")#
+#points(mtry,asam_am,col=gray(0.8),pch=17)#
+lines(mtry, asam_am_rf, lwd = 2, col = gray(0.8))#col = "darkgreen"#
+points(mtry,asam_aw_rf,col=gray(0.4),pch=19)#
+lines(mtry, asam_aw_rf, lwd = 2, col = gray(0.4))#
+#abline(v=0.01,col="red")#default value of cp#
+#text(0.01+0.01,asamb-2,labels="cp default=0.01",col="red",cex=0.8)#
+abline(v=3,col="black",lty="dotted")#default value of mtry#
+#text(3.7,6,labels="mtry default = 3",col="black",cex=0.8)#
+# plot rpart#
+# plot together accuracy and balance#
+ par(mar = c(5,5,2,4))#
+ plot(cp, rpartacc, #
+type = "l", lwd = 1, col ="black" , ylab = "Accuracy",lty="dashed",#
+ xlab = paste0("cp: complexity parameter"), #
+main = paste0("classification tree"), #
+#xlim=c(min(cp)-0.01, max(cp)+0.01),#
+ylim=c(0.6,0.7)#
+#ylim = c(min(rpartacc)-0.01, max(rpartacc)+0.01)#
+)#
+points(cp,rpartacc,col="black",pch=17)#
+#add balance#
+par(new=T)#
+plot(cp,asam_am_tree,col=gray(0.8),pch=19,axes=F,xlab=NA,ylab=NA,#
+#xlim=c(0,0.1),#
+#yim<-c(6,17)#
+ylim=c(min(c(asam_am_tree,asam_aw_tree)),max(c(asam_am_tree,asam_aw_tree)))#
+)#
+axis(side=4)#
+mtext(side=4,line=3,"ASAM")#
+abline(v=0.01,col="black",lty="dotted")#default value of cp#
+#points(mtry,asam_am,col=gray(0.8),pch=17)#
+lines(cp, asam_am_tree, lwd = 1, col = gray(0.8))#col = "darkgreen"#
+points(cp,asam_aw_tree,col=gray(0.4),pch=19)#
+lines(cp, asam_aw_tree, lwd = 1, col = gray(0.4))#
+#text(0.01+0.01,asamb-2,labels="cp default=0.01",col="red",cex=0.8)#
+cpdef <- 0.01#
+#text(3.7,6,labels="mtry default = 3",col="black",cex=0.8)#
+#add legend#
+plot.new()#
+legend(x = "topleft", legend = c("Accuracy","ASAM after matching","ASAM after weighting"), #
+ lty = c(2,1, 1), pch=c(17,19,19),lwd = rep(1, 3), col = c("black", gray(0.9),gray(0.4)), #
+ text.width = 1.6, cex = 0.75,bty="n")
+# define window #
+ par(mfrow=c(2,3))#
+  # plot rf#
+ par(mar = c(5,5,2,4))#
+ plot(mtry, rfacc, #
+type = "l", lwd = 2, col ="black" , ylab = "Accuracy", ,lty="dashed",#
+ xlab = paste0("mtry: #randomly selected predictors"), #
+main = paste0("random forest"), #
+#ylim = c(min(rfacc)-0.01, max(rfacc)+0.01))#
+ylim=c(0.6,0.7))#
+points(mtry,rfacc,col="black",pch=17)#
+#add balance#
+par(new=T)#
+plot(mtry,asam_am_rf,col=gray(0.8),pch=19,axes=F,xlab=NA,ylab=NA,#
+#ylim=c(min(c(asam_am,asam_aw)),max(c(asam_am,asam_aw)))#
+ylim=c(0,15)#
+)#
+axis(side=4)#
+mtext(side=4,line=3,"ASAM")#
+#points(mtry,asam_am,col=gray(0.8),pch=17)#
+lines(mtry, asam_am_rf, lwd = 2, col = gray(0.8))#col = "darkgreen"#
+points(mtry,asam_aw_rf,col=gray(0.4),pch=19)#
+lines(mtry, asam_aw_rf, lwd = 2, col = gray(0.4))#
+#abline(v=0.01,col="red")#default value of cp#
+#text(0.01+0.01,asamb-2,labels="cp default=0.01",col="red",cex=0.8)#
+abline(v=3,col="black",lty="dotted")#default value of mtry#
+#text(3.7,6,labels="mtry default = 3",col="black",cex=0.8)#
+# plot rpart#
+# plot together accuracy and balance#
+ par(mar = c(5,5,2,4))#
+ plot(cp, rpartacc, #
+type = "l", lwd = 1, col ="black" , ylab = "Accuracy",lty="dashed",#
+ xlab = paste0("cp: complexity parameter"), #
+main = paste0("classification tree"), #
+#xlim=c(min(cp)-0.01, max(cp)+0.01),#
+ylim=c(0.6,0.7)#
+#ylim = c(min(rpartacc)-0.01, max(rpartacc)+0.01)#
+)#
+points(cp,rpartacc,col="black",pch=17)#
+#add balance#
+par(new=T)#
+plot(cp,asam_am_tree,col=gray(0.8),pch=19,axes=F,xlab=NA,ylab=NA,#
+#xlim=c(0,0.1),#
+#yim<-c(6,17)#
+ylim=c(min(c(asam_am_tree,asam_aw_tree)),max(c(asam_am_tree,asam_aw_tree)))#
+)#
+axis(side=4)#
+mtext(side=4,line=3,"ASAM")#
+abline(v=0.01,col="black",lty="dotted")#default value of cp#
+#points(mtry,asam_am,col=gray(0.8),pch=17)#
+lines(cp, asam_am_tree, lwd = 1, col = gray(0.8))#col = "darkgreen"#
+points(cp,asam_aw_tree,col=gray(0.4),pch=19)#
+lines(cp, asam_aw_tree, lwd = 1, col = gray(0.4))#
+#text(0.01+0.01,asamb-2,labels="cp default=0.01",col="red",cex=0.8)#
+cpdef <- 0.01#
+#text(3.7,6,labels="mtry default = 3",col="black",cex=0.8)#
+#add legend#
+plot.new()#
+legend(x = "topleft", legend = c("Accuracy","ASAM after matching","ASAM after weighting"), #
+ lty = c(2,1, 1), pch=c(17,19,19),lwd = rep(1, 3), col = c("black", gray(0.9),gray(0.4)), #
+ text.width = 1.8, cex = 0.85,bty="n")
+nnet_tab<-cbind(nnet_grid$results,asam_am_net,asam_aw_net)
+ls()
+nnetacc
+nnet_random
+asam_am_net
+asam_aw_net
+size
+decay
+tunegrid
+ls()
+load("/Users/massimo/Dropbox/Working Papers/ps matching and ML/Paper and ppt versions/submission BIOMETRICAL JOURNAL/R&R/R&R2/code_and_data(da inviare con seconda revisione)/results/R500 size2000 parATE.Rdata")
+twresults[,"Fe"]
+ls()
+load("/Users/massimo/Dropbox/Working Papers/ps matching and ML/Paper and ppt versions/submission BIOMETRICAL JOURNAL/R&R/R&R2/code_and_data(da inviare con seconda revisione)/results/R500 size1000 parATE.Rdata")
+twresults[,"Fe"]
+twresults[,"Fg"]
+twresults[,"Fe"]<-twresults[,"Fg"]
+ls()
+load("/Users/massimo/Dropbox/Working Papers/ps matching and ML/Paper and ppt versions/submission BIOMETRICAL JOURNAL/R&R/R&R2/code_and_data(da inviare con seconda revisione)/results/R500 size500 parATE.Rdata")
+twresults[,"Fe"]

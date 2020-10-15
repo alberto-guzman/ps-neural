@@ -1,0 +1,28 @@
+
+Decided to go with miniconda to reduce file size
+  -also decided to make conda-forge the main channel
+
+1. Created a new env for dnn_p
+  conda create -n dnn_p python=3.8
+
+2. Make conda forge default
+  conda config --env --add channels conda-forge
+  conda config --show channels
+  conda config --env --set channel_priority strict
+  conda config --show channel_priority
+
+3. Added packages 
+conda install pandas scikit-learn 
+conda install h5py pyyaml requests Pillow scipy
+
+4. Installed radian using pip: needed to have a config file to force reticulate to use correct python env 
+pip install -U git+https://github.com/randy3k/radian
+
+
+5. Installed tensorflow R
+
+pip install tensorflow
+pip install keras
+
+
+
