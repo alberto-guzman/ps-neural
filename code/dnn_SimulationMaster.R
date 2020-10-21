@@ -3,7 +3,7 @@
 ## Alberto Guzman-Alvarez
 ########################
 
-#devtools::install_github("rstudio/reticulate")
+# devtools::install_github("rstudio/reticulate")
 
 list.of.packages <- c(
   "Matching", "rpart", "randomForest", "gbm", "twang", "ipred", "neuralnet",
@@ -18,8 +18,8 @@ if (length(new.packages) > 0) {
 }
 
 lapply(list.of.packages, require, character.only = T)
-
-update.packages(ask = FALSE)
+# stop updating so I bulid everything on this config
+# update.packages(ask = FALSE)
 
 
 tf <- import("tensorflow")
