@@ -173,5 +173,6 @@ datagen <- function(n, scenarioT, scenarioY) {
   sim <- as.data.frame(cbind(V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, T, Y, indeff))
   return(sim)
 }
-
+# will save out a dataframe data so I can impliment the other thing in keras
 data <- datagen(500, "A", "a")
+write.csv(data, "data_for_keras.csv", row.names = FALSE)
