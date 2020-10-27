@@ -9,7 +9,7 @@ list.of.packages <- c(
   "Matching", "rpart", "randomForest", "gbm", "twang", "ipred", "neuralnet",
   "nnet", "e1071", "klaR", "xtable", "flexmix", "AUC", "Hmisc", "Kendall",
   "lattice", "keras", "clusterGeneration", "PoisBinOrdNor", "devtools",
-  "matrixcalc", "tensorflow", "dplyr", "reticulate"
+  "matrixcalc", "tensorflow", "dplyr", "reticulate", "rcorrmatrix"
 )
 
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
