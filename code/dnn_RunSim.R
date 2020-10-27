@@ -7,7 +7,7 @@
 
 
 
-funsim <- function(x, psmethod, par = "ATT") {
+funsim <- function(x, psmethod, par = "ATE") {
 
   # ~~ estimate ps
 
