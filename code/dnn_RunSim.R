@@ -13,8 +13,8 @@ funsim <- function(x, psmethod, par = "ATE") {
 
 
   if (psmethod == "truelogit") {
-    mod <- glm(T ~ V1 + V2 + V3 + V4, data = x, family = binomial)
-    ps <- mod$fitted
+    mod <- glm(T ~ V1 + V2 + V3 + V4, data = x, family = binomial) # fits the model
+    ps <- mod$fitted # saves fitted values 
   } else if (psmethod == "logit") {
     mod <- glm(T ~ V1 + V2 + V3 + V4 + V5 + V6 + V7 + V8 + V9 + V10, data = x, family = binomial)
     ps <- mod$fitted
@@ -65,7 +65,7 @@ funsim <- function(x, psmethod, par = "ATE") {
   #### estimating ATE via propensity score weighting
 
   if (par == "ATE") {
-    weights <- ifelse(x$T == 1, 1 / ps, 1 / (1 - ps))
+    weights <- ifelse(x$T == 1, 1 / ps, 1 / (1 - ps)) # calcualtes weights 
   }
 
   hatg <- wtd.mean(x$Y[x$T == 1], weights = weights[x$T == 1]) - wtd.mean(x$Y[x$T == 0], weights = weights[x$T == 0])
@@ -73,7 +73,7 @@ funsim <- function(x, psmethod, par = "ATE") {
   absrbias <- abs((hatg - g) / g) * 100
   varhatg <- (hatg - g)^2
 
-  modw <- lm(Y ~ T, data = x, weights = weights)
+  modw <- lm(Y ~ T, data = x, weights = weights) #adds the weights 
   hatgsew <- summary(modw)$coefficients[c("T"), c("Std. Error")]
   covw <- ifelse(g > hatg - 2 * hatgsew & g < hatg + 2 * hatgsew, 1, 0)
 
