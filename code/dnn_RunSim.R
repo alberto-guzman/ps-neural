@@ -5,8 +5,8 @@
 # inputs: x = a simulated dataset created by funcov, a psmethod
 # output: a list containing performance metrics (bias and var of estimate, covariate balance diagnostics)
 
-
-
+sink(file = "Complex_n500_DNN")
+#need to estimate without some variables 
 funsim <- function(x, psmethod, par = "ATE") {
 
   # ~~ estimate ps
@@ -331,4 +331,21 @@ funsim <- function(x, psmethod, par = "ATE") {
 
 
 
-funsim(data, "truelogit", par = "ATT")
+funsim(data, "logit", par = "ATE")
+
+sink(file = NULL)
+
+#test code
+library(readr)
+ps <- read_csv("~/Projects/inProgress/2018_propensity_neuralnet_paper/ps.csv", 
+               col_names = FALSE, col_types = cols(`9.981366395950317383e-01` = col_double(), 
+                                                   X1 = col_double()))
+View(ps)
+ps = data.matrix(ps[,1])
+x = data
+
+
+#group agregation 
+aggregate(x = x$indeff,                # Specify data column
+          by = list(x$T),              # Specify group indicator
+          FUN = mean)                           # Specify function (i.e. mean)
