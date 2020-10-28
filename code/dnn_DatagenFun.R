@@ -174,5 +174,13 @@ datagen <- function(n, scenarioT, scenarioY) {
   return(sim)
 }
 # will save out a dataframe data so I can impliment the other thing in keras
-data <- datagen(500, "A", "a")
-write.csv(data, "data_for_keras.csv", row.names = FALSE)
+data <- datagen(500, "G", "e")
+#write.csv(data, "data_for_keras.csv", row.names = FALSE)
+
+
+
+
+#group agregation 
+aggregate(x = x$indeff,                # Specify data column
+          by = list(x$T),              # Specify group indicator
+          FUN = mean)                           # Specify function (i.e. mean)
