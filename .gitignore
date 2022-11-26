@@ -29,8 +29,6 @@ vignettes/*.pdf
 .Renviron
 .DS_Store
 /data
-/alberto_comapp_task_interview
-/prereg
-/irb
 .trackdown
-/code/matchit_objects
+/docs
+/example_sim_code

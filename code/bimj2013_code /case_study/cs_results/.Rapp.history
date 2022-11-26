@@ -1,3552 +1,0 @@
-load("/Users/massimo/Dropbox/Working Papers/ps matching and ML/Paper and ppt versions/submission BIOMETRICAL JOURNAL/R&R/R&R2/code_and_data(da inviare con seconda revisione)/case_study/cs_results/empsimR500.Rdata")
-load("/Users/massimo/Dropbox/Working Papers/ps matching and ML/Paper and ppt versions/submission BIOMETRICAL JOURNAL/R&R/R&R2/code_and_data(da inviare con seconda revisione)/case_study/cs_results/empsimR500NEW.Rdata")
-load("/Users/massimo/Dropbox/Working Papers/ps matching and ML/Paper and ppt versions/submission BIOMETRICAL JOURNAL/R&R/R&R2/code_and_data(da inviare con seconda revisione)/case_study/cs_results/twresults_empR500.Rdata")
-ls()
-load("/Users/massimo/Dropbox/Working Papers/ps matching and ML/Paper and ppt versions/submission BIOMETRICAL JOURNAL/R&R/R&R2/code_and_data(da inviare con seconda revisione)/case_study/cs_results/empsimR500.Rdata")
-head(rfresults)
-load("/Users/massimo/Dropbox/Working Papers/ps matching and ML/Paper and ppt versions/submission BIOMETRICAL JOURNAL/R&R/R&R2/code_and_data(da inviare con seconda revisione)/case_study/cs_results/empsimR500NEW.Rdata")
-head(rfresults)
-save.image(file="empsimR500NEW.Rdata")
-longt<-t(cbind(lgresults,rfresults,twresults,bagresults,treeresults,nnresults,nbresults))#
-#add column psmodel #
-psmodel<-c("logit","rf","tw","bag","tree","nn","nb")#
-psmodel<-rep(psmodel,rep(length(scenarios),length(psmodel)))#
-#add column scenario#
-scenario<-rownames(longt)#
-empsimres<-data.frame(scenario,psmodel,longt)#
-empsimres$psmodel<-factor(empsimres$psmodel,levels=c("logit","rf","tw","bag","tree","nn","nb"))
-# graphical window#
-par(mfrow=c(2,2))#
-# select data#
-subdata <- subset(empsimres, select=c("psmodel","absrbiasw","absrbiasm"))#
-head(subdata)#
-# find statistics #
-absrbiasw<-as.numeric(by(subdata$absrbiasw,subdata$psmodel,mean))# mean bias weight#
-absrbiasm<-as.numeric(by(subdata$absrbiasm,subdata$psmodel,mean))# meand bias match#
-# barplot#
-# barplot(as.matrix(rbind(absrbiasw,absrbiasm),nrow=2,ncol=nlevels(subdata$psmodel)),beside=TRUE,main="abs relative bias",#
-# ylim=c(0,50),names.arg=levels(subdata$psmodel),ylab="")#
-# abline(h=c(10,20,30,40,50),col="gray",lty="dotted")#
-#
-# gap barplot#
-require(plotrix)#
-newdata<-(rbind(absrbiasw,absrbiasm))#
-newdata[newdata>60]<-newdata[newdata>60]-102#
-barpos<-barplot(newdata,names.arg=levels(subdata$psmodel),#
-ylim=c(0,90),beside=TRUE,main="abs relative bias",yaxt="n")#
-axis(2,at=c(10,20,30,40,50,60,70,80,90,100),#
-    labels=c(10,20,30,40,50,60,160,170,180,190))#
-box()#
-axis.break(2,60,style="gap")#
-abline(h=c(10,20,30,40,50,60,70),col="gray",lty="dotted")#
-#
-# plot RMSE#
-# select root of sum of square distance of estimand for each ps model#
-subdata <- subset(empsimres, #
-select=c("psmodel","varhatgw","varhatgm"))#
-#head(subdata)#
-# statistics (variance after weigthing and matching)#
-varhatgw<-as.numeric(by(subdata$varhatgw,subdata$psmodel,mean)) #by psmodel#
-varhatgm<-as.numeric(by(subdata$varhatgm,subdata$psmodel,mean))#
-# plot statistics#
-barplot(matrix(rbind(sqrt(varhatgw),sqrt(varhatgm)),nrow=2,ncol=nlevels(subdata$psmodel)),#
-beside=TRUE,ylim=c(0,0.08),names.arg=levels(subdata$psmodel),ylab="",font.lab=2,main="RMSE")#
-abline(h=c(0.01,0.02,0.04,0.06,0.08),col="gray",lty="dotted")#
-#
-#plot CP#
-subdata <- subset(empsimres, #
-select=c("psmodel","covw","covm"))#
-head(subdata)#
-# find statistics #
-covw<-as.numeric(by(subdata$covw,subdata$psmodel,mean))# mean bias weight#
-covm<-as.numeric(by(subdata$covm,subdata$psmodel,mean))# meand bias match#
-barplot(as.matrix(rbind(covw,covm),nrow=2,ncol=nlevels(subdata$psmodel)),beside=TRUE,main="Coverage of 95% c.i.",#
-ylim=c(0,1),names.arg=levels(subdata$psmodel),yaxt="n")#
-ticks<-c(0,0.2,0.4,0.6,0.8,1)#
-axis(2,at=ticks,labels=c(0,0.2,0.4,0.6,0.8,1))#
-abline(h=c(0.2,0.4,0.6,0.8,1),col="gray",lty="dotted")#
-#
-#plot legend#
-plot.new()#
-par(xpd=TRUE)#
-legend(x = "topleft",inset = 0,#
-        legend = c("Weigthing","Matching"),col=c("black","grey"), lwd=4, cex=1, horiz = TRUE)#
-par(xpd=FALSE)
-funsimciao<-funsim_w
-funsim_w <- function(x,psmethod,par="ATE"){#
-#~~ estimate ps           #
-if (psmethod =="truelogit")#
-{   	#
-	  mod = glm(T~ w1 + w2 + w3 + w4, data=x, family=binomial)#
-	  ps = mod$fitted#
-} else if (psmethod == "logit"){#
-    mod = glm(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x ,family=binomial)#
-	 ps = mod$fitted#
-} else if (psmethod == "tree"){#
-    mod = rpart(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10,method="class",data=x,cp=0.001)#
-	 ps = predict(mod)[,2]     #
-}  else if (psmethod == "randomforest"){#
-      	mod = randomForest(factor(T)~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, mtry=2, ntree= 500)#
- 	   ps<-predict(mod , type="prob")[,2]#
-}  else if (psmethod == "gbm"){#
-     mod = gbm(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, distribution = "bernoulli", interaction.depth = 1, n.trees = 100)  #
-	  ps = predict.gbm(mod,data=x,n.trees=100, type="response") #
-}  else if (psmethod == "gbmtwang"){#
-   mod = ps(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, n.trees = 10000,interaction.depth = 3,verbose=FALSE,shrinkage = 0.0005)#
-   ps = as.vector(mod$ps[,1]) #
-} else if (psmethod == "bag"){#
-   mod = bagging(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x)#
-   ps =  predict(mod,newdata=x,type="prob")    #
-} #
-    else if (psmethod == "nn2")    {	#
-   mod= nnet(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10,#
-   data=x, entropy=T,size=3,decay=0,maxit=2000,trace=F)#
-   ps = as.numeric(predict(mod, type='raw')) #nb: anche predizioni fuori da [0,1]#
-   ps=exp(ps)/(1+exp(ps))          #
-                               }#
-    else if (psmethod == "nb")     {#
-	 mod = naiveBayes(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x)#
-      ps = predict(mod,newdata=x,type="raw")[,2] #
-}#
-#### separate ps#
-ps1<-ps[x$T==1]#
-ps0<-ps[x$T==0]#
-#### fit measure for ps#
-#auc<-auc(sensitivity(ps, factor(x$T), perc.rank = TRUE))#
-#### true (sample) att:#
-g <- mean(x$indeff[x$T==1]) #
-### true (sample) ate#
-if(par=="ATE") {g <- mean(x$indeff) }#
-#### find weights for ATT#
-weights     <- ifelse(x$T==1,1,ps/(1-ps))#
- weights0     <- weights[x$T==0]#
- weights1     <- weights[x$T==1]#
-#### estimating weights for ATE#
-if(par=="ATE") {#
- weights     <- ifelse(x$T==1,1/ps,1/(1-ps))#
- weights0     <- weights[x$T==0]#
- weights1     <- weights[x$T==1]#
- }#
-#~~collect output#
-output <-list( #
-"weights"=weights,"T"=x$T#
-)#
- return(output)#
- }
-funsimciao<-funsim_w
-funsimciao
-R
-R<-1
-funsim<-funsim_w
-lgresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
- timestart<-Sys.time()#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"logit",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- lgresults<-cbind(lgresults,partialresults/R)#
-                               }#
-lgresults<-lgresults[,-c(1,2)]#
-####
-# tree#
- treeresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"tree",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- treeresults<-cbind(treeresults,partialresults/R)#
-                               }#
-treeresults<-treeresults[,-c(1,2)]#
-####
-# rf#
-rfresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
- for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"tree",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- rfresults<-cbind(rfresults,partialresults/R)#
-                               }#
-rfresults<-rfresults[,-c(1,2)]#
-####
-# bag#
- bagresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"bag",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- bagresults<-cbind(bagresults,partialresults/R)#
-                               }#
-bagresults<-bagresults[,-c(1,2)]#
-####
-# nb#
- nbresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nb",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- nbresults<-cbind(nbresults,partialresults/R)#
-                               }#
-nbresults<-nbresults[,-c(1,2)]#
-### #
-# nn#
- nnresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-if(is.numeric(try(as.matrix(simplify2array(funsim(#
-    funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nn2",par)))))==TRUE)#
- {partialresults<- partialresults+try(as.matrix(simplify2array(funsim(#
- 	funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nn2",par))))}else{partialresults<-partialresults}#
-    setTxtProgressBar(pb, i)  #
-                                              }#
- nnresults<-cbind(nnresults,partialresults/R)#
-                               }#
-nnresults<-nnresults[,-c(1,2)]
-size<-500
-lgresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
- timestart<-Sys.time()#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"logit",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- lgresults<-cbind(lgresults,partialresults/R)#
-                               }#
-lgresults<-lgresults[,-c(1,2)]#
-####
-# tree#
- treeresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"tree",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- treeresults<-cbind(treeresults,partialresults/R)#
-                               }#
-treeresults<-treeresults[,-c(1,2)]#
-####
-# rf#
-rfresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
- for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"tree",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- rfresults<-cbind(rfresults,partialresults/R)#
-                               }#
-rfresults<-rfresults[,-c(1,2)]#
-####
-# bag#
- bagresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"bag",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- bagresults<-cbind(bagresults,partialresults/R)#
-                               }#
-bagresults<-bagresults[,-c(1,2)]#
-####
-# nb#
- nbresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nb",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- nbresults<-cbind(nbresults,partialresults/R)#
-                               }#
-nbresults<-nbresults[,-c(1,2)]#
-### #
-# nn#
- nnresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-if(is.numeric(try(as.matrix(simplify2array(funsim(#
-    funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nn2",par)))))==TRUE)#
- {partialresults<- partialresults+try(as.matrix(simplify2array(funsim(#
- 	funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nn2",par))))}else{partialresults<-partialresults}#
-    setTxtProgressBar(pb, i)  #
-                                              }#
- nnresults<-cbind(nnresults,partialresults/R)#
-                               }#
-nnresults<-nnresults[,-c(1,2)]
-perfmetrics<-names(#
-funsim( funcov(500,"A","a"),"logit"))
-lgresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
- timestart<-Sys.time()#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"logit",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- lgresults<-cbind(lgresults,partialresults/R)#
-                               }#
-lgresults<-lgresults[,-c(1,2)]#
-####
-# tree#
- treeresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"tree",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- treeresults<-cbind(treeresults,partialresults/R)#
-                               }#
-treeresults<-treeresults[,-c(1,2)]#
-####
-# rf#
-rfresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
- for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"tree",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- rfresults<-cbind(rfresults,partialresults/R)#
-                               }#
-rfresults<-rfresults[,-c(1,2)]#
-####
-# bag#
- bagresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"bag",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- bagresults<-cbind(bagresults,partialresults/R)#
-                               }#
-bagresults<-bagresults[,-c(1,2)]#
-####
-# nb#
- nbresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nb",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- nbresults<-cbind(nbresults,partialresults/R)#
-                               }#
-nbresults<-nbresults[,-c(1,2)]#
-### #
-# nn#
- nnresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-if(is.numeric(try(as.matrix(simplify2array(funsim(#
-    funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nn2",par)))))==TRUE)#
- {partialresults<- partialresults+try(as.matrix(simplify2array(funsim(#
- 	funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nn2",par))))}else{partialresults<-partialresults}#
-    setTxtProgressBar(pb, i)  #
-                                              }#
- nnresults<-cbind(nnresults,partialresults/R)#
-                               }#
-nnresults<-nnresults[,-c(1,2)]
-list.of.packages = c("Matching","rpart","randomForest","gbm","twang","ipred","neuralnet",#
-"nnet","e1071","klaR","xtable","flexmix","AUC","Hmisc","Kendall","lattice") # replace xx and yy with package names#
-new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]#
-if(length(new.packages) > 0) {install.packages(new.packages)}#
-lapply(list.of.packages, require, character.only=T)
-lgresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
- timestart<-Sys.time()#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"logit",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- lgresults<-cbind(lgresults,partialresults/R)#
-                               }#
-lgresults<-lgresults[,-c(1,2)]#
-####
-# tree#
- treeresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"tree",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- treeresults<-cbind(treeresults,partialresults/R)#
-                               }#
-treeresults<-treeresults[,-c(1,2)]#
-####
-# rf#
-rfresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
- for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"tree",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- rfresults<-cbind(rfresults,partialresults/R)#
-                               }#
-rfresults<-rfresults[,-c(1,2)]#
-####
-# bag#
- bagresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"bag",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- bagresults<-cbind(bagresults,partialresults/R)#
-                               }#
-bagresults<-bagresults[,-c(1,2)]#
-####
-# nb#
- nbresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nb",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- nbresults<-cbind(nbresults,partialresults/R)#
-                               }#
-nbresults<-nbresults[,-c(1,2)]#
-### #
-# nn#
- nnresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-if(is.numeric(try(as.matrix(simplify2array(funsim(#
-    funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nn2",par)))))==TRUE)#
- {partialresults<- partialresults+try(as.matrix(simplify2array(funsim(#
- 	funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nn2",par))))}else{partialresults<-partialresults}#
-    setTxtProgressBar(pb, i)  #
-                                              }#
- nnresults<-cbind(nnresults,partialresults/R)#
-                               }#
-nnresults<-nnresults[,-c(1,2)]
-funsim
-lgresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
- timestart<-Sys.time()#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"logit",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- lgresults<-cbind(lgresults,partialresults/R)#
-                               }#
-lgresults<-lgresults[,-c(1,2)]#
-####
-# tree#
- treeresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"tree",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- treeresults<-cbind(treeresults,partialresults/R)#
-                               }#
-treeresults<-treeresults[,-c(1,2)]#
-####
-# rf#
-rfresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
- for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"tree",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- rfresults<-cbind(rfresults,partialresults/R)#
-                               }#
-rfresults<-rfresults[,-c(1,2)]#
-####
-# bag#
- bagresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"bag",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- bagresults<-cbind(bagresults,partialresults/R)#
-                               }#
-bagresults<-bagresults[,-c(1,2)]#
-####
-# nb#
- nbresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nb",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- nbresults<-cbind(nbresults,partialresults/R)#
-                               }#
-nbresults<-nbresults[,-c(1,2)]#
-### #
-# nn#
- nnresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-if(is.numeric(try(as.matrix(simplify2array(funsim(#
-    funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nn2",par)))))==TRUE)#
- {partialresults<- partialresults+try(as.matrix(simplify2array(funsim(#
- 	funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nn2",par))))}else{partialresults<-partialresults}#
-    setTxtProgressBar(pb, i)  #
-                                              }#
- nnresults<-cbind(nnresults,partialresults/R)#
-                               }#
-nnresults<-nnresults[,-c(1,2)]
-funsim_w <- function(x,psmethod,par="ATE"){#
-#~~ estimate ps           #
-if (psmethod =="truelogit")#
-{   	#
-	  mod = glm(T~ w1 + w2 + w3 + w4, data=x, family=binomial)#
-	  ps = mod$fitted#
-} else if (psmethod == "logit"){#
-    mod = glm(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x ,family=binomial)#
-	 ps = mod$fitted#
-} else if (psmethod == "tree"){#
-    mod = rpart(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10,method="class",data=x,cp=0.001)#
-	 ps = predict(mod)[,2]     #
-}  else if (psmethod == "randomforest"){#
-      	mod = randomForest(factor(T)~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, mtry=2, ntree= 500)#
- 	   ps<-predict(mod , type="prob")[,2]#
-}  else if (psmethod == "gbm"){#
-     mod = gbm(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, distribution = "bernoulli", interaction.depth = 1, n.trees = 100)  #
-	  ps = predict.gbm(mod,data=x,n.trees=100, type="response") #
-}  else if (psmethod == "gbmtwang"){#
-   mod = ps(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, n.trees = 10000,interaction.depth = 3,verbose=FALSE,shrinkage = 0.0005)#
-   ps = as.vector(mod$ps[,1]) #
-} else if (psmethod == "bag"){#
-   mod = bagging(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x)#
-   ps =  predict(mod,newdata=x,type="prob")    #
-} #
-    else if (psmethod == "nn2")    {	#
-   mod= nnet(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10,#
-   data=x, entropy=T,size=3,decay=0,maxit=2000,trace=F)#
-   ps = as.numeric(predict(mod, type='raw')) #nb: anche predizioni fuori da [0,1]#
-   ps=exp(ps)/(1+exp(ps))          #
-                               }#
-    else if (psmethod == "nb")     {#
-	 mod = naiveBayes(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x)#
-      ps = predict(mod,newdata=x,type="raw")[,2] #
-}#
-#### separate ps#
-ps1<-ps[x$T==1]#
-ps0<-ps[x$T==0]#
-#### fit measure for ps#
-#auc<-auc(sensitivity(ps, factor(x$T), perc.rank = TRUE))#
-#### true (sample) att:#
-g <- mean(x$indeff[x$T==1]) #
-### true (sample) ate#
-if(par=="ATE") {g <- mean(x$indeff) }#
-#### find weights for ATT#
-weights     <- ifelse(x$T==1,1,ps/(1-ps))#
- weights0     <- weights[x$T==0]#
- weights1     <- weights[x$T==1]#
-#### estimating weights for ATE#
-if(par=="ATE") {#
- weights     <- ifelse(x$T==1,1/ps,1/(1-ps))#
- weights0     <- weights[x$T==0]#
- weights1     <- weights[x$T==1]#
- }#
-#~~collect output#
-output <-list( #
-"weights"=weights,"T"=x$T#
-)#
- return(output)#
- }
-############ funsim_wo: funsim semplificata con soli weights in putput e parametri di tuning ottimali#
-#
-  funsim_wo <- function(x,psmethod,par="ATT",tunopt=NULL){#
-#
-#~~ estimate ps           #
-if (psmethod =="truelogit")#
-{   	#
-	  mod = glm(T~ w1 + w2 + w3 + w4, data=x, family=binomial)#
-	  ps = mod$fitted#
-} else if (psmethod == "logit"){#
-    mod = glm(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x ,family=binomial)#
-	 ps = mod$fitted#
-} else if (psmethod == "tree"){#
-#
-    mod = rpart(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10,#
-    cp=tunopt[2],#
-    method="class",data=x)#
-	 ps = predict(mod)[,2]     #
-}  else if (psmethod == "randomforest"){#
-      	mod = randomForest(factor(T)~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, #
-      	mtry=tunopt[1], #
-      	data=x, ntree= 500)#
- 	   ps<-predict(mod , type="prob")[,2]#
-}  else if (psmethod == "gbm"){#
-     mod = gbm(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, distribution = "bernoulli", interaction.depth = 1, n.trees = 100)  #
-	  ps = predict.gbm(mod,data=x,n.trees=100, type="response") #
-}  else if (psmethod == "gbmtwang"){#
-   mod = ps(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, n.trees = 10000,interaction.depth = 3,verbose=FALSE,shrinkage = 0.0005)#
-   ps = as.vector(mod$ps[,1]) #
-} else if (psmethod == "bag"){#
-   mod = bagging(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x)#
-   ps =  predict(mod,newdata=x,type="prob")    #
-}#
-    else if (psmethod == "nn")    {	#
-    # mod for psm	                         #
-   mod= nnet(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10,#
-   data=x, entropy=T,#
-   size=tunopt[3],#
-   decay=tunopt[4],maxit=2000,trace=F)#
-   ps = as.numeric(predict(mod, type='raw')) #
-   ps=exp(ps)/(1+exp(ps))#
-   # mod for psw#
-      mod= nnet(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10,#
-   data=x, entropy=T,#
-   size=tunopt[5],#
-   decay=tunopt[6],maxit=2000,trace=F)#
-   psw = as.numeric(predict(mod, type='raw')) #
-   psw=exp(psw)/(1+exp(psw))          #
-                               }#
-    else if (psmethod == "nb")     {#
-	 mod = naiveBayes(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, laplace=0,#
-	 data=x)#
-      ps = predict(mod,newdata=x,type="raw")[,2] #
-}#
-#
-#### fit measure for ps#
-#
-#auc<-auc(sensitivity(ps, factor(x$T), perc.rank = TRUE))#
-#
-#### true (sample) att:#
-#
-g <- mean(x$indeff[x$T==1]) #
-#
-### true (sample) ate#
-#
-if(par=="ATE") {g <- mean(x$indeff) }#
-#
-#### estimating ATT via propensity score weighting#
-#
-weights     <- ifelse(x$T==1,1,ps/(1-ps))#
-if (psmethod == "nn")    {weights     <- ifelse(x$T==1,1,psw/(1-psw))}#
-#
-#### estimating ATE via propensity score weighting#
-#
-if(par=="ATE") { weights     <- ifelse(x$T==1,1/ps,1/(1-ps)) #
-	if (psmethod == "nn")    {weights     <- ifelse(x$T==1,1/psw,1/(1-psw))}#
-	 }#
-#### separate ps#
-#
-ps1<-ps[x$T==1]#
-ps0<-ps[x$T==0]#
-#
-#### fit measure for ps#
-#
-auc<-auc(sensitivity(ps, factor(x$T), perc.rank = TRUE))#
-#
-#### true (sample) att:#
-#
-g <- mean(x$indeff[x$T==1]) #
-#
-### true (sample) ate#
-#
-if(par=="ATE") {g <- mean(x$indeff) }#
-#
-#### find weights for ATT#
-#
- weights       <- ifelse(x$T==1,1,ps/(1-ps))#
- weights0     <- weights[x$T==0]#
- weights1     <- weights[x$T==1]#
-#
-#### estimating weights for ATE#
-#
-if(par=="ATE") {#
- weights       <- ifelse(x$T==1,1/ps,1/(1-ps))#
- weights0     <- weights[x$T==0]#
- weights1     <- weights[x$T==1]#
- }#
-#~~collect output#
-output <-list( #
-"weights"=weights,"T"=x$T#
-)#
-#
- return(output)#
- }
-size<- 500
-## ps model results#
-# logit#
- lgresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
- timestart<-Sys.time()#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"logit",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- lgresults<-cbind(lgresults,partialresults/R)#
-                               }#
-lgresults<-lgresults[,-c(1,2)]
-funsim
-funsim <- function(x,psmethod,par="ATE"){#
-#~~ estimate ps           #
-if (psmethod =="truelogit")#
-{   	#
-	  mod = glm(T~ w1 + w2 + w3 + w4, data=x, family=binomial)#
-	  ps = mod$fitted#
-} else if (psmethod == "logit"){#
-    mod = glm(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x ,family=binomial)#
-	 ps = mod$fitted#
-} else if (psmethod == "tree"){#
-    mod = rpart(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10,method="class",data=x,cp=0.001)#
-	 ps = predict(mod)[,2]     #
-}  else if (psmethod == "randomforest"){#
-      	mod = randomForest(factor(T)~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, mtry=2, ntree= 500)#
- 	   ps<-predict(mod , type="prob")[,2]#
-}  else if (psmethod == "gbm"){#
-     mod = gbm(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, distribution = "bernoulli", interaction.depth = 1, n.trees = 100)  #
-	  ps = predict.gbm(mod,data=x,n.trees=100, type="response") #
-}  else if (psmethod == "gbmtwang"){#
-   mod = ps(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, n.trees = 10000,interaction.depth = 3,verbose=FALSE,shrinkage = 0.0005)#
-   ps = as.vector(mod$ps[,1]) #
-} else if (psmethod == "bag"){#
-   mod = bagging(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x)#
-   ps =  predict(mod,newdata=x,type="prob")    #
-} #
-    else if (psmethod == "nn2")    {	#
-   mod= nnet(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10,#
-   data=x, entropy=T,size=3,decay=0,maxit=2000,trace=F)#
-   ps = as.numeric(predict(mod, type='raw')) #nb: anche predizioni fuori da [0,1]#
-   ps=exp(ps)/(1+exp(ps))          #
-                               }#
-    else if (psmethod == "nb")     {#
-	 mod = naiveBayes(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x)#
-      ps = predict(mod,newdata=x,type="raw")[,2] #
-}#
-#### separate ps#
-ps1<-ps[x$T==1]#
-ps0<-ps[x$T==0]#
-#### fit measure for ps#
-#auc<-auc(sensitivity(ps, factor(x$T), perc.rank = TRUE))#
-#### true (sample) att:#
-g <- mean(x$indeff[x$T==1]) #
-### true (sample) ate#
-if(par=="ATE") {g <- mean(x$indeff) }#
-#### find weights for ATT#
-weights     <- ifelse(x$T==1,1,ps/(1-ps))#
- weights0     <- weights[x$T==0]#
- weights1     <- weights[x$T==1]#
-#### estimating weights for ATE#
-if(par=="ATE") {#
- weights     <- ifelse(x$T==1,1/ps,1/(1-ps))#
- weights0     <- weights[x$T==0]#
- weights1     <- weights[x$T==1]#
- }#
-#~~collect output#
-output <-list( #
-"weights"=weights,"T"=x$T#
-)#
- return(output)#
- }
-########### scenarios#
-  scenarios<-c("Aa" ,"Ad", "Ae", "Ag", "Ca", "Cd", "Ce", "Cg","Fa", "Fd", "Fe", "Fg","Ga", "Gd", "Ge", "Gg")
-par<-"ATE"
-lgresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
- timestart<-Sys.time()#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"logit",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- lgresults<-cbind(lgresults,partialresults/R)#
-                               }#
-lgresults<-lgresults[,-c(1,2)]
-funsim_w <- function(x,psmethod,par="ATE"){#
-#~~ estimate ps           #
-if (psmethod =="truelogit")#
-{   	#
-	  mod = glm(T~ w1 + w2 + w3 + w4, data=x, family=binomial)#
-	  ps = mod$fitted#
-} else if (psmethod == "logit"){#
-    mod = glm(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x ,family=binomial)#
-	 ps = mod$fitted#
-} else if (psmethod == "tree"){#
-    mod = rpart(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10,method="class",data=x,cp=0.001)#
-	 ps = predict(mod)[,2]     #
-}  else if (psmethod == "randomforest"){#
-      	mod = randomForest(factor(T)~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, mtry=2, ntree= 500)#
- 	   ps<-predict(mod , type="prob")[,2]#
-}  else if (psmethod == "gbm"){#
-     mod = gbm(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, distribution = "bernoulli", interaction.depth = 1, n.trees = 100)  #
-	  ps = predict.gbm(mod,data=x,n.trees=100, type="response") #
-}  else if (psmethod == "gbmtwang"){#
-   mod = ps(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, n.trees = 10000,interaction.depth = 3,verbose=FALSE,shrinkage = 0.0005)#
-   ps = as.vector(mod$ps[,1]) #
-} else if (psmethod == "bag"){#
-   mod = bagging(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x)#
-   ps =  predict(mod,newdata=x,type="prob")    #
-} #
-    else if (psmethod == "nn2")    {	#
-   mod= nnet(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10,#
-   data=x, entropy=T,size=3,decay=0,maxit=2000,trace=F)#
-   ps = as.numeric(predict(mod, type='raw')) #nb: anche predizioni fuori da [0,1]#
-   ps=exp(ps)/(1+exp(ps))          #
-                               }#
-    else if (psmethod == "nb")     {#
-	 mod = naiveBayes(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x)#
-      ps = predict(mod,newdata=x,type="raw")[,2] #
-}#
-#### separate ps#
-ps1<-ps[x$T==1]#
-ps0<-ps[x$T==0]#
-#### fit measure for ps#
-#auc<-auc(sensitivity(ps, factor(x$T), perc.rank = TRUE))#
-#### true (sample) att:#
-g <- mean(x$indeff[x$T==1]) #
-### true (sample) ate#
-if(par=="ATE") {g <- mean(x$indeff) }#
-#### find weights for ATT#
-weights     <- ifelse(x$T==1,1,ps/(1-ps))#
- weights0     <- weights[x$T==0]#
- weights1     <- weights[x$T==1]#
-#### estimating weights for ATE#
-if(par=="ATE") {#
- weights     <- ifelse(x$T==1,1/ps,1/(1-ps))#
- weights0     <- weights[x$T==0]#
- weights1     <- weights[x$T==1]#
- }#
-#~~collect output#
-output <-list( #
-"weights"=weights,"T"=x$T#
-)#
- return(output)#
- }
-funsim<-funsim_w
-## ps model results#
-# logit#
- lgresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
- timestart<-Sys.time()#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"logit",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- lgresults<-cbind(lgresults,partialresults/R)#
-                               }#
-lgresults<-lgresults[,-c(1,2)]
-R
-size
-funsim<-funsim_wo
-## ps model results#
-# logit#
- lgresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
- timestart<-Sys.time()#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"logit",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- lgresults<-cbind(lgresults,partialresults/R)#
-                               }#
-lgresults<-lgresults[,-c(1,2)]#
-####
-# tree#
- treeresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"tree",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- treeresults<-cbind(treeresults,partialresults/R)#
-                               }#
-treeresults<-treeresults[,-c(1,2)]#
-####
-# rf#
-rfresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
- for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"tree",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- rfresults<-cbind(rfresults,partialresults/R)#
-                               }#
-rfresults<-rfresults[,-c(1,2)]#
-####
-# bag#
- bagresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"bag",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- bagresults<-cbind(bagresults,partialresults/R)#
-                               }#
-bagresults<-bagresults[,-c(1,2)]#
-####
-# nb#
- nbresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nb",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- nbresults<-cbind(nbresults,partialresults/R)#
-                               }#
-nbresults<-nbresults[,-c(1,2)]#
-### #
-# nn#
- nnresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-if(is.numeric(try(as.matrix(simplify2array(funsim(#
-    funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nn2",par)))))==TRUE)#
- {partialresults<- partialresults+try(as.matrix(simplify2array(funsim(#
- 	funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nn2",par))))}else{partialresults<-partialresults}#
-    setTxtProgressBar(pb, i)  #
-                                              }#
- nnresults<-cbind(nnresults,partialresults/R)#
-                               }#
-nnresults<-nnresults[,-c(1,2)]
-j
-R<-2
-### #
-# nn#
- nnresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-if(is.numeric(try(as.matrix(simplify2array(funsim(#
-    funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nn2",par)))))==TRUE)#
- {partialresults<- partialresults+try(as.matrix(simplify2array(funsim(#
- 	funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nn2",par))))}else{partialresults<-partialresults}#
-    setTxtProgressBar(pb, i)  #
-                                              }#
- nnresults<-cbind(nnresults,partialresults/R)#
-                               }#
-nnresults<-nnresults[,-c(1,2)]
-funsim_w <- function(x,psmethod,par="ATE"){#
-#~~ estimate ps           #
-if (psmethod =="truelogit")#
-{   	#
-	  mod = glm(T~ w1 + w2 + w3 + w4, data=x, family=binomial)#
-	  ps = mod$fitted#
-} else if (psmethod == "logit"){#
-    mod = glm(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x ,family=binomial)#
-	 ps = mod$fitted#
-} else if (psmethod == "tree"){#
-    mod = rpart(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10,method="class",data=x,cp=0.001)#
-	 ps = predict(mod)[,2]     #
-}  else if (psmethod == "randomforest"){#
-      	mod = randomForest(factor(T)~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, mtry=2, ntree= 500)#
- 	   ps<-predict(mod , type="prob")[,2]#
-}  else if (psmethod == "gbm"){#
-     mod = gbm(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, distribution = "bernoulli", interaction.depth = 1, n.trees = 100)  #
-	  ps = predict.gbm(mod,data=x,n.trees=100, type="response") #
-}  else if (psmethod == "gbmtwang"){#
-   mod = ps(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, n.trees = 10000,interaction.depth = 3,verbose=FALSE,shrinkage = 0.0005)#
-   ps = as.vector(mod$ps[,1]) #
-} else if (psmethod == "bag"){#
-   mod = bagging(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x)#
-   ps =  predict(mod,newdata=x,type="prob")    #
-} #
-    else if (psmethod == "nn")    {	#
-   mod= nnet(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10,#
-   data=x, entropy=T,size=3,decay=0,maxit=2000,trace=F)#
-   ps = as.numeric(predict(mod, type='raw')) #nb: anche predizioni fuori da [0,1]#
-   ps=exp(ps)/(1+exp(ps))          #
-                               }#
-    else if (psmethod == "nb")     {#
-	 mod = naiveBayes(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x)#
-      ps = predict(mod,newdata=x,type="raw")[,2] #
-}#
-#### separate ps#
-ps1<-ps[x$T==1]#
-ps0<-ps[x$T==0]#
-#### fit measure for ps#
-#auc<-auc(sensitivity(ps, factor(x$T), perc.rank = TRUE))#
-#### true (sample) att:#
-g <- mean(x$indeff[x$T==1]) #
-### true (sample) ate#
-if(par=="ATE") {g <- mean(x$indeff) }#
-#### find weights for ATT#
-weights     <- ifelse(x$T==1,1,ps/(1-ps))#
- weights0     <- weights[x$T==0]#
- weights1     <- weights[x$T==1]#
-#### estimating weights for ATE#
-if(par=="ATE") {#
- weights     <- ifelse(x$T==1,1/ps,1/(1-ps))#
- weights0     <- weights[x$T==0]#
- weights1     <- weights[x$T==1]#
- }#
-#~~collect output#
-output <-list( #
-"weights"=weights,"T"=x$T#
-)#
- return(output)#
- }
-funsim<-funsim_w
-lgresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
- timestart<-Sys.time()#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"logit",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- lgresults<-cbind(lgresults,partialresults/R)#
-                               }#
-lgresults<-lgresults[,-c(1,2)]#
-####
-# tree#
- treeresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"tree",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- treeresults<-cbind(treeresults,partialresults/R)#
-                               }#
-treeresults<-treeresults[,-c(1,2)]#
-####
-# rf#
-rfresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
- for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"tree",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- rfresults<-cbind(rfresults,partialresults/R)#
-                               }#
-rfresults<-rfresults[,-c(1,2)]#
-####
-# bag#
- bagresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"bag",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- bagresults<-cbind(bagresults,partialresults/R)#
-                               }#
-bagresults<-bagresults[,-c(1,2)]#
-####
-# nb#
- nbresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nb",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- nbresults<-cbind(nbresults,partialresults/R)#
-                               }#
-nbresults<-nbresults[,-c(1,2)]#
-### #
-# nn#
- nnresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-if(is.numeric(try(as.matrix(simplify2array(funsim(#
-    funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nn",par)))))==TRUE)#
- {partialresults<- partialresults+try(as.matrix(simplify2array(funsim(#
- 	funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nn",par))))}else{partialresults<-partialresults}#
-    setTxtProgressBar(pb, i)  #
-                                              }#
- nnresults<-cbind(nnresults,partialresults/R)#
-                               }#
-nnresults<-nnresults[,-c(1,2)]
-funsim<-funsim_wo
-## ps model results#
-# logit#
- lgresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
- timestart<-Sys.time()#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"logit",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- lgresults<-cbind(lgresults,partialresults/R)#
-                               }#
-lgresults<-lgresults[,-c(1,2)]#
-####
-# tree#
- treeresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"tree",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- treeresults<-cbind(treeresults,partialresults/R)#
-                               }#
-treeresults<-treeresults[,-c(1,2)]#
-####
-# rf#
-rfresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
- for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"tree",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- rfresults<-cbind(rfresults,partialresults/R)#
-                               }#
-rfresults<-rfresults[,-c(1,2)]#
-####
-# bag#
- bagresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"bag",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- bagresults<-cbind(bagresults,partialresults/R)#
-                               }#
-bagresults<-bagresults[,-c(1,2)]#
-####
-# nb#
- nbresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nb",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- nbresults<-cbind(nbresults,partialresults/R)#
-                               }#
-nbresults<-nbresults[,-c(1,2)]#
-### #
-# nn#
- nnresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-if(is.numeric(try(as.matrix(simplify2array(funsim(#
-    funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nn",par)))))==TRUE)#
- {partialresults<- partialresults+try(as.matrix(simplify2array(funsim(#
- 	funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nn",par))))}else{partialresults<-partialresults}#
-    setTxtProgressBar(pb, i)  #
-                                              }#
- nnresults<-cbind(nnresults,partialresults/R)#
-                               }#
-nnresults<-nnresults[,-c(1,2)]
-funsim(#
-    funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nn",par))
-funsim(#
-    funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nn",par)
-funsim_wo <- function(x,psmethod,par="ATT",tunopt=NULL){#
-#
-#~~ estimate ps           #
-if (psmethod =="truelogit")#
-{   	#
-	  mod = glm(T~ w1 + w2 + w3 + w4, data=x, family=binomial)#
-	  ps = mod$fitted#
-} else if (psmethod == "logit"){#
-    mod = glm(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x ,family=binomial)#
-	 ps = mod$fitted#
-} else if (psmethod == "tree"){#
-#
-    mod = rpart(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10,#
-    cp=tunopt[2],#
-    method="class",data=x)#
-	 ps = predict(mod)[,2]     #
-}  else if (psmethod == "randomforest"){#
-      	mod = randomForest(factor(T)~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, #
-      	mtry=tunopt[1], #
-      	data=x, ntree= 500)#
- 	   ps<-predict(mod , type="prob")[,2]#
-}  else if (psmethod == "gbm"){#
-     mod = gbm(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, distribution = "bernoulli", interaction.depth = 1, n.trees = 100)  #
-	  ps = predict.gbm(mod,data=x,n.trees=100, type="response") #
-}  else if (psmethod == "gbmtwang"){#
-   mod = ps(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, n.trees = 10000,interaction.depth = 3,verbose=FALSE,shrinkage = 0.0005)#
-   ps = as.vector(mod$ps[,1]) #
-} else if (psmethod == "bag"){#
-   mod = bagging(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x)#
-   ps =  predict(mod,newdata=x,type="prob")    #
-}#
-    else if (psmethod == "nn")    {	#
-   # mod #
-      mod= nnet(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10,#
-   data=x, entropy=T,#
-   size=tunopt[5],#
-   decay=tunopt[6],maxit=2000,trace=F)#
-   ps = as.numeric(predict(mod, type='raw')) #
-   ps=exp(ps)/(1+exp(ps))                #
-                               }#
-    else if (psmethod == "nb")     {#
-	 mod = naiveBayes(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, laplace=0,#
-	 data=x)#
-      ps = predict(mod,newdata=x,type="raw")[,2] #
-}#
-#
-#### fit measure for ps#
-#
-#auc<-auc(sensitivity(ps, factor(x$T), perc.rank = TRUE))#
-#
-#### true (sample) att:#
-#
-g <- mean(x$indeff[x$T==1]) #
-#
-### true (sample) ate#
-#
-if(par=="ATE") {g <- mean(x$indeff) }#
-#
-#### estimating ATT via propensity score weighting#
-#
-weights     <- ifelse(x$T==1,1,ps/(1-ps))#
-#
-#### estimating ATE via propensity score weighting#
-#
-if(par=="ATE") { weights     <- ifelse(x$T==1,1/ps,1/(1-ps)) #
-	 }#
-#### separate ps#
-#
-ps1<-ps[x$T==1]#
-ps0<-ps[x$T==0]#
-#
-#### fit measure for ps#
-#
-auc<-auc(sensitivity(ps, factor(x$T), perc.rank = TRUE))#
-#
-#### true (sample) att:#
-#
-g <- mean(x$indeff[x$T==1]) #
-#
-### true (sample) ate#
-#
-if(par=="ATE") {g <- mean(x$indeff) }#
-#
-#### find weights for ATT#
-#
- weights       <- ifelse(x$T==1,1,ps/(1-ps))#
- weights0     <- weights[x$T==0]#
- weights1     <- weights[x$T==1]#
-#
-#### estimating weights for ATE#
-#
-if(par=="ATE") {#
- weights       <- ifelse(x$T==1,1/ps,1/(1-ps))#
- weights0     <- weights[x$T==0]#
- weights1     <- weights[x$T==1]#
- }#
-#~~collect output#
-output <-list( #
-"weights"=weights,"T"=x$T#
-)#
-#
- return(output)#
- }
-### #
-# nn#
- nnresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-if(is.numeric(try(as.matrix(simplify2array(funsim(#
-    funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nn",par)))))==TRUE)#
- {partialresults<- partialresults+try(as.matrix(simplify2array(funsim(#
- 	funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nn",par))))}else{partialresults<-partialresults}#
-    setTxtProgressBar(pb, i)  #
-                                              }#
- nnresults<-cbind(nnresults,partialresults/R)#
-                               }#
-nnresults<-nnresults[,-c(1,2)]
-cut(dati[,3],quantile(dati[,3],seq(0,1,by=1/5),na.rm=TRUE));tunopt
-tunopt
-############ funsim_wo: funsim semplificata con soli weights in output e parametri di tuning ottimali#
-#
-  funsim_wo <- function(x,psmethod,par="ATT",tunopt=NULL){#
-#
-#~~ estimate ps           #
-if (psmethod =="truelogit")#
-{   	#
-	  mod = glm(T~ w1 + w2 + w3 + w4, data=x, family=binomial)#
-	  ps = mod$fitted#
-} else if (psmethod == "logit"){#
-    mod = glm(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x ,family=binomial)#
-	 ps = mod$fitted#
-} else if (psmethod == "tree"){#
-#
-    mod = rpart(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10,#
-    cp=tunopt[2],#
-    method="class",data=x)#
-	 ps = predict(mod)[,2]     #
-}  else if (psmethod == "randomforest"){#
-      	mod = randomForest(factor(T)~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, #
-      	mtry=tunopt[1], #
-      	data=x, ntree= 500)#
- 	   ps<-predict(mod , type="prob")[,2]#
-}  else if (psmethod == "gbm"){#
-     mod = gbm(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, distribution = "bernoulli", interaction.depth = 1, n.trees = 100)  #
-	  ps = predict.gbm(mod,data=x,n.trees=100, type="response") #
-}  else if (psmethod == "gbmtwang"){#
-   mod = ps(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, n.trees = 10000,interaction.depth = 3,verbose=FALSE,shrinkage = 0.0005)#
-   ps = as.vector(mod$ps[,1]) #
-} else if (psmethod == "bag"){#
-   mod = bagging(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x)#
-   ps =  predict(mod,newdata=x,type="prob")    #
-}#
-    else if (psmethod == "nn")    {	#
-    # mod for psm	                         #
-   mod= nnet(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10,#
-   data=x, entropy=T,#
-   size=tunopt[3],#
-   decay=tunopt[4],maxit=2000,trace=F)#
-   ps = as.numeric(predict(mod, type='raw')) #
-   ps=exp(ps)/(1+exp(ps))#
-   # mod for psw#
-      mod= nnet(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10,#
-   data=x, entropy=T,#
-   size=tunopt[5],#
-   decay=tunopt[6],maxit=2000,trace=F)#
-   psw = as.numeric(predict(mod, type='raw')) #
-   psw=exp(psw)/(1+exp(psw))          #
-                               }#
-    else if (psmethod == "nb")     {#
-	 mod = naiveBayes(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, laplace=0,#
-	 data=x)#
-      ps = predict(mod,newdata=x,type="raw")[,2] #
-}#
-#
-#### fit measure for ps#
-#
-#auc<-auc(sensitivity(ps, factor(x$T), perc.rank = TRUE))#
-#
-#### true (sample) att:#
-#
-g <- mean(x$indeff[x$T==1]) #
-#
-### true (sample) ate#
-#
-if(par=="ATE") {g <- mean(x$indeff) }#
-#
-#### estimating ATT via propensity score weighting#
-#
-weights     <- ifelse(x$T==1,1,ps/(1-ps))#
-if (psmethod == "nn")    {weights     <- ifelse(x$T==1,1,psw/(1-psw))}#
-#
-#### estimating ATE via propensity score weighting#
-#
-if(par=="ATE") { weights     <- ifelse(x$T==1,1/ps,1/(1-ps)) #
-	if (psmethod == "nn")    {weights     <- ifelse(x$T==1,1/psw,1/(1-psw))}#
-	 }#
-output <-list( #
-"weights"=weights,"T"=x$T#
-)#
-#
- return(output)#
- }
-# c(mtry, cp, size, decay, size, decay)#
-  tunopt<-list( c(2,0.002,5,2,1,0.007) , c(5,0.02,1,0.0001,1,0.0001)  , c(1,0.0012,5,0.38,5,0.38),#
- c(0.0015,5,11,3.17,1,0.001), c(2,0.037,3,0.52,3,0.52), c(2,0.001,7,2.77,13,0.43),c(2,0.034,1,3,15,0.83),#
- c(2,0.034,3,0.52,3,0.52),c(0.002,3,1,0.02,9,0.35), c(3,0.002,1,0.02,9,0.35), c(3,0.0023,11,1.23,9,0.35),#
- c(2,0.015,3,0.05,3,0.05),c(2,0.03,3,0.26,3,0.26), c(2,0.05,1,0.3,1,0.3), c(2,0.05,1,0.3,1,0.3),#
- c(7,0.002,1,0.005,1,0.005))
-############ funsim_wo: funsim semplificata con soli weights in output e parametri di tuning ottimali#
-#
-  funsim_wo <- function(x,psmethod,par="ATT",tunopt=NULL){#
-#
-#~~ estimate ps           #
-if (psmethod =="truelogit")#
-{   	#
-	  mod = glm(T~ w1 + w2 + w3 + w4, data=x, family=binomial)#
-	  ps = mod$fitted#
-} else if (psmethod == "logit"){#
-    mod = glm(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x ,family=binomial)#
-	 ps = mod$fitted#
-} else if (psmethod == "tree"){#
-#
-    mod = rpart(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10,#
-    cp=tunopt[2],#
-    method="class",data=x)#
-	 ps = predict(mod)[,2]     #
-}  else if (psmethod == "randomforest"){#
-      	mod = randomForest(factor(T)~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, #
-      	mtry=tunopt[1], #
-      	data=x, ntree= 500)#
- 	   ps<-predict(mod , type="prob")[,2]#
-}  else if (psmethod == "gbm"){#
-     mod = gbm(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, distribution = "bernoulli", interaction.depth = 1, n.trees = 100)  #
-	  ps = predict.gbm(mod,data=x,n.trees=100, type="response") #
-}  else if (psmethod == "gbmtwang"){#
-   mod = ps(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, n.trees = 10000,interaction.depth = 3,verbose=FALSE,shrinkage = 0.0005)#
-   ps = as.vector(mod$ps[,1]) #
-} else if (psmethod == "bag"){#
-   mod = bagging(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x)#
-   ps =  predict(mod,newdata=x,type="prob")    #
-}#
-    else if (psmethod == "nn")    {	#
-    # mod for psm	                         #
-   mod= nnet(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10,#
-   data=x, entropy=T,#
-   size=tunopt[3],#
-   decay=tunopt[4],maxit=2000,trace=F)#
-   ps = as.numeric(predict(mod, type='raw')) #
-   ps=exp(ps)/(1+exp(ps))#
-   # mod for psw#
-      mod= nnet(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10,#
-   data=x, entropy=T,#
-   size=tunopt[5],#
-   decay=tunopt[6],maxit=2000,trace=F)#
-   psw = as.numeric(predict(mod, type='raw')) #
-   psw=exp(psw)/(1+exp(psw))          #
-                               }#
-    else if (psmethod == "nb")     {#
-	 mod = naiveBayes(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, laplace=0,#
-	 data=x)#
-      ps = predict(mod,newdata=x,type="raw")[,2] #
-}#
-#
-#### fit measure for ps#
-#
-#auc<-auc(sensitivity(ps, factor(x$T), perc.rank = TRUE))#
-#
-#### true (sample) att:#
-#
-g <- mean(x$indeff[x$T==1]) #
-#
-### true (sample) ate#
-#
-if(par=="ATE") {g <- mean(x$indeff) }#
-#
-#### estimating ATT via propensity score weighting#
-#
-weights     <- ifelse(x$T==1,1,ps/(1-ps))#
-if (psmethod == "nn")    {weights     <- ifelse(x$T==1,1,psw/(1-psw))}#
-#
-#### estimating ATE via propensity score weighting#
-#
-if(par=="ATE") { weights     <- ifelse(x$T==1,1/ps,1/(1-ps)) #
-	if (psmethod == "nn")    {weights     <- ifelse(x$T==1,1/psw,1/(1-psw))}#
-	 }#
-output <-list( #
-"weights"=weights,"T"=x$T#
-)#
-#
- return(output)#
- }
-funsim_w <- function(x,psmethod,par="ATE"){#
-#~~ estimate ps           #
-if (psmethod =="truelogit")#
-{   	#
-	  mod = glm(T~ w1 + w2 + w3 + w4, data=x, family=binomial)#
-	  ps = mod$fitted#
-} else if (psmethod == "logit"){#
-    mod = glm(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x ,family=binomial)#
-	 ps = mod$fitted#
-} else if (psmethod == "tree"){#
-    mod = rpart(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10,method="class",data=x,cp=0.001)#
-	 ps = predict(mod)[,2]     #
-}  else if (psmethod == "randomforest"){#
-      	mod = randomForest(factor(T)~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, mtry=2, ntree= 500)#
- 	   ps<-predict(mod , type="prob")[,2]#
-}  else if (psmethod == "gbm"){#
-     mod = gbm(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, distribution = "bernoulli", interaction.depth = 1, n.trees = 100)  #
-	  ps = predict.gbm(mod,data=x,n.trees=100, type="response") #
-}  else if (psmethod == "gbmtwang"){#
-   mod = ps(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, n.trees = 10000,interaction.depth = 3,verbose=FALSE,shrinkage = 0.0005)#
-   ps = as.vector(mod$ps[,1]) #
-} else if (psmethod == "bag"){#
-   mod = bagging(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x)#
-   ps =  predict(mod,newdata=x,type="prob")    #
-} #
-    else if (psmethod == "nn")    {	#
-   mod= nnet(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10,#
-   data=x, entropy=T,size=3,decay=0,maxit=2000,trace=F)#
-   ps = as.numeric(predict(mod, type='raw')) #nb: anche predizioni fuori da [0,1]#
-   ps=exp(ps)/(1+exp(ps))          #
-                               }#
-    else if (psmethod == "nb")     {#
-	 mod = naiveBayes(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x)#
-      ps = predict(mod,newdata=x,type="raw")[,2] #
-}#
-#### separate ps#
-ps1<-ps[x$T==1]#
-ps0<-ps[x$T==0]#
-#### fit measure for ps#
-#auc<-auc(sensitivity(ps, factor(x$T), perc.rank = TRUE))#
-#### true (sample) att:#
-g <- mean(x$indeff[x$T==1]) #
-### true (sample) ate#
-if(par=="ATE") {g <- mean(x$indeff) }#
-#### find weights for ATT#
-weights     <- ifelse(x$T==1,1,ps/(1-ps))#
- weights0     <- weights[x$T==0]#
- weights1     <- weights[x$T==1]#
-#### estimating weights for ATE#
-if(par=="ATE") {#
- weights     <- ifelse(x$T==1,1/ps,1/(1-ps))#
- weights0     <- weights[x$T==0]#
- weights1     <- weights[x$T==1]#
- }#
-#~~collect output#
-output <-list( #
-"weights"=weights,"T"=x$T#
-)#
- return(output)#
- }
-## ps model results#
-# logit#
- lgresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
- timestart<-Sys.time()#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim_w(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"logit",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- lgresults<-cbind(lgresults,partialresults/R)#
-                               }#
-lgresults<-lgresults[,-c(1,2)]#
-####
-# tree#
- treeresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim_w(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"tree",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- treeresults<-cbind(treeresults,partialresults/R)#
-                               }#
-treeresults<-treeresults[,-c(1,2)]#
-####
-# rf#
-rfresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
- for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim_w(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"tree",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- rfresults<-cbind(rfresults,partialresults/R)#
-                               }#
-rfresults<-rfresults[,-c(1,2)]#
-####
-# bag#
- bagresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim_w(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"bag",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- bagresults<-cbind(bagresults,partialresults/R)#
-                               }#
-bagresults<-bagresults[,-c(1,2)]#
-####
-# nb#
- nbresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim_w(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nb",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- nbresults<-cbind(nbresults,partialresults/R)#
-                               }#
-nbresults<-nbresults[,-c(1,2)]#
-### #
-# nn#
- nnresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-if(is.numeric(try(as.matrix(simplify2array(funsim_w(#
-    funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nn",par)))))==TRUE)#
- {partialresults<- partialresults+try(as.matrix(simplify2array(funsim_w(#
- 	funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nn",par))))}else{partialresults<-partialresults}#
-    setTxtProgressBar(pb, i)  #
-                                              }#
- nnresults<-cbind(nnresults,partialresults/R)#
-                               }#
-nnresults<-nnresults[,-c(1,2)]
-lgresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
- timestart<-Sys.time()#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim_ow(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"logit",par,tunopt))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- lgresults<-cbind(lgresults,partialresults/R)#
-                               }#
-lgresults<-lgresults[,-c(1,2)]#
-####
-# tree#
- treeresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim_ow(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"tree",par,tunopt))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- treeresults<-cbind(treeresults,partialresults/R)#
-                               }#
-treeresults<-treeresults[,-c(1,2)]#
-####
-# rf#
-#
-rfresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
- for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim_ow(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"tree",par,tunopt))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- rfresults<-cbind(rfresults,partialresults/R)#
-                               }#
-rfresults<-rfresults[,-c(1,2)]#
-####
-# bag#
- bagresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim_ow(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"bag",par,tunopt))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- bagresults<-cbind(bagresults,partialresults/R)#
-                               }#
-bagresults<-bagresults[,-c(1,2)]#
-####
-# nb#
- nbresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim_ow(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nb",par,tunopt))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- nbresults<-cbind(nbresults,partialresults/R)#
-                               }#
-nbresults<-nbresults[,-c(1,2)]#
-### #
-# nn#
- nnresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-if(is.numeric(try(as.matrix(simplify2array(funsim_ow(#
-    funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nn",par,tunopt)))))==TRUE)#
- {partialresults<- partialresults+try(as.matrix(simplify2array(funsim_ow(#
- 	funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nn",par,tunopt))))}else{partialresults<-partialresults}#
-    setTxtProgressBar(pb, i)  #
-                                              }#
- nnresults<-cbind(nnresults,partialresults/R)#
-                               }#
-nnresults<-nnresults[,-c(1,2)]
-lgresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
- timestart<-Sys.time()#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim_wo(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"logit",par,tunopt))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- lgresults<-cbind(lgresults,partialresults/R)#
-                               }#
-lgresults<-lgresults[,-c(1,2)]#
-####
-# tree#
- treeresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim_wo(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"tree",par,tunopt))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- treeresults<-cbind(treeresults,partialresults/R)#
-                               }#
-treeresults<-treeresults[,-c(1,2)]#
-####
-# rf#
-#
-rfresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
- for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim_wo(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"tree",par,tunopt))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- rfresults<-cbind(rfresults,partialresults/R)#
-                               }#
-rfresults<-rfresults[,-c(1,2)]#
-####
-# bag#
- bagresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim_wo(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"bag",par,tunopt))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- bagresults<-cbind(bagresults,partialresults/R)#
-                               }#
-bagresults<-bagresults[,-c(1,2)]#
-####
-# nb#
- nbresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim_wo(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nb",par,tunopt))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- nbresults<-cbind(nbresults,partialresults/R)#
-                               }#
-nbresults<-nbresults[,-c(1,2)]#
-### #
-# nn#
- nnresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          pfunsim_woartialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-if(is.numeric(try(as.matrix(simplify2array(funsim_wo(#
-    funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nn",par,tunopt)))))==TRUE)#
- {partialresults<- partialresults+try(as.matrix(simplify2array(funsim_wo(#
- 	funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nn",par,tunopt))))}else{partialresults<-partialresults}#
-    setTxtProgressBar(pb, i)  #
-                                              }#
- nnresults<-cbind(nnresults,partialresults/R)#
-                               }#
-nnresults<-nnresults[,-c(1,2)]
-nnresults
-nnresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-if(is.numeric(try(as.matrix(simplify2array(funsim_wo(#
-    funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nn",par,tunopt)))))==TRUE)#
- {partialresults<- partialresults+try(as.matrix(simplify2array(funsim_wo(#
- 	funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nn",par,tunopt))))}else{partialresults<-partialresults}#
-    setTxtProgressBar(pb, i)  #
-                                              }#
- nnresults<-cbind(nnresults,partialresults/R)#
-                               }#
-nnresults<-nnresults[,-c(1,2)]
-funsim_wo(#
-    funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nn",par,tunopt))
-funsim_wo(#
-    funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nn",par,tunopt)
-lgresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
- timestart<-Sys.time()#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim_wo(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"logit",par,tunopt[[i]]))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- lgresults<-cbind(lgresults,partialresults/R)#
-                               }#
-lgresults<-lgresults[,-c(1,2)]#
-####
-# tree#
- treeresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim_wo(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"tree",par,tunopt[[i]]))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- treeresults<-cbind(treeresults,partialresults/R)#
-                               }#
-treeresults<-treeresults[,-c(1,2)]#
-####
-# rf#
-#
-rfresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
- for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim_wo(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"tree",par,tunopt[[i]]))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- rfresults<-cbind(rfresults,partialresults/R)#
-                               }#
-rfresults<-rfresults[,-c(1,2)]#
-####
-# bag#
- bagresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim_wo(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"bag",par,tunopt[[i]]))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- bagresults<-cbind(bagresults,partialresults/R)#
-                               }#
-bagresults<-bagresults[,-c(1,2)]#
-####
-# nb#
- nbresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim_wo(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nb",par,tunopt[[i]]))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- nbresults<-cbind(nbresults,partialresults/R)#
-                               }#
-nbresults<-nbresults[,-c(1,2)]#
-### #
-# nn#
- nnresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-if(is.numeric(try(as.matrix(simplify2array(funsim_wo(#
-    funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nn",par,tunopt[[i]])))))==TRUE)#
- {partialresults<- partialresults+try(as.matrix(simplify2array(funsim_wo(#
- 	funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nn",par,tunopt[[i]]))))}else{partialresults<-partialresults}#
-    setTxtProgressBar(pb, i)  #
-                                              }#
- nnresults<-cbind(nnresults,partialresults/R)#
-                               }#
-nnresults<-nnresults[,-c(1,2)]
-length(perfmetrcs)
-length(perfmetrics)
-perfmetrics<-names(#
-funsim_w( funcov(500,"A","a"),"logit"))
-length(perfmetrics)
-load("/Users/massimo/Dropbox/Working Papers/ps matching and ML/Paper and ppt versions/submission BIOMETRICAL JOURNAL/R&R/R&R2/code_and_data(da inviare con seconda revisione)/case_study/cs_results/empsimRNEWNEW500.Rdata")
-LS()
-ls()
-twresults
-rfresult
-rfresults
-nbresults
-treeresults
-lgresults
-nnresults
-load("/Users/massimo/Dropbox/Working Papers/ps matching and ML/Paper and ppt versions/submission BIOMETRICAL JOURNAL/R&R/R&R2/code_and_data(da inviare con seconda revisione)/case_study/cs_results/twresults_empR500.Rdata")
-nnresults
-twresults
-longt<-t(cbind(lgresults,rfresults,twresults,bagresults,treeresults,nnresults,nbresults))#
-#add column psmodel #
-psmodel<-c("logit","rf","tw","bag","tree","nn","nb")#
-psmodel<-rep(psmodel,rep(length(scenarios),length(psmodel)))#
-#add column scenario#
-scenario<-rownames(longt)#
-empsimres<-data.frame(scenario,psmodel,longt)#
-empsimres$psmodel<-factor(empsimres$psmodel,levels=c("logit","rf","tw","bag","tree","nn","nb"))
-# graphical window#
-par(mfrow=c(2,2))#
-# select data#
-subdata <- subset(empsimres, select=c("psmodel","absrbiasw","absrbiasm"))#
-head(subdata)#
-# find statistics #
-absrbiasw<-as.numeric(by(subdata$absrbiasw,subdata$psmodel,mean))# mean bias weight#
-absrbiasm<-as.numeric(by(subdata$absrbiasm,subdata$psmodel,mean))# meand bias match#
-# barplot#
-# barplot(as.matrix(rbind(absrbiasw,absrbiasm),nrow=2,ncol=nlevels(subdata$psmodel)),beside=TRUE,main="abs relative bias",#
-# ylim=c(0,50),names.arg=levels(subdata$psmodel),ylab="")#
-# abline(h=c(10,20,30,40,50),col="gray",lty="dotted")#
-#
-# gap barplot#
-require(plotrix)#
-newdata<-(rbind(absrbiasw,absrbiasm))#
-newdata[newdata>60]<-newdata[newdata>60]-102#
-barpos<-barplot(newdata,names.arg=levels(subdata$psmodel),#
-ylim=c(0,90),beside=TRUE,main="abs relative bias",yaxt="n")#
-axis(2,at=c(10,20,30,40,50,60,70,80,90,100),#
-    labels=c(10,20,30,40,50,60,160,170,180,190))#
-box()#
-axis.break(2,60,style="gap")#
-abline(h=c(10,20,30,40,50,60,70),col="gray",lty="dotted")#
-#
-# plot RMSE#
-# select root of sum of square distance of estimand for each ps model#
-subdata <- subset(empsimres, #
-select=c("psmodel","varhatgw","varhatgm"))#
-#head(subdata)#
-# statistics (variance after weigthing and matching)#
-varhatgw<-as.numeric(by(subdata$varhatgw,subdata$psmodel,mean)) #by psmodel#
-varhatgm<-as.numeric(by(subdata$varhatgm,subdata$psmodel,mean))#
-# plot statistics#
-barplot(matrix(rbind(sqrt(varhatgw),sqrt(varhatgm)),nrow=2,ncol=nlevels(subdata$psmodel)),#
-beside=TRUE,ylim=c(0,0.08),names.arg=levels(subdata$psmodel),ylab="",font.lab=2,main="RMSE")#
-abline(h=c(0.01,0.02,0.04,0.06,0.08),col="gray",lty="dotted")#
-#
-#plot CP#
-subdata <- subset(empsimres, #
-select=c("psmodel","covw","covm"))#
-head(subdata)#
-# find statistics #
-covw<-as.numeric(by(subdata$covw,subdata$psmodel,mean))# mean bias weight#
-covm<-as.numeric(by(subdata$covm,subdata$psmodel,mean))# meand bias match#
-barplot(as.matrix(rbind(covw,covm),nrow=2,ncol=nlevels(subdata$psmodel)),beside=TRUE,main="Coverage of 95% c.i.",#
-ylim=c(0,1),names.arg=levels(subdata$psmodel),yaxt="n")#
-ticks<-c(0,0.2,0.4,0.6,0.8,1)#
-axis(2,at=ticks,labels=c(0,0.2,0.4,0.6,0.8,1))#
-abline(h=c(0.2,0.4,0.6,0.8,1),col="gray",lty="dotted")#
-#
-#plot legend#
-plot.new()#
-par(xpd=TRUE)#
-legend(x = "topleft",inset = 0,#
-        legend = c("Weigthing","Matching"),col=c("black","grey"), lwd=4, cex=1, horiz = TRUE)#
-par(xpd=FALSE)
-funcov<-function(size,scenarioT,scenarioY){#
-#~~ generate individual level covariates#
-w1 <- rnorm(size, mean=0, sd=1)#
-w2 <- rnorm(size, mean=0, sd=1)#
-w3 <- rnorm(size, mean=0, sd=1)#
-w4 <- rnorm(size, mean=0, sd=1)#
-w5 <- F.sample.cor(w1, 0.2)#0.2,0.9#
-#w5b <- F.sample.cor(w1, 0.0001)#
-w6 <- F.sample.cor(w2, 0.9)#0.2,0.9#
-w7 <- rnorm(size, mean=0, sd=1)#
-w8 <- F.sample.cor(w3, 0.2)#
-w9 <- F.sample.cor(w4, 0.9)#
-#w9b <- F.sample.cor(w4, 0.0001)#
-w10 <- rnorm(size, mean=0, sd=1)#
-#~~ dichotomize variables (will attenuate correlations above)#
-w1 <- ifelse(w1 > mean(w1), 1, 0)#
-w3 <- ifelse(w3 > mean(w3), 1, 0)#
-w5 <- ifelse(w5 > mean(w5), 1, 0)#
-#w5b <- ifelse(w5b > mean(w5b), 1, 0)#
-w6 <- ifelse(w6 > mean(w6), 1, 0)#
-w8 <- ifelse(w8 > mean(w8), 1, 0)#
-w9 <- ifelse(w9 > mean(w9), 1, 0)#
-#w9b <- ifelse(w9 > mean(w9), 1, 0)#
-#~~ scenarios for data generation models#
-# A: model with additivity and linearity#
-# B: mild non-linearity#
-# C: moderate non-linearity#
-# D: mild non-additivity#
-# E: mild non-additivity and non-linearity#
-# F: moderate non-additivity#
-# G: moderate non-additivity and non-linearity#
-# binary exposure modeling#
-#~~~~~~~~~~~~~~Global Variables~~~~~~~~~~~~~~~~~~~~##
-#~~ coefficients for the treatment and potential outcomes equations#
-#~~ coefficients for treatment equation (from Setoguchi (reference 1))#
- b0 <-  0#
- b1 <-  0.8#
- b2 <- -0.25 #
- b3 <-  0.6 #
- b4 <- -0.4 #
- b5 <- -0.8 #
- b6 <- -0.5 #
- b7 <-  0.7 #
- #~~ coefficients for potential outcomes equation Y(0) and Y(1)#
- #~~ coefficients for Y(0): from Setoguchi (reference 1)#
- #~~ coefficients for Y(1): same as above plus delta. In particular #
- #~~ the intercept in Y(1) has been fixed to obtain Y(1)-Y(0)=-0.4 in each scenario#
- a00 <- -3.85   #
- a01 <-  0.3     #
- a02 <- -0.36   #
- a03 <- -0.73  #
- a04 <- -0.2   #
- a05 <-  0.71   #
- a06 <- -0.19 #
- a07 <-  0.26 #
- #~~ scenarios for treatment assignment#
-if (scenarioT == "A") {#
-trueps <- (1 + exp( -(0 + b1*w1 + b2*w2 + b3*w3 + b4*w4 + b5*w5 + b6*w6 + b7*w7) ) ) ^ -1#
-} else#
-if (scenarioT == "B") {#
-trueps <- (1 + exp( -(0 + b1*w1 + b2*w2 + b3*w3 + b4*w4 + b5*w5 + b6*w6 + b7*w7#
-+ b2*w2*w2) ) )^-1#
-} else#
-if (scenarioT == "C") {#
-trueps <- (1 + exp( -(0 + b1*w1 + b2*w2 + b3*w3 + b4*w4 + b5*w5 + b6*w6 + b7*w7#
-+ b2*w2*w2 +b4*w4*w4 + b7*w7*w7) ) )^-1#
-} else #
-if (scenarioT == "D") {#
-trueps <- (1 + exp( -(0 + b1*w1 + b2*w2 + b3*w3 + b4*w4 + b5*w5 + b6*w6 + b7*w7#
-+ b1*0.5*w1*w3 + b2*0.7*w2*w4 + b4*0.5*w4*w5 + b5*0.5*w5*w6) ) )^-1#
-} else#
-if (scenarioT == "E") {#
-trueps <- (1 + exp( -(0 + b1*w1 + b2*w2 + b3*w3 + b4*w4 + b5*w5 + b6*w6 + b7*w7#
-+ b2*w2*w2 + b1*0.5*w1*w3 + b2*0.7*w2*w4 + b4*0.5*w4*w5 + b5*0.5*w5*w6) ) )^-1#
-} else#
-if (scenarioT == "F") {#
-trueps <- (1 + exp( -(0 + b1*w1 + b2*w2 + b3*w3 + b4*w4 + b5*w5 + b6*w6 + b7*w7#
-+ b1*0.5*w1*w3 + b2*0.7*w2*w4 + b3*0.5*w3*w5 + b4*0.7*w4*w6 + b5*0.5*w5*w7#
-+ b1*0.5*w1*w6 + b2*0.7*w2*w3 + b3*0.5*w3*w4 + b4*0.5*w4*w5 + b5*0.5*w5*w6) ) )^-1#
-} else#
-{#
-# scenario G#
-trueps <- (1 + exp( -(0 + b1*w1 + b2*w2 + b3*w3 + b4*w4 + b5*w5 + b6*w6 + b7*w7#
-+ b2*w2*w2 + b4*w4*w4 + b7*w7*w7 + b1*0.5*w1*w3 + b2*0.7*w2*w4 +b3*0.5*w3*w5#
-+ b4*0.7*w4*w6 + b5*0.5*w5*w7 + b1*0.5*w1*w6 + b2*0.7*w2*w3 + b3*0.5*w3*w4#
-+ b4*0.5*w4*w5 + b5*0.5*w5*w6) ) )^-1#
-}#
-#~~ binary treatment T #
-unif1 <- runif(size,0,1)#
-T     <- ifelse(trueps > unif1, 1, 0)	# there is a probability of unif1 that T=1#
-#~~ scenarios for outcome#
-if (scenarioY == "a") {#
-Y0    <-       a00 +       a01*w1 +       a02*w2 +       a03*w3 +       a04*w4       +#
-    a05*w8 +       a06*w9 +        a07*w10                #
-Y1    <- (a00-0.4) + (a01 + 0)*w1 + (a02 + 0)*w2 + (a03 + 0)*w3 + (a04 + 0)*w4 +      (a05+0)*w8 +  (a06+0)*w9 +     (a07+0)*w10#
-} else#
-if (scenarioY == "d") {# 1 inter#
-Y0    <-       a00 +       a01*w1 +       a02*w2 +       a03*w3 +       a04*w4       +#
-    a05*w8 +       a06*w9 +        a07*w10                #
-Y1    <- (a00-0.4) + (a01 + 0)*w1 + (a02 + 0.25*a02)*w2 + (a03 + 0)*w3 + (a04 + 0)*w4 +      (a05+0)*w8 +  (a06+0)*w9 +     (a07+0)*w10#
-} else#
-if (scenarioY == "f") {# 2 inter#
-Y0    <-       a00 +       a01*w1 +       a02*w2 +       a03*w3 +       a04*w4       +#
-    a05*w8 +       a06*w9 +        a07*w10                #
-Y1    <- (a00-0.4) + (a01 + 0)*w1 + (a02 + 0.25*a02)*w2 + (a03 + 0)*w3 + (a04 + 0.25*a04)*w4 +      (a05+0)*w8 +  (a06+0)*w9 +     (a07+0)*w10#
-} else #
-if (scenarioY == "g") {  # (2 quad, 2 inter)#
-Y0    <-       a00 +       a01*w1 +       a02*w2 +       a03*w3 +       a04*w4       +#
-    a05*w8 +       a06*w9 +        a07*w10 #
-    + 0.1*a02*w2^2 + 0.1*a04*w4^2                #
-Y1    <- (a00-0.4) + (a01 + 0)*w1  + (a03 + 0)*w3   +   (a05+0)*w8 +  (a06+0)*w9 + (a07+0)*w10 #
-+ 0.25*0.1*a02*w2^2 + 0.25*0.1*a04*w4^2 #
-+ (a02 + 0.25*a02)*w2 + (a04 + 0.25*a04)*w4 #
-} else#
-if (scenarioY == "b") { #(1 quad terms)#
-Y0    <-       a00 +       a01*w1 +       a02*w2 +       a03*w3 +       a04*w4       +#
-    a05*w8 +       a06*w9 +        a07*w10  #
-    + 0.5*a02*w2^2              #
-Y1    <- (a00-0.2) + (a01 + 0)*w1 + (a02 + 0)*w2 + (a03 + 0)*w3 + (a04 + 0)*w4 +      (a05+0)*w8 +  (a06+0)*w9 +     (a07+0)*w10 #
-    + a02*w2^2#
-} else#
-if (scenarioY == "c") { #(2 quad terms)#
-Y0    <-       a00 +       a01*w1 +       a02*w2 +       a03*w3 +       a04*w4       +#
-    a05*w8 +       a06*w9 +        a07*w10  #
-    + 0.5*a02*w2^2 + 0.5*a04*w4^2                #
-Y1    <- (a00-0.1) + (a01 + 0)*w1 + (a02 + 0)*w2 + (a03 + 0)*w3 + (a04 + 0)*w4 +      (a05+0)*w8 +  (a06+0)*w9 +     (a07+0)*w10 #
-     + a02*w2^2 + a04*w4^2 #
-} else#
-if (scenarioY == "e") #
-{#
-# scenario e (1 quad term + 1 interaction)#
-Y0    <-       a00 +       a01*w1 +       a02*w2 +       a03*w3 +       a04*w4       +#
-    a05*w8 +       a06*w9 +        a07*w10  #
-    + 0.5*a02*w2^2              #
-Y1    <- (a00-0.2) + (a01 + a01)*w1 + (a02 + a02)*w2 + (a03 + a03)*w3 + (a04 + a04)*w4 +      (a05+0)*w8 +  (a06+0)*w9 +     (a07+0)*w10 #
-+ a02*w2^2 + (a04 + 0.25*a04)*w4#
-}#
-# continuous outcome Y#
-   Y    <- T*Y1 + (1-T)*Y0#
-# true individual effect of T on Y#
-   indeff <- Y1-Y0#
-# create simulation dataset#
- sim <- as.data.frame(cbind(w1, w2, w3 ,w4, w5, w6, w7, w8, w9, w10, T, Y, indeff ))#
- return(sim)#
-}
-F.sample.cor <- function(x, rho) {#
-y <- (rho * (x - mean(x)))/sqrt(var(x)) + sqrt(1 - rho^2) * rnorm(length(x))#
-#cat("Sample corr = ", cor(x, y), "\n")#
-return(y)#
-}
-list.of.packages = c("Matching","rpart","randomForest","gbm","twang","ipred","neuralnet",#
-"nnet","e1071","klaR","xtable","flexmix","AUC","Hmisc","Kendall","lattice") # replace xx and yy with package names#
-new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]#
-if(length(new.packages) > 0) {install.packages(new.packages)}#
-lapply(list.of.packages, require, character.only=T)
-ls()
-funsim <- function(x,psmethod,par="ATE"){#
-#~~ estimate ps           #
-if (psmethod =="truelogit")#
-{   	#
-	  mod = glm(T~ w1 + w2 + w3 + w4, data=x, family=binomial)#
-	  ps = mod$fitted#
-} else if (psmethod == "logit"){#
-    mod = glm(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x ,family=binomial)#
-	 ps = mod$fitted#
-} else if (psmethod == "tree"){#
-    mod = rpart(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10,method="class",data=x,cp=0.001)#
-	 ps = predict(mod)[,2]     #
-}  else if (psmethod == "randomforest"){#
-      	mod = randomForest(factor(T)~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, mtry=2, ntree= 500)#
- 	   ps<-predict(mod , type="prob")[,2]#
-}  else if (psmethod == "gbm"){#
-     mod = gbm(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, distribution = "bernoulli", interaction.depth = 1, n.trees = 100)  #
-	  ps = predict.gbm(mod,data=x,n.trees=100, type="response") #
-}  else if (psmethod == "gbmtwang"){#
-   mod = ps(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, n.trees = 10000,interaction.depth = 3,verbose=FALSE,shrinkage = 0.0005)#
-   ps = as.vector(mod$ps[,1]) #
-} else if (psmethod == "bag"){#
-   mod = bagging(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x)#
-   ps =  predict(mod,newdata=x,type="prob")    #
-} #
-    else if (psmethod == "nn2")    {	#
-   mod= nnet(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10,#
-   data=x, entropy=T,size=3,decay=0,maxit=2000,trace=F)#
-   ps = as.numeric(predict(mod, type='raw')) #nb: anche predizioni fuori da [0,1]#
-   ps=exp(ps)/(1+exp(ps))          #
-                               }#
-    else if (psmethod == "nb")     {#
-	 mod = naiveBayes(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x)#
-      ps = predict(mod,newdata=x,type="raw")[,2] #
-}#
-#### separate ps#
-ps1<-ps[x$T==1]#
-ps0<-ps[x$T==0]#
-#### fit measure for ps#
-auc<-auc(sensitivity(ps, factor(x$T), perc.rank = TRUE))#
-#### true (sample) att:#
-g <- mean(x$indeff[x$T==1]) #
-### true (sample) ate#
-if(par=="ATE") {g <- mean(x$indeff) }#
-#### find weights for ATT#
-weights     <- ifelse(x$T==1,1,ps/(1-ps))#
- weights0     <- weights[x$T==0]#
- weights1     <- weights[x$T==1]#
-#### estimating weights for ATE#
-if(par=="ATE") {#
- weights     <- ifelse(x$T==1,1/ps,1/(1-ps))#
- weights0     <- weights[x$T==0]#
- weights1     <- weights[x$T==1]#
- }
-#~~collect output#
-output <-list( #
-"weights"=weights,"T"=x$T#
-)#
- return(output)#
- }
-########### scenarios#
-  scenarios<-c("Aa" ,"Ad", "Ae", "Ag", "Ca", "Cd", "Ce", "Cg","Fa", "Fd", "Fe", "Fg","Ga", "Gd", "Ge", "Gg")   #
-  ######## parameter#
-  par<-"ATE"#
-  ########### performance metrics#
-perfmetrics<-names(#
-funsim( funcov(500,"A","a"),"logit"))
-R   <- 1       #number of replications#
-size<- 500      #size of each data set
-lgresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
- timestart<-Sys.time()#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"logit",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- lgresults<-cbind(lgresults,partialresults/R)#
-                               }#
-lgresults<-lgresults[,-c(1,2)]
-lgresults
-####
-# tree#
- treeresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"tree",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- treeresults<-cbind(treeresults,partialresults/R)#
-                               }#
-treeresults<-treeresults[,-c(1,2)]
-treeresults
-####
-# rf#
-rfresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
- for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"tree",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- rfresults<-cbind(rfresults,partialresults/R)#
-                               }#
-rfresults<-rfresults[,-c(1,2)]#
-####
-# bag#
- bagresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"bag",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- bagresults<-cbind(bagresults,partialresults/R)#
-                               }#
-bagresults<-bagresults[,-c(1,2)]#
-####
-# nb#
- nbresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nb",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- nbresults<-cbind(nbresults,partialresults/R)#
-                               }#
-nbresults<-nbresults[,-c(1,2)]#
-### #
-# nn#
- nnresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-if(is.numeric(try(as.matrix(simplify2array(funsim(#
-    funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nn2",par)))))==TRUE)#
- {partialresults<- partialresults+try(as.matrix(simplify2array(funsim(#
- 	funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nn2",par))))}else{partialresults<-partialresults}#
-    setTxtProgressBar(pb, i)  #
-                                              }#
- nnresults<-cbind(nnresults,partialresults/R)#
-                               }#
-nnresults<-nnresults[,-c(1,2)]
-nnresults
-head(nbresults)
-# Cycle#
-R   <- 2      #number of replications#
-size<- 500      #size of each data set#
-## ps model results#
-# logit#
- lgresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
- timestart<-Sys.time()#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"logit",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- lgresults<-cbind(lgresults,partialresults/R)#
-                               }#
-lgresults<-lgresults[,-c(1,2)]#
-####
-# tree#
- treeresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"tree",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- treeresults<-cbind(treeresults,partialresults/R)#
-                               }#
-treeresults<-treeresults[,-c(1,2)]
-head(lgresults)
-help(nnet)
-# merge all results#
-longt<-rbind(lgresults,rfresults,twresults,bagresults,treeresults,nnresults,nbresults)#
-longt<-longt[,-seq(2,30,2)]#
-# column psmodel #
-colnames(longt)<-c(scenarios,"T")#
-psmodel<-c("lg","rf","tw","bag","tree","nn","nb")#
-psmodel<-rep(psmodel,each=dim(lgresults)[1])#
-# add columns#
-simres<-data.frame(psmodel,longt)#
-# modify order of labels#
-simres$psmodel<-factor(simres$psmodel,levels=c("lg","rf","tw","bag","tree","nn","nb"))#
-# set graphical parameters#
-setEPS()#
-postscript("results/Fig_o_weights.eps",width=13,height=8)#
-# set graphical window#
-par(mfrow=c(3,3),mai= c(0.3, 0.6, 0.5, 0.3)) #3 times 3 window (9 boxplots)#
-par(oma=c(0,4,4,0))#makes room for overall X and Y axis labels#
-#par(mar = c(2, 2, 1, 1))#makes the plot closer #
-# loop on psmodel#
-for (i in 1:length(unique(psmodel))){#
-# select data for plot i#
-subdata <- subset(simres,psmodel==unique(psmodel)[i],select=c("Aa","T"))#
-head(subdata)#
-# plot#
-boxplot(subdata[ , "Aa" ] ~ subdata[,"T"],horizontal=TRUE,lwd=2,col=c("lightgreen","orange"),ylim=c(0,10),#
-ylim=c(0,max(subdata[ , "Aa" ])),#names.arg=levels(subdata$psmodel),#
-# treatment label on left side#
-ylab=if (isTRUE(i==1|i==4|i==7)){"treatment"}else{NULL},font.lab=2,#
-# scenario label on main#
-main=if (i<8) {unique(psmodel)[i]},legend=NULL)#
-abline(v=c(0,1,2,3,5,10,max(subdata[ , "Aa" ])),col="gray",lty="dotted")#
-abline(v=c( #
- mean(subdata[subdata$T==0,][,"Aa"]),#
- mean(subdata[subdata$T==1,][,"Aa"])),col=c("lightgreen","orange"),lwd=2,lty="dotted")#
-abline(h=1.5,col="gray",lty="solid")#
-#mtext('....', side = 3, outer = TRUE, line = 2)#
-#mtext('....', side = 2, outer = TRUE, line = 2)#
-}# end loop graph
-size
-lgresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
- timestart<-Sys.time()#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim_wo(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"logit",par,tunopt[[i]]))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- lgresults<-cbind(lgresults,partialresults/R)#
-                               }#
-lgresults<-lgresults[,-c(1,2)]#
-####
-# tree#
- treeresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim_wo(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"tree",par,tunopt[[i]]))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- treeresults<-cbind(treeresults,partialresults/R)#
-                               }#
-treeresults<-treeresults[,-c(1,2)]#
-####
-# rf#
-#
-rfresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
- for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim_wo(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"tree",par,tunopt[[i]]))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- rfresults<-cbind(rfresults,partialresults/R)#
-                               }#
-rfresults<-rfresults[,-c(1,2)]#
-####
-# bag#
- bagresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim_wo(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"bag",par,tunopt[[i]]))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- bagresults<-cbind(bagresults,partialresults/R)#
-                               }#
-bagresults<-bagresults[,-c(1,2)]#
-####
-# nb#
- nbresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim_wo(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nb",par,tunopt[[i]]))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- nbresults<-cbind(nbresults,partialresults/R)#
-                               }#
-nbresults<-nbresults[,-c(1,2)]#
-### #
-# nn#
- nnresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-if(is.numeric(try(as.matrix(simplify2array(funsim_wo(#
-    funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nn",par,tunopt[[i]])))))==TRUE)#
- {partialresults<- partialresults+try(as.matrix(simplify2array(funsim_wo(#
- 	funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nn",par,tunopt[[i]]))))}else{partialresults<-partialresults}#
-    setTxtProgressBar(pb, i)  #
-                                              }#
- nnresults<-cbind(nnresults,partialresults/R)#
-                               }#
-nnresults<-nnresults[,-c(1,2)]#
-####
-# tw#
- twresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:1)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(#
-                funsim_wo(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"gbmtwang",par,tunopt[[i]]))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- twresults<-cbind(twresults,partialresults/R)#
-                               }#
-twresults<-twresults[,-c(1,2)]
-R
-R<-1
-lgresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
- timestart<-Sys.time()#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim_w(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"logit",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- lgresults<-cbind(lgresults,partialresults/R)#
-                               }#
-lgresults<-lgresults[,-c(1,2)]#
-####
-# tree#
- treeresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim_w(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"tree",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- treeresults<-cbind(treeresults,partialresults/R)#
-                               }#
-treeresults<-treeresults[,-c(1,2)]#
-####
-# rf#
-rfresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
- for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim_w(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"tree",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- rfresults<-cbind(rfresults,partialresults/R)#
-                               }#
-rfresults<-rfresults[,-c(1,2)]#
-####
-# bag#
- bagresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim_w(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"bag",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- bagresults<-cbind(bagresults,partialresults/R)#
-                               }#
-bagresults<-bagresults[,-c(1,2)]#
-####
-# nb#
- nbresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim_w(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nb",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- nbresults<-cbind(nbresults,partialresults/R)#
-                               }#
-nbresults<-nbresults[,-c(1,2)]#
-### #
-# nn#
- nnresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-if(is.numeric(try(as.matrix(simplify2array(funsim_w(#
-    funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nn",par)))))==TRUE)#
- {partialresults<- partialresults+try(as.matrix(simplify2array(funsim_w(#
- 	funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nn",par))))}else{partialresults<-partialresults}#
-    setTxtProgressBar(pb, i)  #
-                                              }#
- nnresults<-cbind(nnresults,partialresults/R)#
-                               }#
-nnresults<-nnresults[,-c(1,2)]#
-####
-# tw#
- twresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:1)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(#
-                funsim_w(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"gbmtwang",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- twresults<-cbind(twresults,partialresults/R)#
-                               }#
-twresults<-twresults[,-c(1,2)]
-funsim_w <- function(x,psmethod,par="ATE"){#
-#~~ estimate ps           #
-if (psmethod =="truelogit")#
-{   	#
-	  mod = glm(T~ w1 + w2 + w3 + w4, data=x, family=binomial)#
-	  ps = mod$fitted#
-} else if (psmethod == "logit"){#
-    mod = glm(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x ,family=binomial)#
-	 ps = mod$fitted#
-} else if (psmethod == "tree"){#
-    mod = rpart(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10,method="class",data=x)#
-	 ps = predict(mod)[,2]     #
-}  else if (psmethod == "randomforest"){#
-      	mod = randomForest(factor(T)~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, ntree= 500)#
- 	   ps<-predict(mod , type="prob")[,2]#
-}  else if (psmethod == "gbm"){#
-     mod = gbm(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, distribution = "bernoulli", interaction.depth = 1, n.trees = 100)  #
-	  ps = predict.gbm(mod,data=x,n.trees=100, type="response") #
-}  else if (psmethod == "gbmtwang"){#
-   mod = ps(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x, n.trees = 10000,interaction.depth = 3,verbose=FALSE,shrinkage = 0.0005)#
-   ps = as.vector(mod$ps[,1]) #
-} else if (psmethod == "bag"){#
-   mod = bagging(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x)#
-   ps =  predict(mod,newdata=x,type="prob")    #
-} #
-    else if (psmethod == "nn")    {	#
-   mod= nnet(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10,#
-   data=x, entropy=T,size=10,maxit=2000,trace=F)#
-   ps = as.numeric(predict(mod, type='raw')) #nb: anche predizioni fuori da [0,1]#
-   ps=exp(ps)/(1+exp(ps))          #
-                               }#
-    else if (psmethod == "nb")     {#
-	 mod = naiveBayes(T~ w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9 + w10, data=x)#
-      ps = predict(mod,newdata=x,type="raw")[,2] #
-}#
-#### separate ps#
-ps1<-ps[x$T==1]#
-ps0<-ps[x$T==0]#
-#### fit measure for ps#
-#auc<-auc(sensitivity(ps, factor(x$T), perc.rank = TRUE))#
-#### true (sample) att:#
-g <- mean(x$indeff[x$T==1]) #
-### true (sample) ate#
-if(par=="ATE") {g <- mean(x$indeff) }#
-#### find weights for ATT#
-weights     <- ifelse(x$T==1,1,ps/(1-ps))#
- weights0     <- weights[x$T==0]#
- weights1     <- weights[x$T==1]#
-#### estimating weights for ATE#
-if(par=="ATE") {#
- weights     <- ifelse(x$T==1,1/ps,1/(1-ps))#
- weights0     <- weights[x$T==0]#
- weights1     <- weights[x$T==1]#
- }#
-#~~collect output#
-output <-list( #
-"weights"=weights,"T"=x$T#
-)#
- return(output)#
- }
-lgresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
- timestart<-Sys.time()#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim_w(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"logit",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- lgresults<-cbind(lgresults,partialresults/R)#
-                               }#
-lgresults<-lgresults[,-c(1,2)]#
-####
-# tree#
- treeresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim_w(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"tree",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- treeresults<-cbind(treeresults,partialresults/R)#
-                               }#
-treeresults<-treeresults[,-c(1,2)]#
-####
-# rf#
-rfresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
- for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim_w(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"tree",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- rfresults<-cbind(rfresults,partialresults/R)#
-                               }#
-rfresults<-rfresults[,-c(1,2)]#
-####
-# bag#
- bagresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim_w(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"bag",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- bagresults<-cbind(bagresults,partialresults/R)#
-                               }#
-bagresults<-bagresults[,-c(1,2)]#
-####
-# nb#
- nbresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(funsim_w(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nb",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- nbresults<-cbind(nbresults,partialresults/R)#
-                               }#
-nbresults<-nbresults[,-c(1,2)]#
-### #
-# nn#
- nnresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:R)#
-                                             {#
-if(is.numeric(try(as.matrix(simplify2array(funsim_w(#
-    funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nn",par)))))==TRUE)#
- {partialresults<- partialresults+try(as.matrix(simplify2array(funsim_w(#
- 	funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"nn",par))))}else{partialresults<-partialresults}#
-    setTxtProgressBar(pb, i)  #
-                                              }#
- nnresults<-cbind(nnresults,partialresults/R)#
-                               }#
-nnresults<-nnresults[,-c(1,2)]#
-####
-# tw#
- twresults <- matrix(0,nrow=size,ncol=length(perfmetrics))#
-  for(i in 1:length(scenarios)){#
-	  	                   pb <- txtProgressBar(min = 0, max = length(scenarios), style = 3) #
-  	                          partialresults<-matrix(0,nrow=size,ncol=length(perfmetrics))#
-  	                          for(j in 1:1)#
-                                             {#
-                partialresults <-partialresults+try(as.matrix(simplify2array(#
-                funsim_w(#
-                funcov(size,substr(scenarios[i],1,1),substr(scenarios[i],2,2)),"gbmtwang",par))))#
-   setTxtProgressBar(pb, i)  #
-                                              }#
- twresults<-cbind(twresults,partialresults/R)#
-                               }#
-twresults<-twresults[,-c(1,2)]
-head(twresults)
-# set graphical parameters#
-setEPS()#
-postscript(paste("results/Fig_weights",size,".eps"),width=13,height=8)#
-# set graphical window#
-par(mfrow=c(3,3),mai= c(0.3, 0.6, 0.5, 0.3)) #3 times 3 window (9 boxplots)#
-par(oma=c(0,4,4,0))#makes room for overall X and Y axis labels#
-#par(mar = c(2, 2, 1, 1))#makes the plot closer #
-# loop on psmodel#
-for (i in 1:length(unique(psmodel))){#
-# select data for plot i#
-subdata <- subset(simres,psmodel==unique(psmodel)[i],select=c("Aa","T"))#
-head(subdata)#
-# plot#
-boxplot(subdata[ , "Aa" ] ~ subdata[,"T"],horizontal=TRUE,lwd=2,col=c("lightgreen","orange"),ylim=c(0,10),#
-ylim=c(0,max(subdata[ , "Aa" ])),#names.arg=levels(subdata$psmodel),#
-# treatment label on left side#
-ylab=if (isTRUE(i==1|i==4|i==7)){"treatment"}else{NULL},font.lab=2,#
-# scenario label on main#
-main=if (i<8) {unique(psmodel)[i]},legend=NULL)#
-abline(v=c(0,1,2,3,5,10,max(subdata[ , "Aa" ])),col="gray",lty="dotted")#
-abline(v=c( #
- mean(subdata[subdata$T==0,][,"Aa"]),#
- mean(subdata[subdata$T==1,][,"Aa"])),col=c("lightgreen","orange"),lwd=2,lty="dotted")#
-abline(h=1.5,col="gray",lty="solid")#
-#mtext('....', side = 3, outer = TRUE, line = 2)#
-#mtext('....', side = 2, outer = TRUE, line = 2)#
-}# end loop graph
-# merge all results#
-longt<-rbind(lgresults,rfresults,twresults,bagresults,treeresults,nnresults,nbresults)#
-longt<-longt[,-seq(2,30,2)]#
-# column psmodel #
-colnames(longt)<-c(scenarios,"T")#
-psmodel<-c("lg","rf","tw","bag","tree","nn","nb")#
-psmodel<-rep(psmodel,each=dim(lgresults)[1])#
-# add columns#
-simres<-data.frame(psmodel,longt)#
-# modify order of labels#
-simres$psmodel<-factor(simres$psmodel,levels=c("lg","rf","tw","bag","tree","nn","nb"))
-simres<-data.frame(psmodel,longt)
-longt<-rbind(lgresults,rfresults,twresults,bagresults,treeresults,nnresults,nbresults)#
-longt<-longt[,-seq(2,30,2)]
-twresults<-rfresults
-longt<-rbind(lgresults,rfresults,twresults,bagresults,treeresults,nnresults,nbresults)#
-longt<-longt[,-seq(2,30,2)]
-# column psmodel #
-colnames(longt)<-c(scenarios,"T")#
-psmodel<-c("lg","rf","tw","bag","tree","nn","nb")#
-psmodel<-rep(psmodel,each=dim(lgresults)[1])#
-# add columns#
-simres<-data.frame(psmodel,longt)#
-# modify order of labels#
-simres$psmodel<-factor(simres$psmodel,levels=c("lg","rf","tw","bag","tree","nn","nb"))
-# set graphical parameters#
-setEPS()#
-postscript(paste("results/Fig_weights",size,".eps"),width=13,height=8)#
-# set graphical window#
-par(mfrow=c(3,3),mai= c(0.3, 0.6, 0.5, 0.3)) #3 times 3 window (9 boxplots)#
-par(oma=c(0,4,4,0))#makes room for overall X and Y axis labels#
-#par(mar = c(2, 2, 1, 1))#makes the plot closer #
-# loop on psmodel#
-for (i in 1:length(unique(psmodel))){#
-# select data for plot i#
-subdata <- subset(simres,psmodel==unique(psmodel)[i],select=c("Aa","T"))#
-head(subdata)#
-# plot#
-boxplot(subdata[ , "Aa" ] ~ subdata[,"T"],horizontal=TRUE,lwd=2,col=c("lightgreen","orange"),ylim=c(0,10),#
-ylim=c(0,max(subdata[ , "Aa" ])),#names.arg=levels(subdata$psmodel),#
-# treatment label on left side#
-ylab=if (isTRUE(i==1|i==4|i==7)){"treatment"}else{NULL},font.lab=2,#
-# scenario label on main#
-main=if (i<8) {unique(psmodel)[i]},legend=NULL)#
-abline(v=c(0,1,2,3,5,10,max(subdata[ , "Aa" ])),col="gray",lty="dotted")#
-abline(v=c( #
- mean(subdata[subdata$T==0,][,"Aa"]),#
- mean(subdata[subdata$T==1,][,"Aa"])),col=c("lightgreen","orange"),lwd=2,lty="dotted")#
-abline(h=1.5,col="gray",lty="solid")#
-#mtext('....', side = 3, outer = TRUE, line = 2)#
-#mtext('....', side = 2, outer = TRUE, line = 2)#
-}# end loop graph
-dev.off()
-paste("results/Fig_weights",size,".eps")
-help(postscript)
-postscript(file=paste("results/Fig_weights",size,".eps"),width=13,height=8)#
-# set graphical window
-postscript(file=paste("results/Fig_weights",size,".eps",sep=""),width=13,height=8)
-postscript(file="results/",paste("results/Fig_weights",size,".eps",sep=""),width=13,height=8)
-postscript(file=file.path("results/",paste("Fig_weights",size,".eps",sep=""),width=13,height=8))#
-# set graphical window
-postscript(file=file.path("results",paste("Fig_weights",size,".eps",sep=""),width=13,height=8))#
-# set graphical window
-setEPS()#
-postscript(file=file.path("results",paste("Fig_weights",size,".eps",sep=""),width=13,height=8))#
-# set graphical window
-postscript(file=file.path("results",paste("Fig_weights",size,".eps",sep="")),width=13,height=8))#
-# set graphical window
-setEPS()#
-postscript(file=file.path("results",paste("Fig_weights",size,".eps",sep="")),width=13,height=8)#
-# set graphical window
-postscript(file=("results",paste("Fig_weights",size,".eps",sep="")),width=13,height=8)#
-# set graphical window
-setEPS()#
-postscript(file=(file.path("results",paste("Fig_weights",par,size,".eps",sep="")),width=13,height=8)
-setEPS()#
-postscript(file=(file.path("results",paste("Fig_weights",par,size,".eps",sep="")),width=13,height=8)
-save.image(file=file.path("results",paste("weights R",R,"size",size," par",par,".Rdata",sep="")))
-postscript("results/Fig_weights500",width=13,height=8)
-postscript("Figweights.eps",width=13,height=8)
-citation(CMatching)
-require(CMatching)
-citation(CMatching)
-citation("CMatching")
-help(CMatching)
-data(schools)#
-# Kreft and De Leeuw, Introducing Multilevel Modeling, Sage (1988).   #
-# The data set is the subsample of NELS-88 data consisting of 10 handpicked schools #
-# from the 1003 schools in the full data set.#
-# Let us consider the following variables:#
-#
-X<-schools$ses #X<-as.matrix(schools[,c("ses","white","public")])#
-Y<-schools$math#
-Tr<-ifelse(schools$homework>1,1,0)#
-Group<-schools$schid
-mod <- glm(Tr ~ ses + parented + public + sex + race + urban #
-+schid - 1,family=binomial(link="logit"),data=schools)#
-eps <- fitted(mod)
-### Matching within schools#
- mw<-MatchW(Y=Y, Tr=Tr, X=X, Group=Group, caliper=0.1)#
- # equivalent to CMatch(type="within",Y=Y, Tr=Tr, X=X, Group=Group, caliper=0.1)
-summary(mw)
-table(T)
-T <- ifelse(homework>1,1,0) Y <- math
-attach(schools)
-T <- ifelse(homework>1,1,0) Y <- math
-table(T)
-table(T)
-addmargins(table(Group, T))
-pmodel <- glm(T~ses+as.factor(sex)+white+public, family=binomial(link="logit"))
-eps <- fitted(pmodel)
-psm_w <- CMatch(type="within", Y=Y, Tr=T, X=eps, Group=Group)
-summary(psm_w)
-psm_w$ndrops/psm_w$orig.treated.nobs
-psm_w$orig.dropped.nobs.by.group/table(Group)
-b_psm_w <- CMatchBalance(T~ses+as.factor(sex)+white+public,data=schools,match.out=psm_w)
-psm_pw <- CMatch(type="pwithin", Y=Y, Tr=T, X=eps, Group=Group) summary(psm_pw)
-b_psm_pw <- CMatchBalance(T~ses+as.factor(sex)+white+public,data=schools,match.out=psm_pw)
-summary(psm_w)
-mod <- glm(Tr~ses+parented+public+sex+race+urban,#
-family=binomial(link="logit"),data=schools)#
-eps <- fitted(mod)#
-#
-# eg 1: within-school propensity score matching#
-psmw <- MatchW(Y=schools$math, Tr=Tr, X=eps, Group=schools$schid, caliper=0.1)
-summary(psmw)
-summary(psm_w)
-# set graphical window#
-par(mfrow=c(3,3),mai= c(0.3, 0.6, 0.5, 0.3)) #3 times 3 window (9 boxplots)#
-par(oma=c(0,4,4,0))#makes room for overall X and Y axis labels#
-#par(mar = c(2, 2, 1, 1))#makes the plot closer #
-# loop on psmodel#
-for (i in 1:length(unique(psmodel))){#
-# select data for plot i#
-subdata <- subset(simres,psmodel==unique(psmodel)[i],select=c("Aa","T"))#
-head(subdata)#
-# plot#
-boxplot(subdata[ , "Aa" ] ~ subdata[,"T"],horizontal=TRUE,lwd=2,col=c("lightgreen","orange"),ylim=c(0,10),#
-ylim=c(0,max(subdata[ , "Aa" ])),#names.arg=levels(subdata$psmodel),#
-# treatment label on left side#
-ylab=if (isTRUE(i==1|i==4|i==7)){"treatment"}else{NULL},font.lab=2,#
-# scenario label on main#
-main=if (i<8) {unique(psmodel)[i]},legend=NULL)#
-abline(v=c(0,1,2,3,5,10,max(subdata[ , "Aa" ])),col="gray",lty="dotted")#
-abline(v=c( #
- mean(subdata[subdata$T==0,][,"Aa"]),#
- mean(subdata[subdata$T==1,][,"Aa"])),col=c("lightgreen","orange"),lwd=2,lty="dotted")#
-abline(h=1.5,col="gray",lty="solid")#
-#mtext('....', side = 3, outer = TRUE, line = 2)#
-#mtext('....', side = 2, outer = TRUE, line = 2)#
-}# end loop graph
-# set graphical window#
-par(mfrow=c(3,3),mai= c(0.3, 0.6, 0.5, 0.3)) #3 times 3 window (9 boxplots)#
-par(oma=c(0,4,4,0))#makes room for overall X and Y axis labels#
-#par(mar = c(2, 2, 1, 1))#makes the plot closer #
-# loop on psmodel#
-for (i in 1:length(unique(psmodel))){#
-# select data for plot i#
-subdata <- subset(simres,psmodel==unique(psmodel)[i],select=c("Aa","T"))#
-head(subdata)#
-# plot#
-boxplot(subdata[ , "Aa" ] ~ subdata[,"T"],horizontal=TRUE,lwd=2,col=c("lightgreen","orange"),ylim=c(0,10),#
-ylim=c(0,max(subdata[ , "Aa" ])),#names.arg=levels(subdata$psmodel),#
-# treatment label on left side#
-ylab=if (isTRUE(i==1|i==4|i==7)){"treatment"}else{NULL},font.lab=2,#
-# scenario label on main#
-main=if (i<8) {unique(psmodel)[i]},legend=NULL)#
-abline(v=c(0,1,2,3,5,10,max(subdata[ , "Aa" ])),col="gray",lty="dotted")#
-abline(v=c( #
- mean(subdata[subdata$T==0,][,"Aa"]),#
- mean(subdata[subdata$T==1,][,"Aa"])),col=c("lightgreen","orange"),lwd=2,lty="dotted")#
-abline(h=1.5,col="gray",lty="solid")#
-#mtext('....', side = 3, outer = TRUE, line = 2)#
-#mtext('....', side = 2, outer = TRUE, line = 2)#
-}# end loop graph
-dsdss
-# set graphical window#
-par(mfrow=c(3,3),mai= c(0.3, 0.6, 0.5, 0.3)) #3 times 3 window (9 boxplots)#
-par(oma=c(0,4,4,0))#makes room for overall X and Y axis labels#
-#par(mar = c(2, 2, 1, 1))#makes the plot closer #
-# loop on psmodel#
-for (i in 1:length(unique(psmodel))){#
-# select data for plot i#
-subdata <- subset(simres,psmodel==unique(psmodel)[i],select=c("Aa","T"))#
-head(subdata)#
-# plot#
-boxplot(subdata[ , "Aa" ] ~ subdata[,"T"],horizontal=TRUE,lwd=2,col=c("lightgreen","orange"),ylim=c(0,10),#
-ylim=c(0,max(subdata[ , "Aa" ])),#names.arg=levels(subdata$psmodel),#
-# treatment label on left side#
-ylab=if (isTRUE(i==1|i==4|i==7)){"treatment"}else{NULL},font.lab=2,#
-# scenario label on main#
-main=if (i<8) {unique(psmodel)[i]},legend=NULL)#
-abline(v=c(0,1,2,3,5,10,max(subdata[ , "Aa" ])),col="gray",lty="dotted")#
-abline(v=c( #
- mean(subdata[subdata$T==0,][,"Aa"]),#
- mean(subdata[subdata$T==1,][,"Aa"])),col=c("lightgreen","orange"),lwd=2,lty="dotted")#
-abline(h=1.5,col="gray",lty="solid")#
-#mtext('....', side = 3, outer = TRUE, line = 2)#
-#mtext('....', side = 2, outer = TRUE, line = 2)#
-}# end loop graph
-dev.off()
-# set graphical window#
-par(mfrow=c(3,3),mai= c(0.3, 0.6, 0.5, 0.3)) #3 times 3 window (9 boxplots)#
-par(oma=c(0,4,4,0))#makes room for overall X and Y axis labels#
-#par(mar = c(2, 2, 1, 1))#makes the plot closer #
-# loop on psmodel#
-for (i in 1:length(unique(psmodel))){#
-# select data for plot i#
-subdata <- subset(simres,psmodel==unique(psmodel)[i],select=c("Aa","T"))#
-head(subdata)#
-# plot#
-boxplot(subdata[ , "Aa" ] ~ subdata[,"T"],horizontal=TRUE,lwd=2,col=c("lightgreen","orange"),ylim=c(0,10),#
-ylim=c(0,max(subdata[ , "Aa" ])),#names.arg=levels(subdata$psmodel),#
-# treatment label on left side#
-ylab=if (isTRUE(i==1|i==4|i==7)){"treatment"}else{NULL},font.lab=2,#
-# scenario label on main#
-main=if (i<8) {unique(psmodel)[i]},legend=NULL)#
-abline(v=c(0,1,2,3,5,10,max(subdata[ , "Aa" ])),col="gray",lty="dotted")#
-abline(v=c( #
- mean(subdata[subdata$T==0,][,"Aa"]),#
- mean(subdata[subdata$T==1,][,"Aa"])),col=c("lightgreen","orange"),lwd=2,lty="dotted")#
-abline(h=1.5,col="gray",lty="solid")#
-#mtext('....', side = 3, outer = TRUE, line = 2)#
-#mtext('....', side = 2, outer = TRUE, line = 2)#
-}# end loop graph
-size
-# set graphical parameters#
-setEPS()#
-postscript("Fig_weights500.eps",width=13,height=9)#
-# set graphical window#
-par(mfrow=c(3,3),mai= c(0.3, 0.6, 0.5, 0.3)) #3 times 3 window (9 boxplots)#
-par(oma=c(0,4,4,0))#makes room for overall X and Y axis labels#
-#par(mar = c(2, 2, 1, 1))#makes the plot closer #
-# loop on psmodel#
-for (i in 1:length(unique(psmodel))){#
-# select data for plot i#
-subdata <- subset(simres,psmodel==unique(psmodel)[i],select=c("Aa","T"))#
-head(subdata)#
-# plot#
-boxplot(subdata[ , "Aa" ] ~ subdata[,"T"],horizontal=TRUE,lwd=2,col=c("lightgreen","orange"),ylim=c(0,10),#
-ylim=c(0,max(subdata[ , "Aa" ])),#names.arg=levels(subdata$psmodel),#
-# treatment label on left side#
-ylab=if (isTRUE(i==1|i==4|i==7)){"treatment"}else{NULL},font.lab=2,#
-# scenario label on main#
-main=if (i<8) {unique(psmodel)[i]},legend=NULL)#
-abline(v=c(0,1,2,3,5,10,max(subdata[ , "Aa" ])),col="gray",lty="dotted")#
-abline(v=c( #
- mean(subdata[subdata$T==0,][,"Aa"]),#
- mean(subdata[subdata$T==1,][,"Aa"])),col=c("lightgreen","orange"),lwd=2,lty="dotted")#
-abline(h=1.5,col="gray",lty="solid")#
-#mtext('....', side = 3, outer = TRUE, line = 2)#
-#mtext('....', side = 2, outer = TRUE, line = 2)#
-}# end loop graph
-# set graphical window#
-par(mfrow=c(3,3),mai= c(0.3, 0.6, 0.5, 0.4)) #3 times 3 window (9 boxplots)#
-par(oma=c(0,4,4,0))#makes room for overall X and Y axis labels#
-#par(mar = c(2, 2, 1, 1))#makes the plot closer #
-# loop on psmodel#
-for (i in 1:length(unique(psmodel))){#
-# select data for plot i#
-subdata <- subset(simres,psmodel==unique(psmodel)[i],select=c("Aa","T"))#
-head(subdata)#
-# plot#
-boxplot(subdata[ , "Aa" ] ~ subdata[,"T"],horizontal=TRUE,lwd=2,col=c("lightgreen","orange"),ylim=c(0,10),#
-ylim=c(0,max(subdata[ , "Aa" ])),#names.arg=levels(subdata$psmodel),#
-# treatment label on left side#
-ylab=if (isTRUE(i==1|i==4|i==7)){"treatment"}else{NULL},font.lab=2,#
-# scenario label on main#
-main=if (i<8) {unique(psmodel)[i]},legend=NULL)#
-abline(v=c(0,1,2,3,5,10,max(subdata[ , "Aa" ])),col="gray",lty="dotted")#
-abline(v=c( #
- mean(subdata[subdata$T==0,][,"Aa"]),#
- mean(subdata[subdata$T==1,][,"Aa"])),col=c("lightgreen","orange"),lwd=2,lty="dotted")#
-abline(h=1.5,col="gray",lty="solid")#
-#mtext('....', side = 3, outer = TRUE, line = 2)#
-#mtext('....', side = 2, outer = TRUE, line = 2)#
-}# end loop graph
-dev.off()
-# set graphical window#
-par(mfrow=c(3,3),mai= c(0.3, 0.6, 0.5, 0.6)) #3 times 3 window (9 boxplots)#
-par(oma=c(0,4,4,0))#makes room for overall X and Y axis labels#
-#par(mar = c(2, 2, 1, 1))#makes the plot closer #
-# loop on psmodel#
-for (i in 1:length(unique(psmodel))){#
-# select data for plot i#
-subdata <- subset(simres,psmodel==unique(psmodel)[i],select=c("Aa","T"))#
-head(subdata)#
-# plot#
-boxplot(subdata[ , "Aa" ] ~ subdata[,"T"],horizontal=TRUE,lwd=2,col=c("lightgreen","orange"),ylim=c(0,10),#
-ylim=c(0,max(subdata[ , "Aa" ])),#names.arg=levels(subdata$psmodel),#
-# treatment label on left side#
-ylab=if (isTRUE(i==1|i==4|i==7)){"treatment"}else{NULL},font.lab=2,#
-# scenario label on main#
-main=if (i<8) {unique(psmodel)[i]},legend=NULL)#
-abline(v=c(0,1,2,3,5,10,max(subdata[ , "Aa" ])),col="gray",lty="dotted")#
-abline(v=c( #
- mean(subdata[subdata$T==0,][,"Aa"]),#
- mean(subdata[subdata$T==1,][,"Aa"])),col=c("lightgreen","orange"),lwd=2,lty="dotted")#
-abline(h=1.5,col="gray",lty="solid")#
-#mtext('....', side = 3, outer = TRUE, line = 2)#
-#mtext('....', side = 2, outer = TRUE, line = 2)#
-}# end loop graph
-# set graphical parameters#
-setEPS()#
-postscript("Fig_weights500.eps",width=13,height=9)#
-# set graphical window#
-par(mfrow=c(3,3),mai= c(0.3, 0.6, 0.5, 0.6)) #3 times 3 window (9 boxplots)#
-par(oma=c(0,4,4,0))#makes room for overall X and Y axis labels#
-#par(mar = c(2, 2, 1, 1))#makes the plot closer #
-# loop on psmodel#
-for (i in 1:length(unique(psmodel))){#
-# select data for plot i#
-subdata <- subset(simres,psmodel==unique(psmodel)[i],select=c("Aa","T"))#
-head(subdata)#
-# plot#
-boxplot(subdata[ , "Aa" ] ~ subdata[,"T"],horizontal=TRUE,lwd=2,col=c("lightgreen","orange"),ylim=c(0,10),#
-ylim=c(0,max(subdata[ , "Aa" ])),#names.arg=levels(subdata$psmodel),#
-# treatment label on left side#
-ylab=if (isTRUE(i==1|i==4|i==7)){"treatment"}else{NULL},font.lab=2,#
-# scenario label on main#
-main=if (i<8) {unique(psmodel)[i]},legend=NULL)#
-abline(v=c(0,1,2,3,5,10,max(subdata[ , "Aa" ])),col="gray",lty="dotted")#
-abline(v=c( #
- mean(subdata[subdata$T==0,][,"Aa"]),#
- mean(subdata[subdata$T==1,][,"Aa"])),col=c("lightgreen","orange"),lwd=2,lty="dotted")#
-abline(h=1.5,col="gray",lty="solid")#
-#mtext('....', side = 3, outer = TRUE, line = 2)#
-#mtext('....', side = 2, outer = TRUE, line = 2)#
-}# end loop graph
-# set graphical parameters#
-setEPS()#
-postscript("Fig_500_o_weights.eps",width=13,height=8)#
-#postscript(paste("results/Fig_oweights",size,".eps"),width=13,height=8)#
-# set graphical window#
-par(mfrow=c(3,3),mai= c(0.3, 0.6, 0.5, 0.3)) #3 times 3 window (9 boxplots)#
-par(oma=c(0,4,4,0))#makes room for overall X and Y axis labels#
-#par(mar = c(2, 2, 1, 1))#makes the plot closer #
-# loop on psmodel#
-for (i in 1:length(unique(psmodel))){#
-# select data for plot i#
-subdata <- subset(simres,psmodel==unique(psmodel)[i],select=c("Aa","T"))#
-head(subdata)#
-# plot#
-boxplot(subdata[ , "Aa" ] ~ subdata[,"T"],horizontal=TRUE,lwd=2,col=c("lightgreen","orange"),ylim=c(0,10),#
-ylim=c(0,max(subdata[ , "Aa" ])),#names.arg=levels(subdata$psmodel),#
-# treatment label on left side#
-ylab=if (isTRUE(i==1|i==4|i==7)){"treatment"}else{NULL},font.lab=2,#
-# scenario label on main#
-main=if (i<8) {unique(psmodel)[i]},legend=NULL)#
-abline(v=c(0,1,2,3,5,10,max(subdata[ , "Aa" ])),col="gray",lty="dotted")#
-abline(v=c( #
- mean(subdata[subdata$T==0,][,"Aa"]),#
- mean(subdata[subdata$T==1,][,"Aa"])),col=c("lightgreen","orange"),lwd=2,lty="dotted")#
-abline(h=1.5,col="gray",lty="solid")#
-#mtext('....', side = 3, outer = TRUE, line = 2)#
-#mtext('....', side = 2, outer = TRUE, line = 2)#
-}# end loop graph
-# set graphical parameters#
-setEPS()#
-postscript("Fig_500_o_weights.eps",width=13,height=8)#
-#postscript(paste("results/Fig_oweights",size,".eps"),width=13,height=8)#
-# set graphical window#
-par(mfrow=c(3,3),mai= c(0.3, 0.6, 0.5, 0.3)) #3 times 3 window (9 boxplots)#
-#par(oma=c(0,4,4,0))#makes room for overall X and Y axis labels#
-par(mar = c(2, 2, 1, 1))#makes the plot closer #
-# loop on psmodel#
-for (i in 1:length(unique(psmodel))){#
-# select data for plot i#
-subdata <- subset(simres,psmodel==unique(psmodel)[i],select=c("Aa","T"))#
-head(subdata)#
-# plot#
-boxplot(subdata[ , "Aa" ] ~ subdata[,"T"],horizontal=TRUE,lwd=2,col=c("lightgreen","orange"),ylim=c(0,10),#
-ylim=c(0,max(subdata[ , "Aa" ])),#names.arg=levels(subdata$psmodel),#
-# treatment label on left side#
-ylab=if (isTRUE(i==1|i==4|i==7)){"treatment"}else{NULL},font.lab=2,#
-# scenario label on main#
-main=if (i<8) {unique(psmodel)[i]},legend=NULL)#
-abline(v=c(0,1,2,3,5,10,max(subdata[ , "Aa" ])),col="gray",lty="dotted")#
-abline(v=c( #
- mean(subdata[subdata$T==0,][,"Aa"]),#
- mean(subdata[subdata$T==1,][,"Aa"])),col=c("lightgreen","orange"),lwd=2,lty="dotted")#
-abline(h=1.5,col="gray",lty="solid")#
-#mtext('....', side = 3, outer = TRUE, line = 2)#
-#mtext('....', side = 2, outer = TRUE, line = 2)#
-}# end loop graph
-# set graphical parameters#
-setEPS()#
-postscript("Fig_500_o_weights.eps",width=13,height=10)#
-#postscript(paste("results/Fig_oweights",size,".eps"),width=13,height=8)#
-# set graphical window#
-par(mfrow=c(3,3),mai= c(0.3, 0.6, 0.5, 0.3)) #3 times 3 window (9 boxplots)#
-#par(oma=c(0,4,4,0))#makes room for overall X and Y axis labels#
-par(mar = c(2, 2, 1, 1))#makes the plot closer #
-# loop on psmodel#
-for (i in 1:length(unique(psmodel))){#
-# select data for plot i#
-subdata <- subset(simres,psmodel==unique(psmodel)[i],select=c("Aa","T"))#
-head(subdata)#
-# plot#
-boxplot(subdata[ , "Aa" ] ~ subdata[,"T"],horizontal=TRUE,lwd=2,col=c("lightgreen","orange"),ylim=c(0,10),#
-ylim=c(0,max(subdata[ , "Aa" ])),#names.arg=levels(subdata$psmodel),#
-# treatment label on left side#
-ylab=if (isTRUE(i==1|i==4|i==7)){"treatment"}else{NULL},font.lab=2,#
-# scenario label on main#
-main=if (i<8) {unique(psmodel)[i]},legend=NULL)#
-abline(v=c(0,1,2,3,5,10,max(subdata[ , "Aa" ])),col="gray",lty="dotted")#
-abline(v=c( #
- mean(subdata[subdata$T==0,][,"Aa"]),#
- mean(subdata[subdata$T==1,][,"Aa"])),col=c("lightgreen","orange"),lwd=2,lty="dotted")#
-abline(h=1.5,col="gray",lty="solid")#
-#mtext('....', side = 3, outer = TRUE, line = 2)#
-#mtext('....', side = 2, outer = TRUE, line = 2)#
-}# end loop graph
-# set graphical parameters#
-setEPS()#
-postscript("Fig_500_o_weights.eps",width=12,height=7)#
-#postscript(paste("results/Fig_oweights",size,".eps"),width=13,height=8)#
-# set graphical window#
-par(mfrow=c(3,3),mai= c(0.3, 0.6, 0.5, 0.3)) #3 times 3 window (9 boxplots)#
-#par(oma=c(0,4,4,0))#makes room for overall X and Y axis labels#
-par(mar = c(2, 2, 1, 1))#makes the plot closer #
-# loop on psmodel#
-for (i in 1:length(unique(psmodel))){#
-# select data for plot i#
-subdata <- subset(simres,psmodel==unique(psmodel)[i],select=c("Aa","T"))#
-head(subdata)#
-# plot#
-boxplot(subdata[ , "Aa" ] ~ subdata[,"T"],horizontal=TRUE,lwd=2,col=c("lightgreen","orange"),ylim=c(0,10),#
-ylim=c(0,max(subdata[ , "Aa" ])),#names.arg=levels(subdata$psmodel),#
-# treatment label on left side#
-ylab=if (isTRUE(i==1|i==4|i==7)){"treatment"}else{NULL},font.lab=2,#
-# scenario label on main#
-main=if (i<8) {unique(psmodel)[i]},legend=NULL)#
-abline(v=c(0,1,2,3,5,10,max(subdata[ , "Aa" ])),col="gray",lty="dotted")#
-abline(v=c( #
- mean(subdata[subdata$T==0,][,"Aa"]),#
- mean(subdata[subdata$T==1,][,"Aa"])),col=c("lightgreen","orange"),lwd=2,lty="dotted")#
-abline(h=1.5,col="gray",lty="solid")#
-#mtext('....', side = 3, outer = TRUE, line = 2)#
-#mtext('....', side = 2, outer = TRUE, line = 2)#
-}# end loop graph
-# set graphical parameters#
-setEPS()#
-postscript("Fig_500_o_weights.eps",width=11,height=7)#
-#postscript(paste("results/Fig_oweights",size,".eps"),width=13,height=8)#
-# set graphical window#
-par(mfrow=c(3,3),mai= c(0.3, 0.6, 0.5, 0.3)) #3 times 3 window (9 boxplots)#
-#par(oma=c(0,4,4,0))#makes room for overall X and Y axis labels#
-par(mar = c(2, 2, 1, 1))#makes the plot closer #
-# loop on psmodel#
-for (i in 1:length(unique(psmodel))){#
-# select data for plot i#
-subdata <- subset(simres,psmodel==unique(psmodel)[i],select=c("Aa","T"))#
-head(subdata)#
-# plot#
-boxplot(subdata[ , "Aa" ] ~ subdata[,"T"],horizontal=TRUE,lwd=2,col=c("lightgreen","orange"),ylim=c(0,10),#
-ylim=c(0,max(subdata[ , "Aa" ])),#names.arg=levels(subdata$psmodel),#
-# treatment label on left side#
-ylab=if (isTRUE(i==1|i==4|i==7)){"treatment"}else{NULL},font.lab=2,#
-# scenario label on main#
-main=if (i<8) {unique(psmodel)[i]},legend=NULL)#
-abline(v=c(0,1,2,3,5,10,max(subdata[ , "Aa" ])),col="gray",lty="dotted")#
-abline(v=c( #
- mean(subdata[subdata$T==0,][,"Aa"]),#
- mean(subdata[subdata$T==1,][,"Aa"])),col=c("lightgreen","orange"),lwd=2,lty="dotted")#
-abline(h=1.5,col="gray",lty="solid")#
-#mtext('....', side = 3, outer = TRUE, line = 2)#
-#mtext('....', side = 2, outer = TRUE, line = 2)#
-}# end loop graph
-# set graphical parameters#
-setEPS()#
-postscript("Fig_500_o_weights.eps",width=11,height=7)#
-#postscript(paste("results/Fig_oweights",size,".eps"),width=13,height=8)#
-# set graphical window#
-par(mfrow=c(3,3),mai= c(0.5, 0.5, 0.5, 0.3)) #3 times 3 window (9 boxplots)#
-#par(oma=c(0,4,4,0))#makes room for overall X and Y axis labels#
-par(mar = c(2, 2, 1, 1))#makes the plot closer #
-# loop on psmodel#
-for (i in 1:length(unique(psmodel))){#
-# select data for plot i#
-subdata <- subset(simres,psmodel==unique(psmodel)[i],select=c("Aa","T"))#
-head(subdata)#
-# plot#
-boxplot(subdata[ , "Aa" ] ~ subdata[,"T"],horizontal=TRUE,lwd=2,col=c("lightgreen","orange"),ylim=c(0,10),#
-ylim=c(0,max(subdata[ , "Aa" ])),#names.arg=levels(subdata$psmodel),#
-# treatment label on left side#
-ylab=if (isTRUE(i==1|i==4|i==7)){"treatment"}else{NULL},font.lab=2,#
-# scenario label on main#
-main=if (i<8) {unique(psmodel)[i]},legend=NULL)#
-abline(v=c(0,1,2,3,5,10,max(subdata[ , "Aa" ])),col="gray",lty="dotted")#
-abline(v=c( #
- mean(subdata[subdata$T==0,][,"Aa"]),#
- mean(subdata[subdata$T==1,][,"Aa"])),col=c("lightgreen","orange"),lwd=2,lty="dotted")#
-abline(h=1.5,col="gray",lty="solid")#
-#mtext('....', side = 3, outer = TRUE, line = 2)#
-#mtext('....', side = 2, outer = TRUE, line = 2)#
-}# end loop graph
-# set graphical parameters#
-setEPS()#
-postscript("Fig_500_o_weights.eps")#
-#postscript(paste("results/Fig_oweights",size,".eps"),width=13,height=8)#
-# set graphical window#
-par(mfrow=c(3,3),mai= c(0.5, 0.5, 0.5, 0.3)) #3 times 3 window (9 boxplots)#
-#par(oma=c(0,4,4,0))#makes room for overall X and Y axis labels#
-par(mar = c(2, 2, 1, 1))#makes the plot closer #
-# loop on psmodel#
-for (i in 1:length(unique(psmodel))){#
-# select data for plot i#
-subdata <- subset(simres,psmodel==unique(psmodel)[i],select=c("Aa","T"))#
-head(subdata)#
-# plot#
-boxplot(subdata[ , "Aa" ] ~ subdata[,"T"],horizontal=TRUE,lwd=2,col=c("lightgreen","orange"),ylim=c(0,10),#
-ylim=c(0,max(subdata[ , "Aa" ])),#names.arg=levels(subdata$psmodel),#
-# treatment label on left side#
-ylab=if (isTRUE(i==1|i==4|i==7)){"treatment"}else{NULL},font.lab=2,#
-# scenario label on main#
-main=if (i<8) {unique(psmodel)[i]},legend=NULL)#
-abline(v=c(0,1,2,3,5,10,max(subdata[ , "Aa" ])),col="gray",lty="dotted")#
-abline(v=c( #
- mean(subdata[subdata$T==0,][,"Aa"]),#
- mean(subdata[subdata$T==1,][,"Aa"])),col=c("lightgreen","orange"),lwd=2,lty="dotted")#
-abline(h=1.5,col="gray",lty="solid")#
-#mtext('....', side = 3, outer = TRUE, line = 2)#
-#mtext('....', side = 2, outer = TRUE, line = 2)#
-}# end loop graph
-#postscript(paste("results/Fig_oweights",size,".eps"),width=13,height=8)#
-# set graphical window#
-par(mfrow=c(3,3),mai= c(0.5, 0.5, 0.5, 0.3)) #3 times 3 window (9 boxplots)#
-#par(oma=c(0,4,4,0))#makes room for overall X and Y axis labels#
-par(mar = c(2, 2, 1, 1))#makes the plot closer #
-# loop on psmodel#
-for (i in 1:length(unique(psmodel))){#
-# select data for plot i#
-subdata <- subset(simres,psmodel==unique(psmodel)[i],select=c("Aa","T"))#
-head(subdata)#
-# plot#
-boxplot(subdata[ , "Aa" ] ~ subdata[,"T"],horizontal=TRUE,lwd=2,col=c("lightgreen","orange"),ylim=c(0,10),#
-ylim=c(0,max(subdata[ , "Aa" ])),#names.arg=levels(subdata$psmodel),#
-# treatment label on left side#
-ylab=if (isTRUE(i==1|i==4|i==7)){"treatment"}else{NULL},font.lab=2,#
-# scenario label on main#
-main=if (i<8) {unique(psmodel)[i]},legend=NULL)#
-abline(v=c(0,1,2,3,5,10,max(subdata[ , "Aa" ])),col="gray",lty="dotted")#
-abline(v=c( #
- mean(subdata[subdata$T==0,][,"Aa"]),#
- mean(subdata[subdata$T==1,][,"Aa"])),col=c("lightgreen","orange"),lwd=2,lty="dotted")#
-abline(h=1.5,col="gray",lty="solid")#
-#mtext('....', side = 3, outer = TRUE, line = 2)#
-#mtext('....', side = 2, outer = TRUE, line = 2)#
-}# end loop graph
-dev.off()
-#postscript(paste("results/Fig_oweights",size,".eps"),width=13,height=8)#
-# set graphical window#
-par(mfrow=c(3,3),mai= c(0.5, 0.5, 0.5, 0.3)) #3 times 3 window (9 boxplots)#
-#par(oma=c(0,4,4,0))#makes room for overall X and Y axis labels#
-par(mar = c(2, 2, 1, 1))#makes the plot closer #
-# loop on psmodel#
-for (i in 1:length(unique(psmodel))){#
-# select data for plot i#
-subdata <- subset(simres,psmodel==unique(psmodel)[i],select=c("Aa","T"))#
-head(subdata)#
-# plot#
-boxplot(subdata[ , "Aa" ] ~ subdata[,"T"],horizontal=TRUE,lwd=2,col=c("lightgreen","orange"),ylim=c(0,10),#
-ylim=c(0,max(subdata[ , "Aa" ])),#names.arg=levels(subdata$psmodel),#
-# treatment label on left side#
-ylab=if (isTRUE(i==1|i==4|i==7)){"treatment"}else{NULL},font.lab=2,#
-# scenario label on main#
-main=if (i<8) {unique(psmodel)[i]},legend=NULL)#
-abline(v=c(0,1,2,3,5,10,max(subdata[ , "Aa" ])),col="gray",lty="dotted")#
-abline(v=c( #
- mean(subdata[subdata$T==0,][,"Aa"]),#
- mean(subdata[subdata$T==1,][,"Aa"])),col=c("lightgreen","orange"),lwd=2,lty="dotted")#
-abline(h=1.5,col="gray",lty="solid")#
-#mtext('....', side = 3, outer = TRUE, line = 2)#
-#mtext('....', side = 2, outer = TRUE, line = 2)#
-}# end loop graph
-dev.off()
-dev.off()
-dev.off()
-#postscript(paste("results/Fig_oweights",size,".eps"),width=13,height=8)#
-# set graphical window#
-par(mfrow=c(3,3),mai= c(0.5, 0.5, 0.5, 0.3)) #3 times 3 window (9 boxplots)#
-#par(oma=c(0,4,4,0))#makes room for overall X and Y axis labels#
-par(mar = c(2, 2, 1, 1))#makes the plot closer #
-# loop on psmodel#
-for (i in 1:length(unique(psmodel))){#
-# select data for plot i#
-subdata <- subset(simres,psmodel==unique(psmodel)[i],select=c("Aa","T"))#
-head(subdata)#
-# plot#
-boxplot(subdata[ , "Aa" ] ~ subdata[,"T"],horizontal=TRUE,lwd=2,col=c("lightgreen","orange"),ylim=c(0,10),#
-ylim=c(0,max(subdata[ , "Aa" ])),#names.arg=levels(subdata$psmodel),#
-# treatment label on left side#
-ylab=if (isTRUE(i==1|i==4|i==7)){"treatment"}else{NULL},font.lab=2,#
-# scenario label on main#
-main=if (i<8) {unique(psmodel)[i]},legend=NULL)#
-abline(v=c(0,1,2,3,5,10,max(subdata[ , "Aa" ])),col="gray",lty="dotted")#
-abline(v=c( #
- mean(subdata[subdata$T==0,][,"Aa"]),#
- mean(subdata[subdata$T==1,][,"Aa"])),col=c("lightgreen","orange"),lwd=2,lty="dotted")#
-abline(h=1.5,col="gray",lty="solid")#
-#mtext('....', side = 3, outer = TRUE, line = 2)#
-#mtext('....', side = 2, outer = TRUE, line = 2)#
-}# end loop graph
