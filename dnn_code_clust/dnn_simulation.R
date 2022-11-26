@@ -23,8 +23,6 @@ if (length(new.packages) > 0) {
 
 lapply(list.of.packages, require, character.only = T)
 
-test
-
 # sets working directory to root of R project 
 here()
 
