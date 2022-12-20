@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=match
+#SBATCH --job-name=dnn_sim_logi
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=32
@@ -14,6 +14,4 @@ module purge
 module load gcc/8.2.0 
 module load r/4.1.0
 
-Rscript balance_matching.R >& my_r_code.log
-
-
+Rscript dnn_simulation_logi.R >& my_r_code_logi.log
