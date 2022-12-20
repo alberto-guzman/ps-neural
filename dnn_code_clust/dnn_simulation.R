@@ -1,27 +1,16 @@
 ######################################################################
 # This script:
-# - generates R datasets in each of 16 simulation scenarios
-# - save average performance metrics of  PSW over for each propensity score (ps) model
+# - 
 ######################################################################
 
-# Install packages --------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Load packages, managed by renv  --------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-list.of.packages <- c(
-  "Matching", "rpart", "randomForest", "gbm", "twang", "ipred", "neuralnet",
-  "nnet", "e1071", "klaR", "xtable", "flexmix", "AUC", "Hmisc", "Kendall",
-  "lattice", "keras", "clusterGeneration", "PoisBinOrdNor", "devtools",
-  "matrixcalc", "tensorflow", "dplyr", "reticulate", "clusterGeneration", 
-  "tidyverse", "stringr", "furrr", "tictoc", "mlbench", "magrittr", "deepnet",
-  "neuralnet", "parallel", "parallelly", "here"
+packages <- c(
+  "here","tidyverse"
 )
 
-new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
-if (length(new.packages) > 0) {
-  install.packages(new.packages)
-}
-
-lapply(list.of.packages, require, character.only = T)
+invisible(lapply(packages, library, character.only = TRUE))
 
 # sets working directory to root of R project 
 here()
