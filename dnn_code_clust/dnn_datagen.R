@@ -5,16 +5,6 @@
 # helper functions
 #########################
 
-# function to induce correlation within funcov
-
-F.sample.cor <- function(x, rho) {
-  y <- (rho * (x - mean(x)))/sqrt(var(x)) + sqrt(1 - rho^2) * rnorm(length(x))
-  return(y)
-}
-
-#check in expectation of y
-# use multivariate normal to induce the correlations 
-
 # quick negation 
 
 `%notin%` <- Negate(`%in%`)
