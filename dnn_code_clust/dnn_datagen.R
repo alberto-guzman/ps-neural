@@ -1,6 +1,84 @@
 
 # Data generation --------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+
+
+
+
+# generating cov matrix using toeplitz matrix
+n = 500
+p = 10
+
+
+
+h = 2/p
+v = seq(1, -1+h, by = -h)
+Sigma = toeplitz(v)
+
+mu = matrix(0, ncol(Sigma), 1)
+df <- data.frame(MASS::mvrnorm(n=500, mu=mu, Sigma=Sigma))
+
+
+
+
+
+
+
+
+half_cols <- names(df)[sample(ncol(df), ncol(df) / 2)]
+
+
+for (col_name in half_cols) {
+  df[, col_name] <- pnorm(df$col_name)
+}
+
+
+
+
+var_unif <- df[, sample(ncol(df), size=p/2)]
+
+ pnorm(var_unif)
+
+
+
+cov_20 <- sample(cov_80,((.2)*length(cov_80)))
+
+
+
+
+#convert some to uniform
+df$X1_U <- pnorm(df$X1)
+df$X2_U <- pnorm(df$X2)
+
+#convert some to bernouli
+df$X2_B <- qbern(df$X2_U,0.5)
+
+cor(df)
+
+
+
+ggplot2::ggplot(df, aes(x = X1_U)) + geom_histogram(boundary = 0)
+
+
+
+cor(rawvars)
+cov(rawvars)
+
+
+
+
+
+
+return(sim)
+}
+
+
+
+
+
+
+
+
 #########################
 # helper functions
 #########################
