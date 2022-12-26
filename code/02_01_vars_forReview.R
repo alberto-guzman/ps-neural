@@ -49,8 +49,29 @@ vars_bern <- qbern(vars_unif[, (num_norm_vars + 1):(num_norm_vars + num_bern_var
 vars_uniform <- vars_unif[, (num_norm_vars + num_bern_vars + 1):p]
 
 # Combine the transformed variables
-vars_transformed <- cbind(vars_normal, vars_uniform, vars_bern)
+vars_transformed <- as.data.frame(cbind(vars_normal, vars_uniform, vars_bern))
 
 # Generate variable names and store in the master_covar list
 colnames(vars_transformed) <- paste0(rep(c("v"), p), 1:p)
 master_covar <- colnames(vars_transformed)
+
+# Sample half of the covariates and save to covar_confound
+covar_confound <- sample(master_covar, size = length(master_covar) / 2)
+
+# Sample a quarter of the covariates and save to covar_rel_outcome
+covar_rel_outcome <- sample(setdiff(master_covar, covar_confound), size = length(master_covar) / 4)
+
+# Save the remaining covariates to covar_rel_treatment
+covar_rel_treatment <- setdiff(master_covar, union(covar_confound, covar_rel_outcome))
+
+# Combine covar_confound and covar_rel_outcome, these are the covariates that will be used for the population outcome models
+covar_for_treatment <- union(covar_confound, covar_rel_treatment)
+
+# Combine covar_confound and covar_rel_outcome, these are the covariates that will be used for the population outcome models
+covar_for_outcome <- union(covar_confound, covar_rel_outcome)
+
+
+
+
+# Remove variables from the global environment that are not needed for the rest of the analysis
+rm(list = setdiff(ls(), c("vars_transformed", "master_covar", "covar_for_treatment", "covar_for_outcome")))
