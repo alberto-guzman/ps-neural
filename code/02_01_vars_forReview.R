@@ -4,6 +4,7 @@ library(Matrix)
 library(psych)
 library(MBESS)
 library(Rlab)
+library(grkstyle)
 
 # Set the number of variables (p) and the sample size (n)
 p <- 10

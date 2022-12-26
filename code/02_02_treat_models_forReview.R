@@ -69,7 +69,7 @@ equation <- paste0("(1 + exp(-(0 + ", paste(c(unlist(quadratic_terms), element),
 trueps <- eval(parse(text = equation))
 
 #########################################
-# non-additive model
+# Non-additive model
 #########################################
 
 # Split covar_for_treatment into four equal-sized groups
