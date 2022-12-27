@@ -116,3 +116,14 @@ equation <- paste0("(1 + exp(-(0 + ", paste(c(unlist(terms), element), collapse 
 
 # Evaluate the equation
 trueps <- eval(parse(text = equation))
+
+
+#########################################
+# Binary treatment T
+#########################################
+# REMOVE THIS AFTER
+n <- 1000
+
+unif1 <- runif(n, 0, 1)
+T <- ifelse(trueps > unif1, 1, 0) # there is a probability of unif1 that T=1
+
