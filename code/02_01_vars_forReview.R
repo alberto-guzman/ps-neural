@@ -70,9 +70,3 @@ covar_for_treatment <- union(covar_confound, covar_rel_treatment)
 
 # Combine covar_confound and covar_rel_outcome, these are the covariates that will be used for the population outcome models
 covar_for_outcome <- union(covar_confound, covar_rel_outcome)
-
-
-
-
-# Remove variables from the global environment that are not needed for the rest of the analysis
-rm(list = setdiff(ls(), c("vars_transformed", "master_covar", "covar_for_treatment", "covar_for_outcome")))

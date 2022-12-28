@@ -53,7 +53,6 @@ first_group <- covar_groups[[1]]
 # Create an empty list to store the quadratic terms
 quadratic_terms <- list()
 
-
 # Iterate over the first group of covariates and create a quadratic term for each one
 for (group in first_group) {
   # Extract the coefficient from the covariate name
@@ -116,7 +115,6 @@ equation <- paste0("(1 + exp(-(0 + ", paste(c(unlist(terms), element), collapse 
 
 # Evaluate the equation
 trueps <- eval(parse(text = equation))
-
 
 #########################################
 # Binary treatment T

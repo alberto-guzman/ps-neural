@@ -62,7 +62,6 @@ equation_Y <- paste0("a0 + g * T + ", paste(c(unlist(quadratic_terms), element),
 # Evaluate the equation
 Y <- eval(parse(text = equation_Y))
 
-
 #########################################
 # Non-additive model
 #########################################
@@ -84,8 +83,6 @@ equation_Y <- paste0("a0 + g * T + ", paste(c(unlist(interaction_terms), element
 
 # Evaluate the equation
 Y <- eval(parse(text = equation_Y))
-
-
 
 #########################################
 # Complex model
@@ -114,25 +111,9 @@ equation_Y <- paste0("a0 + g * T + ", paste(c(unlist(terms), element), collapse 
 # Evaluate the equation
 Y <- eval(parse(text = equation_Y))
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# form simulation tibble
+#########################################
+# Form simulated data tibble
+#########################################
 
 v_list <- mget(paste0("v", 1:length(master_covar)))
 sim <- as_tibble(v_list)
@@ -140,4 +121,4 @@ sim$T <- T
 sim$Y <- Y
 sim$trueps <- trueps
 sim$indeff <- indeff
-return(sim)
+#return(sim)
