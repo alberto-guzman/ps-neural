@@ -1,11 +1,15 @@
-# Generate a coefficients for population outcome models the intercept in Y(1) has been fixed to obtain Y(1)-Y(0)=0.3 in each scenario
-# Generate coefficients for potential outcomes equation Y(0) and Y(1)
+# Generate a coefficients for population outcome models 
+# Initialize a0 to 1
+a0 <- 1
+# Initialize treatment effect g to 0.3
+g <- 0.3
 
-alpha <- vector("list", length(master_covar)+1)
-for (i in 0:length(master_covar)) {
+alpha <- vector("list", length(master_covar))
+
+for (i in 1:length(master_covar)) {
   # Generate a random beta value
   g <- round(rbeta(1, 1, 1), 2)
-  # Assign the value to a0, a1, a2, etc.
+  # Assign the value to a1, a2, a3, etc.
   assign(paste0("a", i), g)
   a <- paste0("a", i)
   alpha[[i+1]] <- a
@@ -25,18 +29,16 @@ a <- sub(".*v", "", covar_for_outcome)
 element <- paste0("a", a, " * ", covar_for_outcome)
 
 # Concatenate the variables from covar_for_outcome into a single string
-equation_Y0 <- paste0("a0", " + ", paste(element, collapse = " + "))
-equation_Y1 <- paste0("a0 + 0.3 ", " + ", paste(element, collapse = " + "))
+equation_Y <- paste0("a0 + g * T ", " + ", paste(element, collapse = " + "))
 
 # Evaluate the equation
-Y0 <- eval(parse(text = equation_Y0))
-Y1 <- eval(parse(text = equation_Y1))
+Y <- eval(parse(text = equation_Y))
 
 #########################################
 # Non-linear model
 #########################################
 
-# Split covar_for_treatment into four equal-sized groups
+# Split covar_for_outcome into four equal-sized groups
 n <- length(covar_for_outcome)
 split_index <- round(seq(1, n, length.out = 4))
 covar_groups <- split(covar_for_outcome, cut(seq_along(covar_for_outcome), split_index))
@@ -55,18 +57,92 @@ for (group in first_group) {
   quadratic_terms[[group]] <- paste0("a", a, " * ", group, "^2")
 }
 
-# Concatenate the element to the equations
-equation_Y0 <- paste0("a0 + ", paste(c(unlist(quadratic_terms), element), collapse = " + "), "")
-equation_Y1 <- paste0("a0 + 0.3 +", paste(c(unlist(quadratic_terms), element), collapse = " + "), "")
+equation_Y <- paste0("a0 + g * T + ", paste(c(unlist(quadratic_terms), element), collapse = " + "), "")
 
 # Evaluate the equation
-Y0 <- eval(parse(text = equation_Y0))
-Y1 <- eval(parse(text = equation_Y1))
+Y <- eval(parse(text = equation_Y))
 
-# continuous outcome Y
 
-Y <- T*Y1 + (1-T)*Y0
+#########################################
+# Non-additive model
+#########################################
 
-# true individual effect of T on Y
+# Split covar_for_outcome into four equal-sized groups
+n <- length(covar_for_outcome)
+split_index <- round(seq(1, n, length.out = 4))
+covar_groups <- split(covar_for_outcome, cut(seq_along(covar_for_outcome), split_index))
 
-indeff <- Y1-Y0
+# Iterate over each group of covariates and create an interaction term between the two covariates
+interaction_terms <- lapply(covar_groups, function(group) {
+  # Extract the coefficient from the covariate name
+  a <- sub(".*v", "", group[1])
+  # Create the interaction term
+  paste0("a", a, " * ", group[1], " * ", group[2])
+})
+
+equation_Y <- paste0("a0 + g * T + ", paste(c(unlist(interaction_terms), element), collapse = " + "), "")
+
+# Evaluate the equation
+Y <- eval(parse(text = equation_Y))
+
+
+
+#########################################
+# Complex model
+#########################################
+
+# Split covar_for_outcome into four equal-sized groups
+n <- length(covar_for_outcome)
+split_index <- round(seq(1, n, length.out = 4))
+covar_groups <- split(covar_for_outcome, cut(seq_along(covar_for_outcome), split_index))
+
+# Iterate over each group of covariates and create both a quadratic term and an interaction term for each one
+terms <- list()
+for (group in covar_groups) {
+  # Extract the coefficients from the covariate names
+  a <- sub(".*v", "", group[1])
+  # Create the quadratic term
+  terms[[group[1]]] <- paste0("a", a, " * ", group[1], "^2")
+  # Create the interaction term
+  terms[[paste0(group[1], " * ", group[2])]] <- paste0("a", a, " * ", group[1], " * ", group[2])
+}
+
+# Concatenate all of the terms together and store the result in a new variable called equation
+equation_Y <- paste0("a0 + g * T + ", paste(c(unlist(terms), element), collapse = " + "), "")
+
+
+# Evaluate the equation
+Y <- eval(parse(text = equation_Y))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# form simulation tibble
+
+v_list <- mget(paste0("v", 1:length(master_covar)))
+sim <- as_tibble(v_list)
+sim$T <- T
+sim$Y <- Y
+sim$trueps <- trueps
+sim$indeff <- indeff
+return(sim)
+
+
+
+
+
