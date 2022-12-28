@@ -28,13 +28,6 @@ b <- sub(".*v", "", covar_for_treatment)
 # Create a new variable called element with the format "b * covar_for_treatment"
 element <- paste0("b", b, " * ", covar_for_treatment)
 
-
-
-
-
-
-
-
 # Concatenate the variables from covar_for_treatment into a single string
 equation <- paste0("(1 + exp(-(0 + ", paste(element, collapse = " + "), ")))^-1")
 
@@ -52,7 +45,6 @@ covar_groups <- split(covar_for_treatment, cut(seq_along(covar_for_treatment), s
 
 # Get the first group of covariates
 first_group <- covar_groups[[1]]
-
 
 # Create an empty list to store the quadratic terms
 quadratic_terms <- list()
@@ -123,9 +115,6 @@ trueps <- eval(parse(text = equation))
 #########################################
 # Binary treatment T
 #########################################
-
-# REMOVE THIS AFTER
-n <- 1000
-
+#n = 1000
 unif1 <- runif(n, 0, 1)
 T <- ifelse(trueps > unif1, 1, 0) # there is a probability of unif1 that T=1

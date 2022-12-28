@@ -7,8 +7,8 @@ library(Rlab)
 library(tidyverse)
 
 # Set the number of variables (p) and the sample size (n)
-p <- 10
-n <- 10
+p <- 20
+n <- 1000
 
 # Generate a mean vector of 0s
 mean <- rep(0, p)
@@ -59,7 +59,7 @@ colnames(vars_transformed) <- paste0("v", 1:p)
 master_covar <- dimnames(vars_transformed)[[2]]
 
 # Create p objects with names v1, v2, etc., and assign the corresponding column from vars_transformed to each object
-for(i in 1:p) {
+for (i in 1:p) {
   assign(paste0("v", i), vars_transformed[, i])
 }
 
@@ -77,9 +77,3 @@ covar_for_treatment <- union(covar_confound, covar_rel_treatment)
 
 # Combine covar_confound and covar_rel_outcome, these are the covariates that will be used for the population outcome models
 covar_for_outcome <- union(covar_confound, covar_rel_outcome)
-
-
-
-
-
-
