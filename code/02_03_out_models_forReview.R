@@ -1,4 +1,4 @@
-# Generate a coefficients for population outcome models 
+# Generate a coefficients for population outcome models
 # Initialize a0 to 1
 a0 <- 1
 # Initialize treatment effect g to 0.3
@@ -12,7 +12,7 @@ for (i in 1:length(master_covar)) {
   # Assign the value to a1, a2, a3, etc.
   assign(paste0("a", i), g)
   a <- paste0("a", i)
-  alpha[[i+1]] <- a
+  alpha[[i + 1]] <- a
 }
 
 # Add the variables from vars_transformed to the global environment
@@ -141,8 +141,3 @@ sim$Y <- Y
 sim$trueps <- trueps
 sim$indeff <- indeff
 return(sim)
-
-
-
-
-

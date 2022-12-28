@@ -127,4 +127,3 @@ n <- 1000
 
 unif1 <- runif(n, 0, 1)
 T <- ifelse(trueps > unif1, 1, 0) # there is a probability of unif1 that T=1
-
