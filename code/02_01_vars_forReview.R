@@ -52,9 +52,16 @@ vars_uniform <- vars_unif[, (num_norm_vars + num_bern_vars + 1):p]
 # Combine the transformed variables
 vars_transformed <- cbind(vars_normal, vars_uniform, vars_bern)
 
+# Give the columns of vars_transformed names v1,v2,etc.
+colnames(vars_transformed) <- paste0("v", 1:p)
+
 # Generate variable names and store in the master_covar list
-colnames(vars_transformed) <- paste0(rep(c("v"), p), 1:p)
-master_covar <- colnames(vars_transformed)
+master_covar <- dimnames(vars_transformed)[[2]]
+
+# Create p objects with names v1, v2, etc., and assign the corresponding column from vars_transformed to each object
+for(i in 1:p) {
+  assign(paste0("v", i), vars_transformed[, i])
+}
 
 # Sample half of the covariates and save to covar_confound
 covar_confound <- sample(master_covar, size = length(master_covar) / 2)
@@ -71,10 +78,8 @@ covar_for_treatment <- union(covar_confound, covar_rel_treatment)
 # Combine covar_confound and covar_rel_outcome, these are the covariates that will be used for the population outcome models
 covar_for_outcome <- union(covar_confound, covar_rel_outcome)
 
-# Split the matrix by its columns into individual numeric objects
-split_matrix <- apply(vars_transformed, MARGIN = 2, function(x) x)
 
-# Assign the resulting values to variables with the corresponding names
-for (i in seq_along(split_matrix)) {
-  assign(names(split_matrix)[i], split_matrix[[i]])
-}
+
+
+
+
