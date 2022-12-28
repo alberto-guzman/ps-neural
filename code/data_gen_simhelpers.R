@@ -79,8 +79,16 @@ generate_dat <- function(n, p) {
 
   # Combine covar_confound and covar_rel_outcome, these are the covariates that will be used for the population outcome models
   covar_for_outcome <- union(covar_confound, covar_rel_outcome)
-
-  return(vars_transformed)
+  
+  # Split the data frame into a list of numeric vectors
+  list_of_vectors <- split(vars_transformed, names(vars_transformed))
+  
+  # Assign the vectors to variables in the current environment
+  for (name in names(list_of_vectors)) {
+    assign(name, list_of_vectors[[name]])
+  }
+  
+  return(v1)
 }
 
-dat <- generate_dat(n = 10000, p = 200) 
+test <- generate_dat(n = 10000, p = 10) 

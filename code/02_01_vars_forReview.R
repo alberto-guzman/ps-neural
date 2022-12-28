@@ -8,7 +8,7 @@ library(tidyverse)
 
 # Set the number of variables (p) and the sample size (n)
 p <- 10
-n <- 1000
+n <- 10
 
 # Generate a mean vector of 0s
 mean <- rep(0, p)
@@ -50,7 +50,7 @@ vars_bern <- qbern(vars_unif[, (num_norm_vars + 1):(num_norm_vars + num_bern_var
 vars_uniform <- vars_unif[, (num_norm_vars + num_bern_vars + 1):p]
 
 # Combine the transformed variables
-vars_transformed <- as.data.frame(cbind(vars_normal, vars_uniform, vars_bern))
+vars_transformed <- cbind(vars_normal, vars_uniform, vars_bern)
 
 # Generate variable names and store in the master_covar list
 colnames(vars_transformed) <- paste0(rep(c("v"), p), 1:p)
@@ -70,3 +70,11 @@ covar_for_treatment <- union(covar_confound, covar_rel_treatment)
 
 # Combine covar_confound and covar_rel_outcome, these are the covariates that will be used for the population outcome models
 covar_for_outcome <- union(covar_confound, covar_rel_outcome)
+
+# Split the matrix by its columns into individual numeric objects
+split_matrix <- apply(vars_transformed, MARGIN = 2, function(x) x)
+
+# Assign the resulting values to variables with the corresponding names
+for (i in seq_along(split_matrix)) {
+  assign(names(split_matrix)[i], split_matrix[[i]])
+}

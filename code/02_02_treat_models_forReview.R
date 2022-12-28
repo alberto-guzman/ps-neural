@@ -18,9 +18,6 @@ for (i in seq_len(length(master_covar))) {
   beta[[i]] <- b
 }
 
-# Add the variables from vars_transformed to the global environment
-list2env(vars_transformed, .GlobalEnv)
-
 #########################################
 # Generate base model
 #########################################
@@ -30,6 +27,13 @@ b <- sub(".*v", "", covar_for_treatment)
 
 # Create a new variable called element with the format "b * covar_for_treatment"
 element <- paste0("b", b, " * ", covar_for_treatment)
+
+
+
+
+
+
+
 
 # Concatenate the variables from covar_for_treatment into a single string
 equation <- paste0("(1 + exp(-(0 + ", paste(element, collapse = " + "), ")))^-1")
