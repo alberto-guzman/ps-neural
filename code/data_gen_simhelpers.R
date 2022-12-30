@@ -213,6 +213,6 @@ generate_dat <- function(n, p, scenarioT) {
 }
 
 
-T <- generate_dat(n = 100000, p = 200, scenarioT = "D")
+T <- generate_dat(n = 100000, p = 100, scenarioT = "D")
 hist(T)
 mean(T)
