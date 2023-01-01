@@ -340,12 +340,29 @@ generate_dat <- function(n, p, scenarioT, scenarioY) {
   sim$T <- T
   sim$Y <- Y
   sim$trueps <- trueps
-  mean_T <- mean(T)
-  return(mean_T)
+  
+  
+  
+  # Calculate the mean difference (treatment - control)
+  mean_difference <- mean(sim$Y[sim$T == 1]) - mean(sim$Y[sim$T == 0])
+  
+  # Calculate the standardized initial bias
+  standardized_initial_bias <- (mean_difference - 0.3) / sd(sim$Y[sim$T == 1])
+  
+  
+  
+  return(standardized_initial_bias)
+  
+  
+  
+  
+  
+  
+  
   
 }
   
-#df <- generate_dat(n = 100000, p = 20, scenarioT = "A", scenarioY = "a")
+df <- generate_dat(n = 100000, p = 20, scenarioT = "A", scenarioY = "a")
 
 
 
