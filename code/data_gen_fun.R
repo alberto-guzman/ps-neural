@@ -28,14 +28,8 @@ generate_dat <- function(n, p, scenarioT, scenarioY) {
   # Smooth the correlation matrix to ensure it is positive definite
   cor <- psych::cor.smooth(cor)
 
-  # Generate a vector of standard deviations
-  sd <- rep(1, p)
-
-  # Convert the correlation matrix to a covariance matrix
-  cov <- MBESS::cor2cov(cor, sd)
-
   # Generate correlated normal variables
-  vars <- mvrnorm(n, mean, cov)
+  vars <- mvrnorm(n, mean, cor)
 
   # Calculate the number of normal, Bernoulli, and uniform variables to generate
   num_norm_vars <- floor(p / 2)
@@ -45,7 +39,7 @@ generate_dat <- function(n, p, scenarioT, scenarioY) {
   # Convert all variables to uniform variables between 0 and 1
   vars_unif <- pnorm(vars)
 
-  # Convert the first num_norm_vars variables to normal variable with mean = 1 and sd = 1
+  # Convert the first num_norm_vars variables to normal variable with mean = 0 and sd = 1
   vars_normal <- qnorm(vars_unif[, 1:num_norm_vars])
 
   # Convert the next num_bern_vars variables to Bernoulli variables
@@ -208,7 +202,7 @@ generate_dat <- function(n, p, scenarioT, scenarioY) {
   
   unif1 <- runif(n, 0, 1)
   T <- ifelse(trueps > unif1, 1, 0) # there is a probability of unif1 that T=1
-  
+  #T <- rbinom(n, size = 1, prob = trueps)
   
   # Generate a coefficients for population outcome models
   # Initialize a0 to 1
@@ -351,15 +345,7 @@ generate_dat <- function(n, p, scenarioT, scenarioY) {
   
   
   
-  return(standardized_initial_bias)
-  
-  
-  
-  
-  
-  
-  
-  
+  return(T)
 }
   
 df <- generate_dat(n = 100000, p = 20, scenarioT = "A", scenarioY = "a")
@@ -368,7 +354,7 @@ df <- generate_dat(n = 100000, p = 20, scenarioT = "A", scenarioY = "a")
 
 set.seed(16)
 test <- replicate(n = 100, 
-          expr = generate_dat(n = 100000, p = 20, scenarioT = "D", scenarioY = "a"), 
+          expr = generate_dat(n = 100000, p = 20, scenarioT = "B", scenarioY = "a"), 
           simplify = FALSE )
 mean(unlist(test))
 
