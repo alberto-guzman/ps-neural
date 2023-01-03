@@ -76,7 +76,13 @@ generate_dat <- function(n, p, scenarioT, scenarioY) {
 
   # Combine covar_confound and covar_rel_outcome, these are the covariates that will be used for the population outcome models
   covar_for_outcome <- union(covar_confound, covar_rel_outcome)
-
+  
+  #########################################
+  #########################################
+  # Population treatment models
+  #########################################
+  #########################################
+  
   # Generate b coefficients for population treatment models
   # Initialize b0 to -1
   b0 <- -1
@@ -195,15 +201,19 @@ generate_dat <- function(n, p, scenarioT, scenarioY) {
     trueps <- eval(parse(text = equation))
   }
 
-  
   #########################################
   # ~~ binary treatment T
   #########################################
   
   unif1 <- runif(n, 0, 1)
   T <- ifelse(trueps > unif1, 1, 0) # there is a probability of unif1 that T=1
-  #T <- rbinom(n, size = 1, prob = trueps)
-  
+
+  #########################################
+  #########################################
+  # Population outcome models
+  #########################################
+  #########################################
+
   # Generate a coefficients for population outcome models
   # Initialize a0 to 1
   a0 <- 1
@@ -227,8 +237,6 @@ generate_dat <- function(n, p, scenarioT, scenarioY) {
   # Create a new variable called element with the format "a * covar_for_outcome"
   element <- paste0("a", a, " * ", covar_for_outcome)
   
-  
-  
   #########################################
   # Population outcome model - Generate base model
   #########################################
@@ -241,7 +249,7 @@ generate_dat <- function(n, p, scenarioT, scenarioY) {
 
   } else
     
-    #########################################
+  #########################################
   # Population outcome model - Non-linear model
   #########################################
   if (scenarioY == "b") {
@@ -271,7 +279,7 @@ generate_dat <- function(n, p, scenarioT, scenarioY) {
     
   } else
     
-    #########################################
+  #########################################
   # Population outcome model - Non-additive model
   #########################################
   if (scenarioY == "d") {
@@ -295,7 +303,7 @@ generate_dat <- function(n, p, scenarioT, scenarioY) {
    
   } else
     
-    #########################################
+  #########################################
   # Population outcome model - Complex model
   #########################################
   if (scenarioY == "d") {
@@ -334,37 +342,13 @@ generate_dat <- function(n, p, scenarioT, scenarioY) {
   sim$T <- T
   sim$Y <- Y
   sim$trueps <- trueps
-  
-  
-  
+
   # Calculate the mean difference (treatment - control)
-  mean_difference <- mean(sim$Y[sim$T == 1]) - mean(sim$Y[sim$T == 0])
+  #mean_difference <- mean(sim$Y[sim$T == 1]) - mean(sim$Y[sim$T == 0])
   
   # Calculate the standardized initial bias
-  standardized_initial_bias <- (mean_difference - 0.3) / sd(sim$Y[sim$T == 1])
+  #standardized_initial_bias <- (mean_difference - 0.3) / sd(sim$Y[sim$T == 1])
   
-  
-  
-  return(T)
+  return(sim)
 }
   
-df <- generate_dat(n = 100000, p = 20, scenarioT = "A", scenarioY = "a")
-
-
-
-set.seed(16)
-test <- replicate(n = 100, 
-          expr = generate_dat(n = 100000, p = 20, scenarioT = "B", scenarioY = "a"), 
-          simplify = FALSE )
-mean(unlist(test))
-
-# PS Avg for A = .30
-# PS Avg for B = .30
-# PS Avg for C = .29
-# PS Avg for D = .29
-
-
-# T Avg for A = .30
-# T Avg for B = .30
-# T Avg for C = .29
-# T Avg for D = .29
