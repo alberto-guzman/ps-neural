@@ -14,6 +14,17 @@ library(MBESS)
 library(Rlab)
 library(tidyverse)
 
+#############
+
+## WHAT DOES THIS FUNCTIOND DO?
+
+#This function generates correlated normal variables, converts them into uniform, normal, and Bernoulli variables, and then assigns each column of the resulting transformed variables to an object with a name "v1", "v2", etc. 
+#It also samples various subsets of these variables and assigns them to different sets (covar_confound, covar_rel_outcome, etc.). 
+#Finally, it generates coefficients for various population treatment and outcome models and uses them to simulate treatment and outcome data for a population, and returns this data in a tibble.
+
+#############
+
+
 generate_dat <- function(n, p, scenarioT, scenarioY) {
   # Generate a mean vector of 0s
   mean <- rep(0, p)
