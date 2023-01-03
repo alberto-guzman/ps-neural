@@ -13,6 +13,7 @@ library(psych)
 library(MBESS)
 library(Rlab)
 library(tidyverse)
+library(testthat)
 
 #############
 
@@ -362,4 +363,3 @@ generate_dat <- function(n, p, scenarioT, scenarioY) {
   
   return(sim)
 }
-  
