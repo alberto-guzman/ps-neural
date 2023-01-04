@@ -363,5 +363,3 @@ generate_dat <- function(n, p, scenarioT, scenarioY) {
   
   return(sim)
 }
-
-test <- generate_dat(n = 10000, p = 20, "B","a")
