@@ -137,8 +137,8 @@ generate_dat <- function(n, p, scenarioT, scenarioY) {
   #########################################
   if (scenarioT == "B") {
     # Split covar_for_treatment into four equal-sized groups
-    n <- length(covar_for_treatment)
-    split_index <- round(seq(1, n, length.out = 4))
+    group_n <- length(covar_for_treatment)
+    split_index <- round(seq(1, group_n, length.out = 4))
     covar_groups <- split(covar_for_treatment, cut(seq_along(covar_for_treatment), split_index))
 
     # Get the first group of covariates
@@ -167,8 +167,8 @@ generate_dat <- function(n, p, scenarioT, scenarioY) {
   #########################################
   if (scenarioT == "C") {
     # Split covar_for_treatment into four equal-sized groups
-    n <- length(covar_for_treatment)
-    split_index <- round(seq(1, n, length.out = 4))
+    group_n <- length(covar_for_treatment)
+    split_index <- round(seq(1, group_n, length.out = 4))
     covar_groups <- split(covar_for_treatment, cut(seq_along(covar_for_treatment), split_index))
 
     # Iterate over each group of covariates and create an interaction term between the two covariates
@@ -191,8 +191,8 @@ generate_dat <- function(n, p, scenarioT, scenarioY) {
   #########################################
   if (scenarioT == "D") {
     # Split covar_for_treatment into four equal-sized groups
-    n <- length(covar_for_treatment)
-    split_index <- round(seq(1, n, length.out = 4))
+    group_n <- length(covar_for_treatment)
+    split_index <- round(seq(1, group_n, length.out = 4))
     covar_groups <- split(covar_for_treatment, cut(seq_along(covar_for_treatment), split_index))
 
     # Iterate over each group of covariates and create both a quadratic term and an interaction term for each one
@@ -218,7 +218,7 @@ generate_dat <- function(n, p, scenarioT, scenarioY) {
   #########################################
   
   unif1 <- runif(n, 0, 1)
-  T <- ifelse(trueps > unif1, 1, 0) # there is a probability of unif1 that T=1
+  T <- ifelse(trueps > unif1, 1, 0) 
 
   #########################################
   #########################################
@@ -266,8 +266,8 @@ generate_dat <- function(n, p, scenarioT, scenarioY) {
   #########################################
   if (scenarioY == "b") {
     # Split covar_for_outcome into four equal-sized groups
-    n <- length(covar_for_outcome)
-    split_index <- round(seq(1, n, length.out = 4))
+    group_n <- length(covar_for_outcome)
+    split_index <- round(seq(1, group_n, length.out = 4))
     covar_groups <- split(covar_for_outcome, cut(seq_along(covar_for_outcome), split_index))
     
     # Get the first group of covariates
@@ -296,8 +296,8 @@ generate_dat <- function(n, p, scenarioT, scenarioY) {
   #########################################
   if (scenarioY == "d") {
     # Split covar_for_outcome into four equal-sized groups
-    n <- length(covar_for_outcome)
-    split_index <- round(seq(1, n, length.out = 4))
+    group_n <- length(covar_for_outcome)
+    split_index <- round(seq(1, group_n, length.out = 4))
     covar_groups <- split(covar_for_outcome, cut(seq_along(covar_for_outcome), split_index))
     
     # Iterate over each group of covariates and create an interaction term between the two covariates
@@ -321,8 +321,8 @@ generate_dat <- function(n, p, scenarioT, scenarioY) {
   if (scenarioY == "d") {
     
     # Split covar_for_outcome into four equal-sized groups
-    n <- length(covar_for_outcome)
-    split_index <- round(seq(1, n, length.out = 4))
+    group_n <- length(covar_for_outcome)
+    split_index <- round(seq(1, group_n, length.out = 4))
     covar_groups <- split(covar_for_outcome, cut(seq_along(covar_for_outcome), split_index))
     
     # Iterate over each group of covariates and create both a quadratic term and an interaction term for each one
@@ -363,3 +363,5 @@ generate_dat <- function(n, p, scenarioT, scenarioY) {
   
   return(sim)
 }
+
+test <- generate_dat(n = 10000, p = 20, "B","a")
