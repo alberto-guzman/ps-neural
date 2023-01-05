@@ -293,7 +293,7 @@ generate_data <- function(n, p, scenarioT, scenarioY) {
   #########################################
   # Population outcome model - Non-additive model
   #########################################
-  if (scenarioY == "d") {
+  if (scenarioY == "c") {
     # Split covar_for_outcome into four equal-sized groups
     group_n <- length(covar_for_outcome)
     split_index <- round(seq(1, group_n, length.out = 4))
@@ -362,3 +362,7 @@ generate_data <- function(n, p, scenarioT, scenarioY) {
   
   return(sim)
 }
+
+
+generate_data(n = 100000, p = 10, "A", "a")
+
