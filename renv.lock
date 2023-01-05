@@ -25,6 +25,14 @@
       "Hash": "b2866e62bab9378c3cc9476a1954226b",
       "Requirements": []
     },
+    "Deriv": {
+      "Package": "Deriv",
+      "Version": "4.1.3",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "bc727aba82bcda74db0bbe188ec6757c",
+      "Requirements": []
+    },
     "Formula": {
       "Package": "Formula",
       "Version": "1.2-4",
@@ -724,6 +732,17 @@
         "withr"
       ]
     },
+    "gbm": {
+      "Package": "gbm",
+      "Version": "2.1.8.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "77c36d4d16a167e301137f4c1da6ec9d",
+      "Requirements": [
+        "lattice",
+        "survival"
+      ]
+    },
     "generics": {
       "Package": "generics",
       "Version": "0.1.3",
@@ -825,6 +844,24 @@
       "Hash": "7d7f283939f563670a697165b2cf5560",
       "Requirements": [
         "gtable"
+      ]
+    },
+    "grkstyle": {
+      "Package": "grkstyle",
+      "Version": "0.2.1",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteRepo": "grkstyle",
+      "RemoteUsername": "gadenbuie",
+      "RemoteRef": "HEAD",
+      "RemoteSha": "2dac4d789cf6db339deaf53e6d20f9262ed3fbb9",
+      "Hash": "f305f0975499ba41be67c5a9a623e91d",
+      "Requirements": [
+        "magrittr",
+        "purrr",
+        "rprojroot",
+        "styler"
       ]
     },
     "gtable": {
@@ -1240,6 +1277,17 @@
       "Repository": "CRAN",
       "Hash": "7a7541cc284cb2ba3ba7eae645892af5",
       "Requirements": []
+    },
+    "neuralnet": {
+      "Package": "neuralnet",
+      "Version": "1.44.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "645dfddf82e231bd334f916ede114128",
+      "Requirements": [
+        "Deriv",
+        "MASS"
+      ]
     },
     "nlme": {
       "Package": "nlme",
