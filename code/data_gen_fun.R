@@ -5,8 +5,17 @@ library(MBESS)
 library(Rlab)
 library(tidyverse)
 
+#remote these before sending to cluster
 library(styler)
 library(grkstyle)
+
+#packages for psmethod
+#library(rpart)
+#library(ipred)
+#library(randomForest)
+#library(nnet)
+library(survey)
+library(Hmisc)
 
 #############
 
@@ -352,4 +361,4 @@ generate_data <- function(n, p, scenarioT, scenarioY) {
 }
 
 
-generate_data(n = 100000, p = 10, "A", "a")
+#generate_data(n = 100000, p = 10, "A", "a")
