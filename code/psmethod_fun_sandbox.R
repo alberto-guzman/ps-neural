@@ -1,17 +1,54 @@
 
 
-data <- generate_data(n = 100000, p = 20, "A", "a")
+df <- generate_data(n = 100000, p = 20, "A", "a")
 
-
-
-df <- data
-
-
+# Estimate propensity score logistic
 mod <- glm(T ~ . - Y - trueps, data = df, family = binomial)
 ps <- mod$fitted
 
+# Estimate propensity score CART
+mod <- rpart(T ~ . - Y - trueps, method = "class", data = df)
+ps <- predict(mod)[, 2]
 
-# Add the predicted propensity scores and weights to the tibble
+# Estimate propensity score bagged 
+mod <- bagging(T ~ . - Y - trueps, data = df, nbag = 100)
+ps =  predict(mod,newdata=df,type="prob")    
+
+# Estimate propensity score random forest 
+mod <- randomForest(factor(T) ~ . - Y - trueps, ntree = 500, data = df)
+ps <- predict(mod, type = "prob")[, 2]
+
+# Estimate propensity score nn
+neuro_n <- ceiling((2/3)*length(df))
+samp = sample(1:nrow(df), ceiling(.70*nrow(df)))
+mod <- nnet(factor(T) ~ . - Y - trueps, data = df, size = neuro_n, decay = 0.01, maxit = 200, trace=F, subset = samp)
+ps = as.numeric(predict(mod, type='raw')) 
+
+# Estimate propensity score dnn-2
+neuro_n <- ceiling((2/3)*length(df))
+mod=neuralnet(T~ . - Y - trueps,data=df, hidden=c(neuro_n,neuro_n),learningrate = 0.01, act.fct = "logistic", linear.output = FALSE)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Save estimated propensity score and weights to data frame
 df <- df %>%
   mutate(
     ps_pred = ps,
@@ -23,23 +60,26 @@ d.w <- svydesign(~1, weights = df$ps_weights, data = df)
 fit <- svyglm(Y ~ T, design = d.w)
 
 # saves the ATT and se_ATT
-pred_ATT <- coef(fit)["T"]
+ATT <- unname(coef(fit)["T"])
 vcov_matrix <- vcov(fit)
-se_ATT <- sqrt(vcov_matrix["T", "T"])
+ATT_se <- unname(sqrt(vcov_matrix["T", "T"]))
 
-# calculate absolute relative bias
-ARB <- abs(pred_ATT - 0.3) / 0.3
+# calculate bias metrics
+Bias <- ATT - 0.3
+AbsBias <- abs(ATT - 0.3)
 
-# calculate mean of control gropu weights
-sim_T1 <- subset(df, T == 0)
-mean_ps_weights <- mean(sim_T1$ps_weights, na.rm = TRUE)
+# calculate mean of control group weights
+df_int <- subset(df, T == 0)
+mean_ps_weights <- mean(df_int$ps_weights, na.rm = TRUE)
 
 # calculate 95% coverage
 lower_bound <- pred_ATT - 1.96 * se_ATT
 upper_bound <- pred_ATT + 1.96 * se_ATT
 ci_95 <- ifelse(lower_bound <= 0.3 && 0.3 <= upper_bound, 1, 0)
 
+###############
 # calculate ASAM for covariates
+###############
 
 # Subset the data into the treatment and comparison groups
 treatment_group <- df[df$T == 1, ]
@@ -90,6 +130,22 @@ for (i in 1:length(var_names)) {
 ASAM <- mean(ASAM_list)
 
 
+metrics <- c(ATT, ATT_se, Bias, AbsBias, mean_ps_weights, ci_95, ASAM)
+
+
+
+
+
+##############
+# PARKING LOT
+##############
+
+ggplot(df, aes(x = trueps, y = ps_pred)) +
+  geom_point(shape = 21, alpha = 0.2) +
+  geom_abline(slope = 1, intercept = 0) +
+  scale_x_continuous(limits = c(0, 1)) +
+  scale_y_continuous(limits = c(0, 1)) +
+  labs(x = "True PS", y = "PS predicted by main effects logistic regression")
 
 
 
@@ -104,21 +160,3 @@ ASAM <- mean(ASAM_list)
 
 
 
-
-
-
-
-
-
-
-# return(c(pred_ATT, se_ATT, ARB, mean_ps_weights, ci_95, ASAM))
-
-
-mod <- rpart(T ~ . - Y - trueps, method = "class", data = df)
-ps <- predict(mod)[, 2]
-
-mod <- bagging(T ~ . - Y - trueps, data = sim)
-ps <- predict(mod, newdata = sim, type = "prob")
-
-mod <- randomForest(factor(T) ~ . - Y - trueps, data = sim)
-ps <- predict(mod, type = "prob")[, 2]
