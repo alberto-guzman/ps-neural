@@ -1,19 +1,9 @@
-library(simhelpers)
-library(dplyr)
-library(tibble)
-library(purrr)
-library(tidyr)
-library(knitr)
-library(kableExtra)
-library(broom)
-library(ggplot2)
 library(MASS)
 library(Matrix)
 library(psych)
 library(MBESS)
 library(Rlab)
 library(tidyverse)
-library(testthat)
 
 #############
 
