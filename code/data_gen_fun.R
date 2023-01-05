@@ -25,8 +25,7 @@ library(testthat)
 
 #############
 
-
-generate_dat <- function(n, p, scenarioT, scenarioY) {
+generate_data <- function(n, p, scenarioT, scenarioY) {
   # Generate a mean vector of 0s
   mean <- rep(0, p)
 
