@@ -19,6 +19,8 @@ library(Hmisc)
 library(gbm)
 library(neuralnet)
 
+library(keras)
+library(tensorflow)
 #############
 
 ## WHAT DOES THIS FUNCTIOND DO?
