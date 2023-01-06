@@ -10,30 +10,30 @@ ps <- mod$fitted
 mod <- rpart(T ~ . - Y - trueps, method = "class", data = df)
 ps <- predict(mod)[, 2]
 
-# Estimate propensity score bagged 
+# Estimate propensity score bagged
 mod <- bagging(T ~ . - Y - trueps, data = df, nbag = 100)
-ps =  predict(mod,newdata=df,type="prob")    
+ps <- predict(mod, newdata = df, type = "prob")
 
-# Estimate propensity score random forest 
+# Estimate propensity score random forest
 mod <- randomForest(factor(T) ~ . - Y - trueps, ntree = 500, data = df)
 ps <- predict(mod, type = "prob")[, 2]
 
 # Estimate propensity score nn
-neuro_n <- ceiling((2/3)*length(df))
-samp = sample(1:nrow(df), ceiling(.70*nrow(df)))
-mod <- nnet(factor(T) ~ . - Y - trueps, data = df, size = neuro_n, decay = 0.01, maxit = 200, trace=F, subset = samp)
-ps = as.numeric(predict(mod, type='raw')) 
+neuro_n <- ceiling((2 / 3) * length(df))
+samp <- sample(1:nrow(df), ceiling(.70 * nrow(df)))
+mod <- nnet(factor(T) ~ . - Y - trueps, data = df, size = neuro_n, decay = 0.01, maxit = 200, trace = F, subset = samp)
+ps <- as.numeric(predict(mod, type = "raw"))
 
 
-use_condaenv(condaenv = 'r-reticulate', required = TRUE)
+use_condaenv(condaenv = "r-reticulate", required = TRUE)
 
 
 
 
 
 # Estimate propensity score nn with 1 hidden layer
-neuro_n <- ceiling((2/3)*length(df))
-samp = sample(1:nrow(df), ceiling(.70*nrow(df)))
+neuro_n <- ceiling((2 / 3) * length(df))
+samp <- sample(1:nrow(df), ceiling(.70 * nrow(df)))
 model <- keras_model_sequential() %>%
   layer_dense(units = neuro_n, input_shape = ncol(df)) %>%
   layer_dense(units = 1, activation = "sigmoid")
@@ -46,8 +46,10 @@ model %>% compile(
 # Convert vector to matrix and pass to fit function
 targets <- to_categorical(factor(T)[samp])
 model %>% fit(
-  df[samp,], targets,
-  epochs = 10, batch_size = 32,
+  df[samp, ],
+  targets,
+  epochs = 10,
+  batch_size = 32,
   validation_split = 0.2
 )
 
@@ -64,8 +66,8 @@ ps <- model %>% predict_proba(df_matrix)
 
 
 # Estimate propensity score dnn-2
-neuro_n <- ceiling((2/3)*length(df))
-mod=neuralnet(T~ . - Y - trueps,data=df, hidden=c(neuro_n,neuro_n),learningrate = 0.01, act.fct = "logistic", linear.output = FALSE)
+neuro_n <- ceiling((2 / 3) * length(df))
+mod <- neuralnet(T ~ . - Y - trueps, data = df, hidden = c(neuro_n, neuro_n), learningrate = 0.01, act.fct = "logistic", linear.output = FALSE)
 
 
 
@@ -185,17 +187,3 @@ ggplot(df, aes(x = trueps, y = ps_pred)) +
   scale_x_continuous(limits = c(0, 1)) +
   scale_y_continuous(limits = c(0, 1)) +
   labs(x = "True PS", y = "PS predicted by main effects logistic regression")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
