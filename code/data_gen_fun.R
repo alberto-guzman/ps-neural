@@ -1,28 +1,3 @@
-library(MASS)
-library(Matrix)
-library(psych)
-library(MBESS)
-library(Rlab)
-library(tidyverse)
-
-# remote these before sending to cluster
-library(styler)
-library(grkstyle)
-
-# packages for psmethod
-library(rpart)
-library(ipred)
-library(randomForest)
-library(nnet)
-library(survey)
-library(Hmisc)
-library(gbm)
-library(neuralnet)
-
-library(keras)
-library(tensorflow)
-library(tidymodels)
-
 #############
 
 ## WHAT DOES THIS FUNCTIOND DO?
@@ -33,7 +8,7 @@ library(tidymodels)
 
 #############
 
-generate_data <- function(n, p, scenarioT, scenarioY) {
+generate_data <- function(n, p, nrep, scenarioT, scenarioY) {
   # Generate a mean vector of 0s
   mean <- rep(0, p)
 

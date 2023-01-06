@@ -1,13 +1,35 @@
 ######################################################################
-# This script:
-# - 
+
 ######################################################################
 
-# Load packages, managed by renv  --------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# remote these before sending to cluster
+library(styler)
+library(grkstyle)
+
+# library(neuralnet)
+# library(keras)
+# library(tensorflow)
+# library(tidymodels)
+# use_condaenv(condaenv = "r-reticulate", required = TRUE)
 
 
 packages <- c(
-  "here","tidyverse", "MASS", "Rlab"
+  "here",
+  "tidyverse",
+  "MASS",
+  "Rlab",
+  "Matrix",
+  "psych",
+  "MBESS",
+  "Rlab",
+  "rpart",
+  "ipred",
+  "randomForest",
+  "nnet",
+  "survey",
+  "Hmisc",
+  "future",
+  "furrr"
 )
 
 
@@ -19,89 +41,89 @@ if (any(installed_packages == FALSE)) {
 
 invisible(lapply(packages, library, character.only = TRUE))
 
-# sets working directory to root of R project 
+# sets working directory to root of R project
 here()
 
 ######### load functions
-source(here("dnn_code_clust","dnn_datagen.R"))
-source(here("dnn_code_clust","dnn_psmethod_tidy.R"))
-
+source(here("code", "data_gen_fun.R"))
+source(here("code", "psmethod_fun_sandbox.R"))
 
 
 ######### SIMULATION STUDY  ############
 
-######### set simulation conditions
 
-
-size <- c(3000)
-num_variables <- c(10)
+n <- c(100000)
+p <- c(20)
 nrep <- 1:3
-scenarioT <- c("A", "D")
-scenarioY <- c("a", "d")
-method <- c("logit", "dnn")
+scenarioT <- c("A", "B", "C", "D")
+scenarioY <- c("a", "b", "c", "d")
+method <- c("logit", "cart")
 
 conditions <- crossing(
-  size,
-  num_variables,
+  n,
+  p,
   nrep,
   scenarioT,
   scenarioY,
   method
 )
 
-conditions
-
 ######### run simulation
 ncores <- parallelly::availableCores() - 1
 plan(multisession, workers = ncores, gc = T)
-ncores
+
+results <-
+  conditions %>%
+  group_by(n, p, nrep, scenarioT, scenarioY) %>%
+  mutate(datasets = pmap(list(n, p, nrep, scenarioT, scenarioY), possibly(generate_data, NA)))
+
+results$values <- future_map2(results$datasets, results$method, possibly(ps_methods, NA), .options = furrr_options(seed = 123))
+
+
+
+
+
 
 
 tic()
 
-results <-
-  conditions %>%
-  group_by(size, num_variables, nrep, scenarioT, scenarioY) %>%
-  mutate(datasets = pmap(list(size, num_variables, nrep, scenarioT, scenarioY), possibly(funcov, NA)))
-
-results$values <- future_map2(results$datasets, results$method, possibly(funsim, NA), .options = furrr_options(seed = 123))
-
-
 results_tidy <- results %>%
   dplyr::select(-(datasets)) %>%
-  separate(values, c("rmse", "hatg", "absrbias", "varhatg", "hatgsew", "covw"), sep = ",")
+  separate(values, c("ATT", "ATT_se", "Bias", "AbsBias", "mean_ps_weights", "ci_95", "ASAM"), sep = ",")
 
 results_tidy$rmse <- substring(results_tidy$rmse, 3)
 results_tidy$covw <- substring(results_tidy$covw, 1, nchar(results_tidy$covw) - 1)
 
 results_tidy <- results_tidy %>%
-  mutate_at(c("rmse", "hatg", "absrbias", "varhatg", "hatgsew", "covw"), as.numeric)
+  mutate_at(c("ATT", "ATT_se", "Bias", "AbsBias", "mean_ps_weights", "ci_95", "ASAM"), as.numeric)
 
 
 
- results_summary <- results_tidy %>%
-   group_by(num_variables,scenarioT, scenarioY, method) %>%
-   summarise(mean_rmse = mean(rmse, na.rm = T))
+results_summary <- results_tidy %>%
+  group_by(num_variables, scenarioT, scenarioY, method) %>%
+  summarise(mean_rmse = mean(rmse, na.rm = T))
 
- # results_summary %>%
- #   ggplot (aes (x = as.factor(num_variables), y = mean_mse, group = method, color = method, shape = method)) +
- #   geom_line () + geom_point() + facet_grid (scenarioT ~  scenarioY)
+# results_summary %>%
+#   ggplot (aes (x = as.factor(num_variables), y = mean_mse, group = method, color = method, shape = method)) +
+#   geom_line () + geom_point() + facet_grid (scenarioT ~  scenarioY)
 
- # New facet label names for dose variable
- t.labs <- c("Base", "Interactions", "Quad Terms","Iteractions + Quad")
- names(t.labs) <- c("A", "B", "C","D")
+# New facet label names for dose variable
+t.labs <- c("Base", "Interactions", "Quad Terms", "Iteractions + Quad")
+names(t.labs) <- c("A", "B", "C", "D")
 
- # New facet label names for supp variable
- y.labs <- c("Base", "Interactions", "Quad Terms","Iteractions + Quad")
- names(y.labs) <- c("a", "b", "c","d")
+# New facet label names for supp variable
+y.labs <- c("Base", "Interactions", "Quad Terms", "Iteractions + Quad")
+names(y.labs) <- c("a", "b", "c", "d")
 
- toc()
+toc()
 
- results_summary %>%
-   ggplot (aes (x = method, y = mean_rmse, fill = as.factor(num_variables))) +
-   xlab('Method') + ylab('RMSE') +
-   geom_bar (position = 'dodge', stat ='identity') + facet_grid (scenarioT ~  scenarioY,labeller = labeller(scenarioT = t.labs, scenarioY = y.labs), scales = 'fixed') +
-   scale_fill_discrete(name = "Number of Covars") +
-   theme(legend.position="top") +
-   theme_minimal()
+results_summary %>%
+  ggplot(aes(x = method, y = mean_rmse, fill = as.factor(num_variables))) +
+  xlab("Method") +
+  ylab("RMSE") +
+  geom_bar(position = "dodge", stat = "identity") +
+  facet_grid(scenarioT ~ scenarioY, labeller = labeller(scenarioT = t.labs, scenarioY = y.labs), scales = "fixed") +
+  scale_fill_discrete(name = "Number of Covars") +
+  theme(legend.position = "top") +
+  theme_minimal()
 toc()
