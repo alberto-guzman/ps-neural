@@ -21,8 +21,6 @@ library(neuralnet)
 
 library(keras)
 library(tensorflow)
-use_condaenv(condaenv = 'r-reticulate', required = TRUE)
-tf$constant("Hello Tensorflow!")
 
 #############
 

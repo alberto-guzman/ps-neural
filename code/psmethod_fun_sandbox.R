@@ -24,6 +24,45 @@ samp = sample(1:nrow(df), ceiling(.70*nrow(df)))
 mod <- nnet(factor(T) ~ . - Y - trueps, data = df, size = neuro_n, decay = 0.01, maxit = 200, trace=F, subset = samp)
 ps = as.numeric(predict(mod, type='raw')) 
 
+
+use_condaenv(condaenv = 'r-reticulate', required = TRUE)
+
+
+
+
+
+# Estimate propensity score nn with 1 hidden layer
+neuro_n <- ceiling((2/3)*length(df))
+samp = sample(1:nrow(df), ceiling(.70*nrow(df)))
+model <- keras_model_sequential() %>%
+  layer_dense(units = neuro_n, input_shape = ncol(df)) %>%
+  layer_dense(units = 1, activation = "sigmoid")
+model %>% compile(
+  loss = "binary_crossentropy",
+  optimizer = "adam",
+  metrics = c("accuracy")
+)
+
+# Convert vector to matrix and pass to fit function
+targets <- to_categorical(factor(T)[samp])
+model %>% fit(
+  df[samp,], targets,
+  epochs = 10, batch_size = 32,
+  validation_split = 0.2
+)
+
+# Convert data frame to matrix and pass to predict_proba function
+df_matrix <- as.matrix(df)
+ps <- model %>% predict_proba(df_matrix)
+
+
+
+
+
+
+
+
+
 # Estimate propensity score dnn-2
 neuro_n <- ceiling((2/3)*length(df))
 mod=neuralnet(T~ . - Y - trueps,data=df, hidden=c(neuro_n,neuro_n),learningrate = 0.01, act.fct = "logistic", linear.output = FALSE)
