@@ -21,6 +21,7 @@ library(neuralnet)
 
 library(keras)
 library(tensorflow)
+library(tidymodels)
 
 #############
 

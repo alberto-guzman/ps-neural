@@ -18,61 +18,63 @@ ps <- predict(mod, newdata = df, type = "prob")
 mod <- randomForest(factor(T) ~ . - Y - trueps, ntree = 500, data = df)
 ps <- predict(mod, type = "prob")[, 2]
 
+
+
+
+
+
+use_condaenv(condaenv = "r-reticulate", required = TRUE)
+
+df_nn <- df %>% select(-Y, -trueps)
+
+split <- initial_split(df_nn, 0.8)
+train_dataset <- training(split)
+test_dataset <- testing(split)
+
+train_features <- train_dataset %>% select(-T) 
+test_features <- test_dataset %>% select(-T)
+
+train_labels <- train_dataset %>% select(T)
+test_labels <- test_dataset %>% select(T)
+
+
+
+# Define model
+model <- keras_model_sequential()
+
+model %>% 
+  layer_dense(units = 10, activation = "relu", input_shape = c(20)) %>% 
+  layer_dense(units = 1, activation = "sigmoid")
+
+# Compile model
+model %>% compile(
+  loss = "binary_crossentropy",
+  optimizer = "sgd",
+  metrics = c("accuracy")
+)
+
+
+# Fit model
+model %>% fit(
+  x = train_features,
+  y = train_labels,
+  epochs = 10,
+  batch_size = 32
+)
+
+
+
+
+
+
+
+
+
 # Estimate propensity score nn
 neuro_n <- ceiling((2 / 3) * length(df))
 samp <- sample(1:nrow(df), ceiling(.70 * nrow(df)))
 mod <- nnet(factor(T) ~ . - Y - trueps, data = df, size = neuro_n, decay = 0.01, maxit = 200, trace = F, subset = samp)
 ps <- as.numeric(predict(mod, type = "raw"))
-
-
-use_condaenv(condaenv = "r-reticulate", required = TRUE)
-
-
-
-
-
-# Estimate propensity score nn with 1 hidden layer
-neuro_n <- ceiling((2 / 3) * length(df))
-samp <- sample(1:nrow(df), ceiling(.70 * nrow(df)))
-model <- keras_model_sequential() %>%
-  layer_dense(units = neuro_n, input_shape = ncol(df)) %>%
-  layer_dense(units = 1, activation = "sigmoid")
-model %>% compile(
-  loss = "binary_crossentropy",
-  optimizer = "adam",
-  metrics = c("accuracy")
-)
-
-# Convert vector to matrix and pass to fit function
-targets <- to_categorical(factor(T)[samp])
-model %>% fit(
-  df[samp, ],
-  targets,
-  epochs = 10,
-  batch_size = 32,
-  validation_split = 0.2
-)
-
-# Convert data frame to matrix and pass to predict_proba function
-df_matrix <- as.matrix(df)
-ps <- model %>% predict_proba(df_matrix)
-
-
-
-
-
-
-
-
-
-# Estimate propensity score dnn-2
-neuro_n <- ceiling((2 / 3) * length(df))
-mod <- neuralnet(T ~ . - Y - trueps, data = df, hidden = c(neuro_n, neuro_n), learningrate = 0.01, act.fct = "logistic", linear.output = FALSE)
-
-
-
-
-
 
 
 
@@ -114,8 +116,8 @@ df_int <- subset(df, T == 0)
 mean_ps_weights <- mean(df_int$ps_weights, na.rm = TRUE)
 
 # calculate 95% coverage
-lower_bound <- pred_ATT - 1.96 * se_ATT
-upper_bound <- pred_ATT + 1.96 * se_ATT
+lower_bound <- ATT - 1.96 * ATT_se
+upper_bound <- ATT + 1.96 * ATT_se
 ci_95 <- ifelse(lower_bound <= 0.3 && 0.3 <= upper_bound, 1, 0)
 
 ###############
