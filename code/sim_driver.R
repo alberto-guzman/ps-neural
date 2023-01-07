@@ -52,9 +52,9 @@ source(here("code", "psmethod_fun_sandbox.R"))
 ######### SIMULATION STUDY  ############
 
 
-n <- c(100000)
+n <- c(10000)
 p <- c(20)
-nrep <- 1:3
+nrep <- 1:2
 scenarioT <- c("A", "B", "C", "D")
 scenarioY <- c("a", "b", "c", "d")
 method <- c("logit", "cart")
@@ -85,14 +85,13 @@ results$values <- future_map2(results$datasets, results$method, possibly(ps_meth
 
 
 
-tic()
 
 results_tidy <- results %>%
   dplyr::select(-(datasets)) %>%
   separate(values, c("ATT", "ATT_se", "Bias", "AbsBias", "mean_ps_weights", "ci_95", "ASAM"), sep = ",")
 
-results_tidy$rmse <- substring(results_tidy$rmse, 3)
-results_tidy$covw <- substring(results_tidy$covw, 1, nchar(results_tidy$covw) - 1)
+results_tidy$ATT <- substring(results_tidy$ATT, 3)
+results_tidy$ASAM <- substring(results_tidy$ASAM, 1, nchar(results_tidy$ASAM) - 1)
 
 results_tidy <- results_tidy %>%
   mutate_at(c("ATT", "ATT_se", "Bias", "AbsBias", "mean_ps_weights", "ci_95", "ASAM"), as.numeric)
@@ -100,8 +99,8 @@ results_tidy <- results_tidy %>%
 
 
 results_summary <- results_tidy %>%
-  group_by(num_variables, scenarioT, scenarioY, method) %>%
-  summarise(mean_rmse = mean(rmse, na.rm = T))
+  group_by(method, scenarioT, scenarioY) %>%
+  summarise(mean_AbsBias = mean(AbsBias, na.rm = T))
 
 # results_summary %>%
 #   ggplot (aes (x = as.factor(num_variables), y = mean_mse, group = method, color = method, shape = method)) +
