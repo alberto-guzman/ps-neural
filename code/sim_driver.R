@@ -41,6 +41,7 @@ if (any(installed_packages == FALSE)) {
 
 invisible(lapply(packages, library, character.only = TRUE))
 
+
 # sets working directory to root of R project
 here()
 
@@ -52,12 +53,12 @@ source(here("code", "psmethod_fun_sandbox.R"))
 ######### SIMULATION STUDY  ############
 
 
-n <- c(10000)
+n <- c(1000)
 p <- c(20)
-nrep <- 1:2
+nrep <- 1:1
 scenarioT <- c("A", "B", "C", "D")
 scenarioY <- c("a", "b", "c", "d")
-method <- c("logit", "cart")
+method <- c("logit", "cart", "bag", "forest")
 
 conditions <- crossing(
   n,
@@ -102,27 +103,21 @@ results_summary <- results_tidy %>%
   group_by(method, scenarioT, scenarioY) %>%
   summarise(mean_AbsBias = mean(AbsBias, na.rm = T))
 
-# results_summary %>%
-#   ggplot (aes (x = as.factor(num_variables), y = mean_mse, group = method, color = method, shape = method)) +
-#   geom_line () + geom_point() + facet_grid (scenarioT ~  scenarioY)
 
 # New facet label names for dose variable
-t.labs <- c("Base", "Interactions", "Quad Terms", "Iteractions + Quad")
+t.labs <- c("Base", "Interactions", "Quad Terms", "Complex")
 names(t.labs) <- c("A", "B", "C", "D")
 
 # New facet label names for supp variable
-y.labs <- c("Base", "Interactions", "Quad Terms", "Iteractions + Quad")
+y.labs <- c("Base", "Interactions", "Quad Terms", "Complex")
 names(y.labs) <- c("a", "b", "c", "d")
 
-toc()
 
 results_summary %>%
-  ggplot(aes(x = method, y = mean_rmse, fill = as.factor(num_variables))) +
+  ggplot(aes(x = method, y = mean_AbsBias)) +
   xlab("Method") +
-  ylab("RMSE") +
+  ylab("AbsBias") +
   geom_bar(position = "dodge", stat = "identity") +
   facet_grid(scenarioT ~ scenarioY, labeller = labeller(scenarioT = t.labs, scenarioY = y.labs), scales = "fixed") +
-  scale_fill_discrete(name = "Number of Covars") +
   theme(legend.position = "top") +
   theme_minimal()
-toc()
