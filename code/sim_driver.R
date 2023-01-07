@@ -54,8 +54,8 @@ source(here("code", "psmethod_fun_sandbox.R"))
 
 
 n <- c(1000)
-p <- c(20)
-nrep <- 1:1
+p <- c(20, 100)
+nrep <- 1:20
 scenarioT <- c("A", "B", "C", "D")
 scenarioY <- c("a", "b", "c", "d")
 method <- c("logit", "cart", "bag", "forest")
@@ -100,8 +100,8 @@ results_tidy <- results_tidy %>%
 
 
 results_summary <- results_tidy %>%
-  group_by(method, scenarioT, scenarioY) %>%
-  summarise(mean_AbsBias = mean(AbsBias, na.rm = T))
+  group_by(method, p, scenarioT, scenarioY) %>%
+  summarise(AbsBias = mean(AbsBias, na.rm = T))
 
 
 # New facet label names for dose variable
@@ -114,10 +114,11 @@ names(y.labs) <- c("a", "b", "c", "d")
 
 
 results_summary %>%
-  ggplot(aes(x = method, y = mean_AbsBias)) +
+  ggplot(aes(x = method, y = AbsBias,  fill = as.factor(p))) +
   xlab("Method") +
   ylab("AbsBias") +
   geom_bar(position = "dodge", stat = "identity") +
   facet_grid(scenarioT ~ scenarioY, labeller = labeller(scenarioT = t.labs, scenarioY = y.labs), scales = "fixed") +
+  scale_fill_discrete(name = "# Covars") +
   theme(legend.position = "top") +
   theme_minimal()

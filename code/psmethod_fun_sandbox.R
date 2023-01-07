@@ -4,8 +4,6 @@
 
 #############
 
-
-
 # function to estimate the ATT and other metrics
 ps_methods <- function(data, method) {
   # create a data frame from the data
