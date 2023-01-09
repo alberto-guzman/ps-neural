@@ -8,7 +8,7 @@
 
 #############
 
-generate_data <- function(n, p, nrep, scenarioT, scenarioY) {
+generate_data <- function(n, p, scenarioT, scenarioY) {
   # Generate a mean vector of 0s
   mean <- rep(0, p)
 
@@ -327,19 +327,10 @@ generate_data <- function(n, p, nrep, scenarioT, scenarioY) {
   #########################################
 
   v_list <- mget(paste0("v", 1:length(master_covar)))
-  sim <- as_tibble(v_list)
-  sim$T <- T
-  sim$Y <- Y
-  sim$trueps <- trueps
-
-  # Calculate the mean difference (treatment - control)
-  # mean_difference <- mean(sim$Y[sim$T == 1]) - mean(sim$Y[sim$T == 0])
-
-  # Calculate the standardized initial bias
-  # standardized_initial_bias <- (mean_difference - 0.3) / sd(sim$Y[sim$T == 1])
-
-  return(sim)
+  sim_df <- as_tibble(v_list)
+  sim_df$T <- T
+  sim_df$Y <- Y
+  sim_df$trueps <- trueps
+  
+  return(sim_df)
 }
-
-
-# generate_data(n = 100000, p = 10, "A", "a")

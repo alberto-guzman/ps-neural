@@ -15,19 +15,19 @@ ps_methods <- function(data, method) {
     mod <- glm(T ~ . - Y - trueps, data = df, family = binomial)
     # save the propensity score to a vector
     ps <- mod$fitted
-  # if the method is cart, then estimate the ATT using classification and regression trees
+    # if the method is cart, then estimate the ATT using classification and regression trees
   } else if (method == "cart") {
     # estimate the propensity score using classification and regression trees
     mod <- rpart(T ~ . - Y - trueps, method = "class", data = df)
     # save the propensity score to a vector
     ps <- predict(mod)[, 2]
-  # if the method is bag, then estimate the ATT using bagging
+    # if the method is bag, then estimate the ATT using bagging
   } else if (method == "bag") {
     # estimate the propensity score using bagging
     mod <- bagging(T ~ . - Y - trueps, data = df, nbag = 100)
     # save the propensity score to a vector
     ps <- predict(mod, newdata = df, type = "prob")
-  # if the method is forest, then estimate the ATT using random forest
+    # if the method is forest, then estimate the ATT using random forest
   } else if (method == "forest") {
     # estimate the propensity score using random forest
     mod <- randomForest(factor(T) ~ . - Y - trueps, ntree = 500, data = df)
@@ -79,7 +79,7 @@ ps_methods <- function(data, method) {
   # initialize the ASAM_list vector
   ASAM_list <- rep(NA, length(var_names))
 
-    # loop through each covariate
+  # loop through each covariate
   for (i in 1:length(var_names)) {
     # get the covariate name
     covariate <- var_names[i]

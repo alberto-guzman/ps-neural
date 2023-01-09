@@ -12,7 +12,6 @@ library(grkstyle)
 # library(tidymodels)
 # use_condaenv(condaenv = "r-reticulate", required = TRUE)
 
-
 packages <- c(
   "here",
   "tidyverse",
@@ -96,6 +95,12 @@ results_tidy$ASAM <- substring(results_tidy$ASAM, 1, nchar(results_tidy$ASAM) - 
 
 results_tidy <- results_tidy %>%
   mutate_at(c("ATT", "ATT_se", "Bias", "AbsBias", "mean_ps_weights", "ci_95", "ASAM"), as.numeric)
+
+
+
+
+
+
 
 
 
