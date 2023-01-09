@@ -2,6 +2,26 @@
 
 ######################################################################
 
+
+
+
+
+library(SimDesign)
+# fully-crossed simulation experiment
+Design <- createDesign(n = c(10000),
+                       p = c(20, 100),
+                       scenarioT = c("A", "B", "C", "D"),
+                       scenarioY = c("a", "b", "c", "d"),
+                       method = c("logit", "cart", "bag", "forest"))
+
+Design
+
+
+
+
+
+
+
 # remote these before sending to cluster
 library(styler)
 library(grkstyle)

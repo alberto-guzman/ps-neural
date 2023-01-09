@@ -5,7 +5,7 @@
 #############
 
 # function to estimate the ATT and other metrics
-ps_methods <- function(data, method) {
+Analyze <- function(data, method) {
   # create a data frame from the data
   df <- data
 
@@ -117,9 +117,12 @@ ps_methods <- function(data, method) {
 
   # calculate the mean of the absolute standardized differences of means
   ASAM <- mean(ASAM_list)
+  
+  ret <- c(ATT=ATT, ATT_se=ATT_SE,
+           Bias=Bias, AbsBias=AbsBias, mean_ps_weights=mean_ps_weights, ci_95=ci_95, ASAM=ASAM)
 
 
-  return(c(ATT, ATT_se, Bias, AbsBias, mean_ps_weights, ci_95, ASAM))
+  return(ret)
 }
 
 
