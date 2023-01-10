@@ -1,35 +1,8 @@
 ######################################################################
-
+# Load libraries and source functions
 ######################################################################
 
-
-
-
-
-library(SimDesign)
-# fully-crossed simulation experiment
-Design <- createDesign(n = c(10000),
-                       p = c(20, 100),
-                       scenarioT = c("A","D"),
-                       scenarioY = c("a","d"),
-                       method = c("logit"))
-
-Design
-
-
-
-res <- runSimulation(design = Design, replications = 1000, generate = Generate,
-                     analyse = Analyse, summarise = Summarise, parallel = T)
-
-
-
-
-
-
-
-
-
-# remote these before sending to clu is ster
+# remote these before sending to cluster
 library(styler)
 library(grkstyle)
 
@@ -55,7 +28,8 @@ packages <- c(
   "survey",
   "Hmisc",
   "future",
-  "furrr"
+  "furrr",
+  "SimDesign"
 )
 
 
@@ -71,87 +45,37 @@ invisible(lapply(packages, library, character.only = TRUE))
 # sets working directory to root of R project
 here()
 
-######### load functions
+######### source functions
 source(here("code", "data_gen_fun.R"))
 source(here("code", "psmethod_fun_sandbox.R"))
 source(here("code", "summarize_fun.R"))
 
 
-######### SIMULATION STUDY  ############
+######################################################################
+# Generate sim design dataframe
+######################################################################
 
-
-n <- c(1000)
-p <- c(20, 100)
-nrep <- 1:20
-scenarioT <- c("A", "B", "C", "D")
-scenarioY <- c("a", "b", "c", "d")
-method <- c("logit", "cart", "bag", "forest")
-
-conditions <- crossing(
-  n,
-  p,
-  nrep,
-  scenarioT,
-  scenarioY,
-  method
+# fully-crossed simulation experiment
+Design <- createDesign(
+  n = c(10000),
+  p = c(20, 100),
+  scenarioT = c("A", "D"),
+  scenarioY = c("a", "d"),
+  method = c("logit")
 )
 
-######### run simulation
-ncores <- parallelly::availableCores() - 1
-plan(multisession, workers = ncores, gc = T)
-
-results <-
-  conditions %>%
-  group_by(n, p, nrep, scenarioT, scenarioY) %>%
-  mutate(datasets = pmap(list(n, p, nrep, scenarioT, scenarioY), possibly(generate_data, NA)))
-
-results$values <- future_map2(results$datasets, results$method, possibly(ps_methods, NA), .options = furrr_options(seed = 123))
+######################################################################
+# Run Simulation
+######################################################################
 
 
-
-
-
-
-
-
-results_tidy <- results %>%
-  dplyr::select(-(datasets)) %>%
-  separate(values, c("ATT", "ATT_se", "Bias", "AbsBias", "mean_ps_weights", "ci_95", "ASAM"), sep = ",")
-
-results_tidy$ATT <- substring(results_tidy$ATT, 3)
-results_tidy$ASAM <- substring(results_tidy$ASAM, 1, nchar(results_tidy$ASAM) - 1)
-
-results_tidy <- results_tidy %>%
-  mutate_at(c("ATT", "ATT_se", "Bias", "AbsBias", "mean_ps_weights", "ci_95", "ASAM"), as.numeric)
-
-
-
-
-
-
-
-
-
-results_summary <- results_tidy %>%
-  group_by(method, p, scenarioT, scenarioY) %>%
-  summarise(AbsBias = mean(AbsBias, na.rm = T))
-
-
-# New facet label names for dose variable
-t.labs <- c("Base", "Interactions", "Quad Terms", "Complex")
-names(t.labs) <- c("A", "B", "C", "D")
-
-# New facet label names for supp variable
-y.labs <- c("Base", "Interactions", "Quad Terms", "Complex")
-names(y.labs) <- c("a", "b", "c", "d")
-
-
-results_summary %>%
-  ggplot(aes(x = method, y = AbsBias,  fill = as.factor(p))) +
-  xlab("Method") +
-  ylab("AbsBias") +
-  geom_bar(position = "dodge", stat = "identity") +
-  facet_grid(scenarioT ~ scenarioY, labeller = labeller(scenarioT = t.labs, scenarioY = y.labs), scales = "fixed") +
-  scale_fill_discrete(name = "# Covars") +
-  theme(legend.position = "top") +
-  theme_minimal()
+res <- runSimulation(
+  design = Design,
+  replications = 1000,
+  generate = Generate,
+  analyse = Analyse,
+  summarise = Summarise,
+  parallel = T,
+  filename = paste0("SimDesign_summary_", lubridate::today()),
+  save_results = paste0("SimDesign_results_", lubridate::today())
+)

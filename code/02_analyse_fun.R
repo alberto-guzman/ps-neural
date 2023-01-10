@@ -115,52 +115,15 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
 
   # calculate the mean of the absolute standardized differences of means
   ASAM <- mean(ASAM_list)
-  
-  ret <- c(ATT=ATT, ATT_se=ATT_se,
-           Bias=Bias, AbsBias=AbsBias, mean_ps_weights=mean_ps_weights, ci_95=ci_95, ASAM=ASAM)
+
+  ret <- c(
+    ATT = ATT,
+    ATT_se = ATT_se,
+    Bias = Bias,
+    AbsBias = AbsBias,
+    mean_ps_weights = mean_ps_weights,
+    ci_95 = ci_95,
+    ASAM = ASAM
+  )
   ret
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-##############
-# PARKING LOT
-##############
-#
-# ggplot(dat, aes(x = trueps, y = ps_pred)) +
-#   geom_point(shape = 21, alpha = 0.2) +
-#   geom_abline(slope = 1, intercept = 0) +
-#   scale_x_continuous(limits = c(0, 1)) +
-#   scale_y_continuous(limits = c(0, 1)) +
-#   labs(x = "True PS", y = "PS predicted by main effects logistic regression")
-#
-#
-# # Estimate propensity score nn
-# neuro_n <- ceiling((2 / 3) * length(dat))
-# samp <- sample(1:nrow(dat), ceiling(.70 * nrow(dat)))
-# mod <- nnet(factor(T) ~ . - Y - trueps, data = dat, size = neuro_n, decay = 0.01, maxit = 200, trace = F, subset = samp)
-# ps <- as.numeric(predict(mod, type = "raw"))
