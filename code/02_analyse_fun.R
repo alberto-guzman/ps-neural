@@ -2,6 +2,8 @@
 
 ## WHAT DOES THIS FUNCTIOND DO?
 
+# this function estimates the ATT and other metrics
+
 #############
 
 # function to estimate the ATT and other metrics

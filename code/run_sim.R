@@ -6,10 +6,6 @@
 library(styler)
 library(grkstyle)
 
-library(keras)
-library(tensorflow)
-use_condaenv("r-reticulate")
-
 packages <- c(
   "here",
   "tidyverse",
@@ -27,9 +23,12 @@ packages <- c(
   "Hmisc",
   "future",
   "furrr",
-  "SimDesign"
+  "SimDesign",
+  "keras",
+  "tensorflow"
 )
 
+use_condaenv("r-reticulate")
 
 # Install packages not yet installed
 installed_packages <- packages %in% rownames(installed.packages())
@@ -55,11 +54,11 @@ source(here("code", "03_summarize_fun.R"))
 
 # fully-crossed simulation experiment
 Design <- createDesign(
-  n = c(10000),
-  p = c(20, 100),
-  scenarioT = c("A", "D"),
-  scenarioY = c("a", "d"),
-  method = c("logit", "dnn-2")
+  n = c(200000),
+  p = c(20, 100, 200),
+  scenarioT = c("A", "B", "C", "D"),
+  scenarioY = c("a", "b", "c", "d"),
+  method = c("logit", "cart", "bag", "forest", "nnet", "dnn-2", "dnn-3")
 )
 
 
@@ -73,22 +72,22 @@ Design <- createDesign(
 
 res <- runSimulation(
   design = Design,
-  replications = 2,
+  replications = 1000,
   generate = Generate,
   analyse = Analyse,
   summarise = Summarise,
   parallel = F
 )
 
-
-res <- runSimulation(
-  design = Design,
-  replications = 1000,
-  generate = Generate,
-  analyse = Analyse,
-  summarise = Summarise,
-  parallel = T,
-  filename = paste0("SimDesign_summary_", lubridate::today()),
-  save_results = paste0("SimDesign_results_", lubridate::today())
-)
-
+#
+# res <- runSimulation(
+#   design = Design,
+#   replications = 1000,
+#   generate = Generate,
+#   analyse = Analyse,
+#   summarise = Summarise,
+#   parallel = T,
+#   filename = paste0("SimDesign_summary_", lubridate::today()),
+#   save_results = paste0("SimDesign_results_", lubridate::today())
+# )
+#
