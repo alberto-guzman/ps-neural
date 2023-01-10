@@ -7,10 +7,11 @@
 # function to estimate the ATT and other metrics
 Analyse <- function(condition, dat, fixed_objects = NULL) {
   Attach(condition)
+
   # if the method is logit, then estimate the ATT using logistic regression
   if (method == "logit") {
     # estimate the propensity score using logistic regression
-    mod <- glm(T ~ . - Y - trueps, data = dat, family = binomial)
+    mod <- glm(T ~ . - Y - trueps, data = dat_train, family = binomial)
     # save the propensity score to a vector
     ps <- mod$fitted
     # if the method is cart, then estimate the ATT using classification and regression trees
