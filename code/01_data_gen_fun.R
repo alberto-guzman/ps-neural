@@ -9,6 +9,7 @@
 #############
 
 Generate <- function(condition, fixed_objects = NULL) {
+  # Makes the tibble of sim crossed conditions accessible to the function, from SimDesign package
   Attach(condition)
   # Generate a mean vector of 0s
   mean <- rep(0, p)
@@ -201,7 +202,7 @@ Generate <- function(condition, fixed_objects = NULL) {
   #########################################
 
   unif1 <- runif(n, 0, 1)
-  T <- ifelse(trueps > unif1, 1, 0)
+  T <- ifelse(unif1 <= trueps, 1, 0)
 
   #########################################
   #########################################

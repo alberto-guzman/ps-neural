@@ -11,7 +11,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
   # if the method is logit, then estimate the ATT using logistic regression
   if (method == "logit") {
     # estimate the propensity score using logistic regression
-    mod <- glm(T ~ . - Y - trueps, data = dat_train, family = binomial)
+    mod <- glm(T ~ . - Y - trueps, data = dat, family = binomial)
     # save the propensity score to a vector
     ps <- mod$fitted
     # if the method is cart, then estimate the ATT using classification and regression trees
@@ -32,6 +32,12 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     mod <- randomForest(factor(T) ~ . - Y - trueps, ntree = 500, data = dat)
     # save the propensity score to a vector
     ps <- predict(mod, type = "prob")[, 2]
+  } else if (method == "nnet") {
+    # estimate the propensity score using neural net
+    neuro_n <- ceiling((2/3)*length(dat))
+    mod <- nnet(factor(T) ~ . - Y - trueps, data = dat, size = neuro_n, decay = 0, maxit = 2000, trace=F, entropy=This )
+    ps = as.numeric(predict(mod, type='raw'))
+    
   }
 
 
@@ -41,6 +47,10 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
       ps_pred = ps,
       ps_weights = if_else(T == 0, ps / (1 - ps), 1)
     )
+
+  # calculate standardized initial prior to weighting
+  Std_In_Bias <- (mean(dat$Y[dat$T == 1]) - mean(dat$Y[dat$T == 0]) - 0.3) / sd(dat$Y[dat$T == 1])
+  Prob_Treat <- mean(dat$T)
 
   # estimate the ATT with the weights
   d.w <- svydesign(~1, weights = dat$ps_weights, data = dat)
@@ -118,6 +128,8 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
   ASAM <- mean(ASAM_list)
 
   ret <- c(
+    Std_In_Bias = Std_In_Bias,
+    Prob_Treat = Prob_Treat,
     ATT = ATT,
     ATT_se = ATT_se,
     Bias = Bias,
