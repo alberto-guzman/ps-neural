@@ -2,10 +2,6 @@
 # Load libraries and source functions
 ######################################################################
 
-# remote these before sending to cluster
-library(styler)
-library(grkstyle)
-
 packages <- c(
   "here",
   "tidyverse",
