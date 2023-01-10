@@ -10,19 +10,26 @@ library(SimDesign)
 # fully-crossed simulation experiment
 Design <- createDesign(n = c(10000),
                        p = c(20, 100),
-                       scenarioT = c("A", "B", "C", "D"),
-                       scenarioY = c("a", "b", "c", "d"),
-                       method = c("logit", "cart", "bag", "forest"))
+                       scenarioT = c("A","D"),
+                       scenarioY = c("a","d"),
+                       method = c("logit"))
 
 Design
 
 
 
+res <- runSimulation(design = Design, replications = 1000, generate = Generate,
+                     analyse = Analyse, summarise = Summarise, parallel = T)
 
 
 
 
-# remote these before sending to cluster
+
+
+
+
+
+# remote these before sending to clu is ster
 library(styler)
 library(grkstyle)
 
@@ -67,6 +74,7 @@ here()
 ######### load functions
 source(here("code", "data_gen_fun.R"))
 source(here("code", "psmethod_fun_sandbox.R"))
+source(here("code", "summarize_fun.R"))
 
 
 ######### SIMULATION STUDY  ############

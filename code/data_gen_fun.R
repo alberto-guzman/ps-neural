@@ -8,7 +8,8 @@
 
 #############
 
-Generate <- function(n, p, scenarioT, scenarioY) {
+Generate <- function(condition, fixed_objects = NULL) {
+  Attach(condition)
   # Generate a mean vector of 0s
   mean <- rep(0, p)
 
@@ -327,10 +328,9 @@ Generate <- function(n, p, scenarioT, scenarioY) {
   #########################################
 
   v_list <- mget(paste0("v", 1:length(master_covar)))
-  sim_df <- as_tibble(v_list)
-  sim_df$T <- T
-  sim_df$Y <- Y
-  sim_df$trueps <- trueps
-  
-  return(sim_df)
+  dat <- as_tibble(v_list)
+  dat$T <- T
+  dat$Y <- Y
+  dat$trueps <- trueps
+  dat
 }

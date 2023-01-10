@@ -5,46 +5,44 @@
 #############
 
 # function to estimate the ATT and other metrics
-Analyze <- function(data, method) {
-  # create a data frame from the data
-  df <- data
-
+Analyse <- function(condition, dat, fixed_objects = NULL) {
+  Attach(condition)
   # if the method is logit, then estimate the ATT using logistic regression
   if (method == "logit") {
     # estimate the propensity score using logistic regression
-    mod <- glm(T ~ . - Y - trueps, data = df, family = binomial)
+    mod <- glm(T ~ . - Y - trueps, data = dat, family = binomial)
     # save the propensity score to a vector
     ps <- mod$fitted
     # if the method is cart, then estimate the ATT using classification and regression trees
   } else if (method == "cart") {
     # estimate the propensity score using classification and regression trees
-    mod <- rpart(T ~ . - Y - trueps, method = "class", data = df)
+    mod <- rpart(T ~ . - Y - trueps, method = "class", data = dat)
     # save the propensity score to a vector
     ps <- predict(mod)[, 2]
     # if the method is bag, then estimate the ATT using bagging
   } else if (method == "bag") {
     # estimate the propensity score using bagging
-    mod <- bagging(T ~ . - Y - trueps, data = df, nbag = 100)
+    mod <- bagging(T ~ . - Y - trueps, data = dat, nbag = 100)
     # save the propensity score to a vector
-    ps <- predict(mod, newdata = df, type = "prob")
+    ps <- predict(mod, newdata = dat, type = "prob")
     # if the method is forest, then estimate the ATT using random forest
   } else if (method == "forest") {
     # estimate the propensity score using random forest
-    mod <- randomForest(factor(T) ~ . - Y - trueps, ntree = 500, data = df)
+    mod <- randomForest(factor(T) ~ . - Y - trueps, ntree = 500, data = dat)
     # save the propensity score to a vector
     ps <- predict(mod, type = "prob")[, 2]
   }
 
 
   # save estimated propensity score and weights to data frame
-  df <- df %>%
+  dat <- dat %>%
     mutate(
       ps_pred = ps,
       ps_weights = if_else(T == 0, ps / (1 - ps), 1)
     )
 
   # estimate the ATT with the weights
-  d.w <- svydesign(~1, weights = df$ps_weights, data = df)
+  d.w <- svydesign(~1, weights = dat$ps_weights, data = dat)
   fit <- svyglm(Y ~ T, design = d.w)
 
   # save the ATT and se_ATT
@@ -57,8 +55,8 @@ Analyze <- function(data, method) {
   AbsBias <- abs(ATT - 0.3)
 
   # calculate the mean of control group weights
-  df_int <- subset(df, T == 0)
-  mean_ps_weights <- mean(df_int$ps_weights, na.rm = TRUE)
+  dat_int <- subset(dat, T == 0)
+  mean_ps_weights <- mean(dat_int$ps_weights, na.rm = TRUE)
 
   # calculate the 95% coverage
   lower_bound <- ATT - 1.96 * ATT_se
@@ -70,11 +68,11 @@ Analyze <- function(data, method) {
   ###############
 
   # subset the data into the treatment and comparison groups
-  treatment_group <- df[df$T == 1, ]
-  comparison_group <- df[df$T == 0, ]
+  treatment_group <- dat[dat$T == 1, ]
+  comparison_group <- dat[dat$T == 0, ]
 
   # get the names of the variables that start with "v"
-  var_names <- names(df)[grep("^v", names(df))]
+  var_names <- names(dat)[grep("^v", names(dat))]
 
   # initialize the ASAM_list vector
   ASAM_list <- rep(NA, length(var_names))
@@ -118,11 +116,9 @@ Analyze <- function(data, method) {
   # calculate the mean of the absolute standardized differences of means
   ASAM <- mean(ASAM_list)
   
-  ret <- c(ATT=ATT, ATT_se=ATT_SE,
+  ret <- c(ATT=ATT, ATT_se=ATT_se,
            Bias=Bias, AbsBias=AbsBias, mean_ps_weights=mean_ps_weights, ci_95=ci_95, ASAM=ASAM)
-
-
-  return(ret)
+  ret
 }
 
 
@@ -155,7 +151,7 @@ Analyze <- function(data, method) {
 # PARKING LOT
 ##############
 #
-# ggplot(df, aes(x = trueps, y = ps_pred)) +
+# ggplot(dat, aes(x = trueps, y = ps_pred)) +
 #   geom_point(shape = 21, alpha = 0.2) +
 #   geom_abline(slope = 1, intercept = 0) +
 #   scale_x_continuous(limits = c(0, 1)) +
@@ -164,7 +160,7 @@ Analyze <- function(data, method) {
 #
 #
 # # Estimate propensity score nn
-# neuro_n <- ceiling((2 / 3) * length(df))
-# samp <- sample(1:nrow(df), ceiling(.70 * nrow(df)))
-# mod <- nnet(factor(T) ~ . - Y - trueps, data = df, size = neuro_n, decay = 0.01, maxit = 200, trace = F, subset = samp)
+# neuro_n <- ceiling((2 / 3) * length(dat))
+# samp <- sample(1:nrow(dat), ceiling(.70 * nrow(dat)))
+# mod <- nnet(factor(T) ~ . - Y - trueps, data = dat, size = neuro_n, decay = 0.01, maxit = 200, trace = F, subset = samp)
 # ps <- as.numeric(predict(mod, type = "raw"))
