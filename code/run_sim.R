@@ -23,7 +23,6 @@ packages <- c(
   "tensorflow"
 )
 
-use_condaenv("r-reticulate")
 
 
 invisible(lapply(packages, library, character.only = TRUE))
@@ -33,10 +32,9 @@ invisible(lapply(packages, library, character.only = TRUE))
 here()
 
 ######### source functions
-source(here("code", "01_data_gen_fun.R"))
-source(here("code", "02_analyse_fun.R"))
-source(here("code", "03_summarize_fun.R"))
-
+source(here("01_data_gen_fun.R"))
+source(here("02_analyse_fun.R"))
+source(here("03_summarize_fun.R"))
 
 ######################################################################
 # Generate sim design dataframe
@@ -52,12 +50,11 @@ Design <- createDesign(
 )
 
 
-
-
-
 ######################################################################
 # Run Simulation
 ######################################################################
+
+use_condaenv("r-reticulate")
 
 
 res <- runSimulation(
