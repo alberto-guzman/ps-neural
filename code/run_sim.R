@@ -47,7 +47,7 @@ Design <- createDesign(
   p = c(20, 100),
   scenarioT = c("A", "B", "C", "D"),
   scenarioY = c("a", "b", "c", "d"),
-  method = c("logit", "cart", "bag", "forest", "nnet", "dnn-2", "dnn-3")
+  method = c("logit")
 )
 
 
@@ -55,27 +55,16 @@ Design <- createDesign(
 # Run Simulation
 ######################################################################
 
-use_virtualenv("/ihome/xqin/alg223/.virtualenvs/r-reticulate")
+#use_virtualenv("/ihome/xqin/alg223/.virtualenvs/r-reticulate")
 
 
 res <- runSimulation(
   design = Design,
-  replications = 100,
+  replications = 1000,
   generate = Generate,
   analyse = Analyse,
   summarise = Summarise,
-  parallel = F
+  parallel = F,
+  filename = paste0("SimDesign_summary_", lubridate::today()),
+  save_results = paste0("SimDesign_results_", lubridate::today())
 )
-
-#
-# res <- runSimulation(
-#   design = Design,
-#   replications = 1000,
-#   generate = Generate,
-#   analyse = Analyse,
-#   summarise = Summarise,
-#   parallel = T,
-#   filename = paste0("SimDesign_summary_", lubridate::today()),
-#   save_results = paste0("SimDesign_results_", lubridate::today())
-# )
-#
