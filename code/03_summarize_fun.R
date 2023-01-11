@@ -6,8 +6,9 @@ Summarise <- function(condition, results, fixed_objects = NULL) {
   Std_In_Bias <- mean(results$Std_In_Bias)
   # Calculate the mean of the probability of treatment
   Prob_Treat <- mean(results$Prob_Treat)
+  Bias <- mean(resultsBias)
   # Create a vector of the results
-  ret <- c(AbsBias = AbsBias, Std_In_Bias = Std_In_Bias, Prob_Treat = Prob_Treat)
+  ret <- c(AbsBias = AbsBias, Std_In_Bias = Std_In_Bias, Prob_Treat = Prob_Treat, Bias = Bias)
   # Return the vector
   ret
 }
