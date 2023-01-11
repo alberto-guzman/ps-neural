@@ -2,6 +2,7 @@
 .Rhistory
 .Rapp.history
 .RDS
+.Rprofile
 
 # R Environment Variables
 .Renviron
