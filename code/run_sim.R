@@ -26,7 +26,7 @@ packages <- c(
 
 
 
-invisible(lapply(packages, library, character.only = TRUE))
+lapply(packages, library, character.only = TRUE)
 
 
 # sets working directory to root of R project
