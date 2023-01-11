@@ -20,7 +20,8 @@ packages <- c(
   "furrr",
   "SimDesign",
   "keras",
-  "tensorflow"
+  "tensorflow",
+  "reticulate"
 )
 
 
@@ -42,8 +43,8 @@ source(here("code","03_summarize_fun.R"))
 
 # fully-crossed simulation experiment
 Design <- createDesign(
-  n = c(200000),
-  p = c(20, 100, 200),
+  n = c(10000),
+  p = c(20, 100),
   scenarioT = c("A", "B", "C", "D"),
   scenarioY = c("a", "b", "c", "d"),
   method = c("logit", "cart", "bag", "forest", "nnet", "dnn-2", "dnn-3")
@@ -54,12 +55,12 @@ Design <- createDesign(
 # Run Simulation
 ######################################################################
 
-use_condaenv("r-reticulate")
+use_virtualenv("/ihome/xqin/alg223/.virtualenvs/r-reticulate/bin/python")
 
 
 res <- runSimulation(
   design = Design,
-  replications = 1000,
+  replications = 100,
   generate = Generate,
   analyse = Analyse,
   summarise = Summarise,
