@@ -65,6 +65,6 @@ res <- runSimulation(
   analyse = Analyse,
   summarise = Summarise,
   parallel = F,
-  filename = paste0("SimDesign_summary_", lubridate::today()),
-  save_results = paste0("SimDesign_results_", lubridate::today())
+  filename = "test.rds",
+  save_results = "results.rds"
 )
