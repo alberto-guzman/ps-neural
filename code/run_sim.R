@@ -55,7 +55,7 @@ Design <- createDesign(
 # Run Simulation
 ######################################################################
 
-use_virtualenv("/ihome/xqin/alg223/.virtualenvs/r-reticulate/bin/python")
+use_virtualenv("/ihome/xqin/alg223/.virtualenvs/r-reticulate")
 
 
 res <- runSimulation(
