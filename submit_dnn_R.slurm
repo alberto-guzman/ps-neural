@@ -14,5 +14,5 @@ module purge
 module load gcc/8.2.0
 module load r/4.1.0
 
-Rscript run_sim.R >& R.log
+Rscript code/run_sim.R >& R.log
 
