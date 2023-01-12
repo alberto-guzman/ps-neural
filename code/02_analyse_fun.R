@@ -143,8 +143,10 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
       ps_weights = if_else(T == 0, ps / (1 - ps), 1)
     )
 
+  true_ATT <- 0.3
+
   # calculate standardized initial prior to weighting
-  Std_In_Bias <- (mean(dat$Y[dat$T == 1]) - mean(dat$Y[dat$T == 0]) - 0.3) / sd(dat$Y[dat$T == 1])
+  Std_In_Bias <- (mean(dat$Y[dat$T == 1]) - mean(dat$Y[dat$T == 0]) - true_ATT) / sd(dat$Y[dat$T == 1])
   Prob_Treat <- mean(dat$T)
 
   # estimate the ATT with the weights
@@ -158,15 +160,17 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
 
   # extract the p-value of T
   p_val <- summary(fit)$coefficients["T", "Pr(>|t|)"]
-  
-  # extract the confidence interval of T
-  conf_int <- unname(confint(fit, level = 0.95)["T", ])
-  conf_int <- c(conf_int[1], conf_int[2])
-  
+
+  # calculate the 95% coverage
+  conf_interval <- confint(fit, level = 0.95)["T", ]
+  lower_bound <- conf_interval[1]
+  upper_bound <- conf_interval[2]
+
+  ci_95 <- ifelse(lower_bound < true_ATT && true_ATT < upper_bound, 1, 0)
 
   # calculate the bias metrics
-  Bias <- ATT - 0.3
-  AbsBias <- abs(ATT - 0.3)
+  Bias <- ATT - true_ATT
+  AbsBias <- abs(ATT - true_ATT)
 
   # calculate the mean of control group weights
   dat_int <- subset(dat, T == 0)
@@ -235,7 +239,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     mean_ps_weights = mean_ps_weights,
     ASAM = ASAM,
     p_val = p_val,
-    conf_int = conf_int
+    ci_95 = ci_95
   )
   ret
 }

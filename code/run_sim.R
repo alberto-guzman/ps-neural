@@ -32,9 +32,9 @@ lapply(packages, library, character.only = TRUE)
 here()
 
 ######### source functions
-source(here("code","01_data_gen_fun.R"))
-source(here("code","02_analyse_fun.R"))
-source(here("code","03_summarize_fun.R"))
+source(here("code", "01_data_gen_fun.R"))
+source(here("code", "02_analyse_fun.R"))
+source(here("code", "03_summarize_fun.R"))
 
 ######################################################################
 # Generate sim design dataframe
@@ -46,7 +46,7 @@ Design <- createDesign(
   p = c(20, 100, 200),
   scenarioT = c("A", "D"),
   scenarioY = c("a", "d"),
-  method = c("logit","cart")
+  method = c("logit", "cart")
 )
 
 
@@ -61,20 +61,14 @@ Design <- createDesign(
 # Run Simulation
 ######################################################################
 
-#use_virtualenv("/ihome/xqin/alg223/.virtualenvs/r-reticulate")
+# use_virtualenv("/ihome/xqin/alg223/.virtualenvs/r-reticulate")
 
 
 res <- runSimulation(
   design = Design,
-  replications = 2,
+  replications = 4,
   generate = Generate,
   analyse = Analyse,
   summarise = Summarise,
-  parallel = T,
-  filename = "sim_results_2.rds"
+  parallel = T
 )
-
-
-
-dat <- Design[1,] |> 
-  Generate()
