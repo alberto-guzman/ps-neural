@@ -7,7 +7,7 @@ Summarise <- function(condition, results, fixed_objects = NULL) {
   # Calculate the mean of the absolute bias
   AbsBias <- mean(results$AbsBias) * 100
   # Calculate abs bias from the package function
-  AbsBias_fun <- bias(estimate = results$ATT, parameter = 0.3, type = "relative")
+  Rel_Bias <- bias(estimate = results$ATT, parameter = 0.3, type = "relative", abs = T, percent = T)
   # Standard error
   mean_ATT_se <- mean(results$ATT_se)
   # Calculate power
@@ -19,7 +19,8 @@ Summarise <- function(condition, results, fixed_objects = NULL) {
   # Mean ASAM
   ASAM <- mean(results$ASAM)
   # Create a vector of the results
-  ret <- c(Power = Power, coverage_95 = coverage_95, Std_In_Bias = Std_In_Bias, Prob_Treat = Prob_Treat, AbsBias = AbsBias, AbsBias_fun = AbsBias_fun, mean_ATT_se = mean_ATT_se, ps_weight_control = ps_weight_control, ASAM = ASAM)
+  ret <- c(Power = Power, coverage_95 = coverage_95, Std_In_Bias = Std_In_Bias, Prob_Treat = Prob_Treat, AbsBias = AbsBias, Rel_Bias = Rel_Bias, mean_ATT_se = mean_ATT_se, ps_weight_control = ps_weight_control, ASAM = ASAM)
   # Return the vector
   ret
 }
+

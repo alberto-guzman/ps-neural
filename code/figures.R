@@ -1,4 +1,27 @@
 
+
+
+
+
+
+
+
+
+
+
+
+res_sum <- res |> 
+  group_by(method) |> 
+  summarise(mean_Rel_Bias = mean(Rel_Bias))
+
+
+ggplot(res_sum, aes(x = mean_Rel_Bias, y = method, color = method)) +
+  geom_segment(aes(xend = 0, yend = method), size = 2) +
+  geom_point(size = 4) +
+  scale_color_manual(values = c("logit" = "blue", "cart" = "green"))
+
+
+
 # New facet label names for dose variable
 t.labs <- c("Base", "Interactions", "Quad Terms", "Complex")
 names(t.labs) <- c("A", "B", "C", "D")
