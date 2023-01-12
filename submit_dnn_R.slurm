@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=dnn_sim
+#SBATCH --job-name=dnn_sim2
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=32
