@@ -43,11 +43,11 @@ source(here("code","03_summarize_fun.R"))
 
 # fully-crossed simulation experiment
 Design <- createDesign(
-  n = c(200000),
-  p = c(20, 100, 200),
+  n = c(50000),
+  p = c(20, 100),
   scenarioT = c("A", "B", "C", "D"),
   scenarioY = c("a", "b", "c", "d"),
-  method = c("logit")
+  method = c("logit","cart","bag","forest","nnet","dnn-2","dnn-3")
 )
 
 
@@ -60,7 +60,7 @@ Design <- createDesign(
 
 res <- runSimulation(
   design = Design,
-  replications = 1000,
+  replications = 10,
   generate = Generate,
   analyse = Analyse,
   summarise = Summarise,
