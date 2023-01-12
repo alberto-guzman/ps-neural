@@ -28,7 +28,6 @@ packages <- c(
 
 lapply(packages, library, character.only = TRUE)
 
-
 # sets working directory to root of R project
 here()
 
@@ -43,11 +42,11 @@ source(here("code","03_summarize_fun.R"))
 
 # fully-crossed simulation experiment
 Design <- createDesign(
-  n = c(50000),
-  p = c(20, 100),
+  n = c(100000),
+  p = c(20, 100, 200),
   scenarioT = c("A", "B", "C", "D"),
   scenarioY = c("a", "b", "c", "d"),
-  method = c("logit","cart","bag","forest","nnet","dnn-2","dnn-3")
+  method = c("logit","cart","bag","forest")
 )
 
 
@@ -60,10 +59,10 @@ Design <- createDesign(
 
 res <- runSimulation(
   design = Design,
-  replications = 10,
+  replications = 1000,
   generate = Generate,
   analyse = Analyse,
   summarise = Summarise,
-  parallel = F,
-  filename = "sim_results.rds"
+  parallel = T,
+  filename = "sim_results_2.rds"
 )
