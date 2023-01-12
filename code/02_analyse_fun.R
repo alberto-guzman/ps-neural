@@ -156,6 +156,14 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
   vcov_matrix <- vcov(fit)
   ATT_se <- unname(sqrt(vcov_matrix["T", "T"]))
 
+  # extract the p-value of T
+  p_val <- summary(fit)$coefficients["T", "Pr(>|t|)"]
+  
+  # extract the confidence interval of T
+  conf_int <- unname(confint(fit, level = 0.95)["T", ])
+  conf_int <- c(conf_int[1], conf_int[2])
+  
+
   # calculate the bias metrics
   Bias <- ATT - 0.3
   AbsBias <- abs(ATT - 0.3)
@@ -163,11 +171,6 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
   # calculate the mean of control group weights
   dat_int <- subset(dat, T == 0)
   mean_ps_weights <- mean(dat_int$ps_weights, na.rm = TRUE)
-
-  # calculate the 95% coverage
-  lower_bound <- ATT - 1.96 * ATT_se
-  upper_bound <- ATT + 1.96 * ATT_se
-  ci_95 <- ifelse(lower_bound <= 0.3 && 0.3 <= upper_bound, 1, 0)
 
   ###############
   # calculate the ASAM for covariates
@@ -230,8 +233,9 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     Bias = Bias,
     AbsBias = AbsBias,
     mean_ps_weights = mean_ps_weights,
-    ci_95 = ci_95,
-    ASAM = ASAM
+    ASAM = ASAM,
+    p_val = p_val,
+    conf_int = conf_int
   )
   ret
 }

@@ -42,12 +42,19 @@ source(here("code","03_summarize_fun.R"))
 
 # fully-crossed simulation experiment
 Design <- createDesign(
-  n = c(100000),
+  n = c(10000),
   p = c(20, 100, 200),
-  scenarioT = c("A", "B", "C", "D"),
-  scenarioY = c("a", "b", "c", "d"),
-  method = c("logit","cart","bag","forest")
+  scenarioT = c("A", "D"),
+  scenarioY = c("a", "d"),
+  method = c("logit","cart")
 )
+
+
+# n = c(100000),
+# p = c(20, 100, 200),
+# scenarioT = c("A", "B", "C", "D"),
+# scenarioY = c("a", "b", "c", "d"),
+# method = c("logit","cart","bag","forest")
 
 
 ######################################################################
@@ -59,10 +66,15 @@ Design <- createDesign(
 
 res <- runSimulation(
   design = Design,
-  replications = 1000,
+  replications = 2,
   generate = Generate,
   analyse = Analyse,
   summarise = Summarise,
   parallel = T,
   filename = "sim_results_2.rds"
 )
+
+
+
+dat <- Design[1,] |> 
+  Generate()
