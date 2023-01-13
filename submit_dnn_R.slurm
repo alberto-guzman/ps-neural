@@ -6,6 +6,7 @@
 #SBATCH --mem=180GB
 #SBATCH --cluster=smp
 #SBATCH --partition=smp
+#SBATCH --time=24:00:00
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=alg223@pitt.edu
 
