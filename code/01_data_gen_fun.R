@@ -213,7 +213,7 @@ Generate <- function(condition, fixed_objects = NULL) {
   # Generate a coefficients for population outcome models
   # Initialize a0 to 1
   a0 <- 1
-  # Initialize treatment effect g to 0.3
+  # Initialize population treatment effect g to 0.3
   g <- 0.3
 
   alpha <- vector("list", length(master_covar))
@@ -323,6 +323,9 @@ Generate <- function(condition, fixed_objects = NULL) {
     # Evaluate the equation
     Y <- eval(parse(text = equation_Y))
   }
+
+
+
 
   #########################################
   # Form simulated data tibble

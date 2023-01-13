@@ -136,6 +136,10 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     ps <- ps[, 1]
   }
 
+  ##############################
+  ### calculate metrics
+  ##############################
+
   # save estimated propensity score and weights to data frame
   dat <- dat %>%
     mutate(
@@ -145,7 +149,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
 
   true_ATT <- 0.3
 
-  # calculate standardized initial prior to weighting
+  # calculate standardized initial bias prior to weighting
   Std_In_Bias <- (mean(dat$Y[dat$T == 1]) - mean(dat$Y[dat$T == 0]) - true_ATT) / sd(dat$Y[dat$T == 1])
   Prob_Treat <- mean(dat$T)
 
@@ -170,7 +174,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
 
   # calculate the bias metrics
   Bias <- ATT - true_ATT
-  AbsBias <- abs(ATT - true_ATT)
+  AbsBias <- abs(ATT - true_ATT)*100
 
   # calculate the mean of control group weights
   dat_int <- subset(dat, T == 0)
