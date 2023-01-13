@@ -5,13 +5,13 @@ Summarise <- function(condition, results, fixed_objects = NULL) {
   # Calculate probability of treatment
   Prob_Treat <- mean(results$Prob_Treat)
   # Calculate the mean of the absolute bias
-  AbsBias <- mean(results$AbsBias) * 100
-  # Calculate abs bias from the package function
-  Rel_Bias <- bias(estimate = results$ATT, parameter = 0.3, type = "relative", abs = T, percent = T)
+  AbsBias <- mean(results$AbsBias)
+  # Calculate bias
+  Bias <- mean(results$Bias)
   # Standard error
   ATT <- mean(results$ATT)
   # Standard error
-  mean_ATT_se <- mean(results$ATT_se)
+  ATT_se <- mean(results$ATT_se)
   # Calculate power
   Power <- EDR(results$p_val, alpha = 0.05)
   # Coverage
@@ -21,7 +21,18 @@ Summarise <- function(condition, results, fixed_objects = NULL) {
   # Mean ASAM
   ASAM <- mean(results$ASAM)
   # Create a vector of the results
-  ret <- c(Power = Power, coverage_95 = coverage_95, Std_In_Bias = Std_In_Bias, Prob_Treat = Prob_Treat, ATT=ATT, AbsBias = AbsBias, Rel_Bias = Rel_Bias, mean_ATT_se = mean_ATT_se, ps_weight_control = ps_weight_control, ASAM = ASAM)
+  ret <- c(
+    Std_In_Bias = Std_In_Bias,
+    Prob_Treat = Prob_Treat,
+    ATT = ATT,
+    ATT_se = ATT_se,
+    Bias = Bias,
+    AbsBias = AbsBias,
+    ps_weight_control = ps_weight_control,
+    ASAM = ASAM,
+    Power = Power,
+    coverage_95 = coverage_95
+  )
   # Return the vector
   ret
 }

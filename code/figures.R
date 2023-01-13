@@ -2,23 +2,18 @@
 
 
 
+results_summary %>%
+  ggplot(aes(x = method, y = ATT, fill = as.factor(p))) +
+  xlab("Method") +
+  ylab("AbsBias") +
+  geom_bar(position = "dodge", stat = "identity") +
+  facet_grid(scenarioT ~ scenarioY, scales = "fixed") +
+  scale_fill_discrete(name = "# Covars") +
+  theme(legend.position = "top") +
+  theme_minimal()
 
 
 
-
-
-
-
-
-res_sum <- res |> 
-  group_by(method) |> 
-  summarise(mean_Rel_Bias = mean(Rel_Bias))
-
-
-ggplot(res_sum, aes(x = mean_Rel_Bias, y = method, color = method)) +
-  geom_segment(aes(xend = 0, yend = method), size = 2) +
-  geom_point(size = 4) +
-  scale_color_manual(values = c("logit" = "blue", "cart" = "green"))
 
 
 
@@ -31,15 +26,16 @@ y.labs <- c("Base", "Interactions", "Quad Terms", "Complex")
 names(y.labs) <- c("a", "b", "c", "d")
 
 
-results_summary %>%
-  ggplot(aes(x = method, y = AbsBias, fill = as.factor(p))) +
+res %>%
+  ggplot(aes(x = method, y = ASAM, fill = as.factor(p))) +
   xlab("Method") +
-  ylab("AbsBias") +
+  ylab("Bias") +
   geom_bar(position = "dodge", stat = "identity") +
   facet_grid(scenarioT ~ scenarioY, labeller = labeller(scenarioT = t.labs, scenarioY = y.labs), scales = "fixed") +
   scale_fill_discrete(name = "# Covars") +
   theme(legend.position = "top") +
   theme_minimal()
+
 
 
 

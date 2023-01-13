@@ -37,7 +37,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
   } else if (method == "nnet") {
     # estimate the propensity score using neural net
     neuro_n <- ceiling((2 / 3) * length(dat))
-    mod <- nnet(factor(T) ~ . - Y - trueps, data = dat, size = neuro_n, decay = 0.01, maxit = 2000, trace = F, MaxNWts = 90000)
+    mod <- nnet(factor(T) ~ . - Y - trueps, data = dat, size = neuro_n, decay = 0.01, maxit = 500, trace = F, MaxNWts = 90000)
     ps <- as.numeric(predict(mod, type = "raw"))
   } else if (method == "dnn-2") {
     # Split the data into training and validation sets
@@ -174,7 +174,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
 
   # calculate the bias metrics
   Bias <- ATT - true_ATT
-  AbsBias <- abs(ATT - true_ATT)*100
+  AbsBias <- abs(ATT - true_ATT)
 
   # calculate the mean of control group weights
   dat_int <- subset(dat, T == 0)
