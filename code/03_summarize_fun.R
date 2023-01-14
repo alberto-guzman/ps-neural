@@ -4,10 +4,10 @@ Summarise <- function(condition, results, fixed_objects = NULL) {
   Std_In_Bias <- mean(results$Std_In_Bias)
   # Calculate probability of treatment
   Prob_Treat <- mean(results$Prob_Treat)
-  # Calculate the mean of the absolute bias
-  AbsBias <- mean(results$AbsBias)
   # Calculate bias
   Bias <- mean(results$Bias)
+  # Calculate relative bis
+  RelBias <- bias(results$ATT, parameter = 0.3, type = "relative")
   # Standard error
   ATT <- mean(results$ATT)
   # Standard error
@@ -27,7 +27,7 @@ Summarise <- function(condition, results, fixed_objects = NULL) {
     ATT = ATT,
     ATT_se = ATT_se,
     Bias = Bias,
-    AbsBias = AbsBias,
+    RelBias = RelBias,
     ps_weight_control = ps_weight_control,
     ASAM = ASAM,
     Power = Power,
