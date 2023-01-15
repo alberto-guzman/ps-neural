@@ -64,7 +64,7 @@ res <- runSimulation(
   generate = Generate,
   analyse = Analyse,
   summarise = Summarise,
-  parallel = F,
+  parallel = T,
   filename = "sim_results.rds"
 )
 
