@@ -46,7 +46,7 @@ Design <- createDesign(
   p = c(20, 100),
   scenarioT = c("A", "B", "C", "D"),
   scenarioY = c("a", "b", "c", "d"),
-  method = c("dnn-2", "dnn-3")
+  method = c("logit", "cart", "bag", "forest", "nnet")
 )
 
 #method = c("logit", "cart", "bag", "forest", "nnet", "dnn-2", "dnn-3")
@@ -55,7 +55,7 @@ Design <- createDesign(
 # Run Simulation
 ######################################################################
 
-use_virtualenv("/ihome/xqin/alg223/.virtualenvs/r-reticulate")
+#use_virtualenv("/ihome/xqin/alg223/.virtualenvs/r-reticulate")
 #use_condaenv("r-reticulate")
 
 res <- runSimulation(
