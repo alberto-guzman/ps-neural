@@ -46,7 +46,7 @@ Design <- createDesign(
   p = c(20, 100),
   scenarioT = c("A", "B", "C", "D"),
   scenarioY = c("a", "b", "c", "d"),
-  method = c("logit", "cart")
+  method = c("logit", "cart", "bag", "forest", "nnet", "dnn-2", "dnn-3")
 )
 
 #method = c("logit", "cart", "bag", "forest", "nnet", "dnn-2", "dnn-3")
@@ -60,13 +60,12 @@ use_condaenv("r-reticulate")
 
 res <- runSimulation(
   design = Design,
-  replications = 50,
+  replications = 1,
   generate = Generate,
   analyse = Analyse,
   summarise = Summarise,
-  parallel = T,
-  filename = "sim_results.rds",
-  save = T
+  parallel = F,
+  filename = "sim_results.rds"
 )
+#save = T
 
-# Add save results, both
