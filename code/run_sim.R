@@ -24,8 +24,6 @@ packages <- c(
   "reticulate"
 )
 
-
-
 lapply(packages, library, character.only = TRUE)
 
 # sets working directory to root of R project
@@ -36,17 +34,19 @@ source(here("code", "01_data_gen_fun.R"))
 source(here("code", "02_analyse_fun.R"))
 source(here("code", "03_summarize_fun.R"))
 
+#source(here("code", "run_sim.R"))
+
 ######################################################################
 # Generate sim design dataframe
 ######################################################################
 
 # fully-crossed simulation experiment
 Design <- createDesign(
-  n = c(5000),
-  p = c(20),
+  n = c(500, 5000),
+  p = c(20, 100),
   scenarioT = c("A", "B", "C", "D"),
   scenarioY = c("a", "b", "c", "d"),
-  method = c("dnn-2", "dnn-3")
+  method = c("logit", "cart", "bag", "forest", "nnet", "dnn-2", "dnn-3")
 )
 
 #method = c("logit", "cart", "bag", "forest", "nnet", "dnn-2", "dnn-3")

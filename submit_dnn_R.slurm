@@ -14,10 +14,6 @@ module load gcc/8.2.0
 module load r/4.1.0
 module load python/anaconda3.7-2019.03
 
-
-# activate conda env
-source activate /ix/group/user/envs/samtools
-
 #export MKL_NUM_THREADS=1
 #export NUMEXPR_NUM_THREADS=1
 #export OMP_NUM_THREADS=1
