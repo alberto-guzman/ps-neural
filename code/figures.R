@@ -1,21 +1,79 @@
 
+library(gt)
+library(tidyverse)
+
+#####
+# table for standardized intial bias and probabilyt of treatment
+#####
+
+init_df <-
+res %>% 
+  group_by(scenarioT, scenarioY) %>% 
+  summarise(Std_In_Bias = mean(Std_In_Bias),
+            Prob_Treat = mean(Prob_Treat), .groups = "rowwise") |> 
+  ungroup() 
+ 
+
+gt(init_df) |> 
+  tab_spanner(label = "Condition",
+    columns = c(scenarioT, scenarioY)) |> 
+  fmt_number(columns = c(Std_In_Bias, Prob_Treat), decimals = 2) |> 
+  cols_label(
+    scenarioT = md("Treatment<br />Model"),
+    scenarioY = md("Outcome<br />Model"),
+    Std_In_Bias = md("Standardized<br />Initial Bias"),
+    Prob_Treat = "P(Z=1)") |> 
+  cols_align_decimal()
+  
+
+
+#####
+# overall figures
+#####
+
+over_df <-
+  res %>% 
+  group_by(p, method) %>% 
+  summarise(Bias = mean(Bias),
+            RelBias = mean(RelBias),
+            SE = mean(ATT_se),
+            ASAM = mean(ASAM),
+            coverage_95 = mean(coverage_95),
+            .groups = "rowwise") %>%
+  ungroup() %>%
+  pivot_longer(-c(p, method), names_to = "metric", values_to = "value") %>%
+  mutate(p = as.factor(p),
+         method = as.factor(method),
+         metric = as.factor(metric))
+
+
+ggplot(data = over_df, aes(x = method, y = value, fill = as.factor(p))) +
+  geom_bar(stat = "identity", position = "dodge", colour = "black") +
+  facet_wrap(~ metric, scales = "free") +
+  theme_minimal() +
+  guides(fill = guide_legend(title = "p")) +
+  theme(legend.position = "right",
+        panel.spacing = unit(1, "cm")) +
+  ylab(element_blank()) +
+  xlab(element_blank()) 
 
 
 
-results_summary %>%
-  ggplot(aes(x = method, y = ATT, fill = as.factor(p))) +
-  xlab("Method") +
-  ylab("AbsBias") +
-  geom_bar(position = "dodge", stat = "identity") +
-  facet_grid(scenarioT ~ scenarioY, scales = "fixed") +
-  scale_fill_discrete(name = "# Covars") +
-  theme(legend.position = "top") +
-  theme_minimal()
+#####
+# overall figures
+#####
 
 
-
-
-
+res_sum_df <-
+  res %>% 
+  group_by(p, method, scenarioT, scenarioY) %>% 
+  summarise(Bias = mean(Bias),
+            RelBias = mean(RelBias),
+            ATT_se = mean(ATT_se),
+            ASAM = mean(ASAM),
+            coverage_95 = mean(coverage_95),
+            .groups = "rowwise") %>%
+  ungroup() 
 
 # New facet label names for dose variable
 t.labs <- c("Base", "Interactions", "Quad Terms", "Complex")
@@ -26,10 +84,29 @@ y.labs <- c("Base", "Interactions", "Quad Terms", "Complex")
 names(y.labs) <- c("a", "b", "c", "d")
 
 
-res %>%
-  ggplot(aes(x = method, y = ASAM, fill = as.factor(p))) +
-  xlab("Method") +
+res_sum_df %>%
+  ggplot(aes(x = method, y = Bias, fill = as.factor(p))) +
   ylab("Bias") +
+  geom_bar(position = "dodge", stat = "identity") +
+  geom_hline(yintercept = 0, linetype = "solid", color = "black") +
+  facet_grid(scenarioT ~ scenarioY, labeller = labeller(scenarioT = t.labs, scenarioY = y.labs), scales = "fixed") +
+  scale_fill_discrete(name = "# Covars") +
+  theme(legend.position = "top") +
+  theme_minimal()
+
+res_sum_df %>%
+  ggplot(aes(x = method, y = RelBias, fill = as.factor(p))) +
+  ylab("Relative Bias") +
+  geom_bar(position = "dodge", stat = "identity") +
+  geom_hline(yintercept = 0, linetype = "solid", color = "black") +
+  facet_grid(scenarioT ~ scenarioY, labeller = labeller(scenarioT = t.labs, scenarioY = y.labs), scales = "fixed") +
+  scale_fill_discrete(name = "# Covars") +
+  theme(legend.position = "top") +
+  theme_minimal()
+
+res_sum_df %>%
+  ggplot(aes(x = method, y = ATT_se, fill = as.factor(p))) +
+  ylab("Standard Error") +
   geom_bar(position = "dodge", stat = "identity") +
   facet_grid(scenarioT ~ scenarioY, labeller = labeller(scenarioT = t.labs, scenarioY = y.labs), scales = "fixed") +
   scale_fill_discrete(name = "# Covars") +
@@ -37,6 +114,15 @@ res %>%
   theme_minimal()
 
 
+res_sum_df %>%
+  ggplot(aes(x = method, y = ASAM, fill = as.factor(p))) +
+  ylab("ASAM") +
+  geom_bar(position = "dodge", stat = "identity") +
+  geom_hline(yintercept = 0.2, linetype = "dashed", color = "black") +
+  facet_grid(scenarioT ~ scenarioY, labeller = labeller(scenarioT = t.labs, scenarioY = y.labs), scales = "fixed") +
+  scale_fill_discrete(name = "# Covars") +
+  theme(legend.position = "top") +
+  theme_minimal()
 
 
 # ggplot(dat, aes(x = trueps, y = ps_pred)) +
