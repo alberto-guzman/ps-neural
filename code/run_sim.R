@@ -42,10 +42,13 @@ source(here("code", "03_summarize_fun.R"))
 Design <- createDesign(
   n = c(5000),
   p = c(20, 100),
-  scenarioT = c("A","B","C","D"),
-  scenarioY = c("a","b","c","d"),
-  method = c("logit", "cart", "bag", "forest","dnn-2")
+  scenarioT = c("A","D"),
+  scenarioY = c("a","d"),
+  method = c("logit", "cart", "bag", "forest","nnet", "dnn-2", "dnn-3")
 )
+
+#change crossings
+#consider using 500
 
 ######################################################################
 # Run Simulation
