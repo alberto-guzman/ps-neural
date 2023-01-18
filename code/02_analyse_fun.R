@@ -42,7 +42,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
   } else if (method == "nnet") {
     # estimate the propensity score using neural net
     neuro_n <- ceiling((2 / 3) * length(dat))
-    mod <- nnet(factor(T) ~ . - Y - trueps, data = train_data, size = neuro_n, entropy = T, trace = F)
+    mod <- nnet(factor(T) ~ . - Y - trueps, data = train_data, size = neuro_n, trace = F)
     ps <- as.numeric(predict(mod, newdata = dat, type = "raw"))
   } else if (method == "dnn-2") {
     # Preprocess data
