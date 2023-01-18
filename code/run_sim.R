@@ -40,7 +40,7 @@ source(here("code", "03_summarize_fun.R"))
 
 # fully-crossed simulation experiment
 Design <- createDesign(
-  n = c(500, 5000),
+  n = c(5000),
   p = c(20, 100),
   scenarioT = c("A","B","C","D"),
   scenarioY = c("a","b","c","d"),
