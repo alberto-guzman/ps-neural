@@ -63,3 +63,6 @@ res <- runSimulation(
   parallel = F,
   filename = "sim_results.rds"
 )
+
+#library(here)
+#source(here('code','run_sim.R'))
