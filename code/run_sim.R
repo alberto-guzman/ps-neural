@@ -40,10 +40,10 @@ source(here("code", "03_summarize_fun.R"))
 
 # fully-crossed simulation experiment
 Design <- createDesign(
-  n = c(5000),
+  n = c(500, 5000),
   p = c(20, 100),
-  scenarioT = c("A", "D"),
-  scenarioY = c("a", "d"),
+  scenarioT = c("A"),
+  scenarioY = c("a"),
   method = c("logit", "cart", "bag", "forest", "nnet", "dnn-2", "dnn-3")
 )
 
@@ -56,11 +56,10 @@ use_virtualenv("/ihome/xqin/alg223/.virtualenvs/r-reticulate")
 
 res <- runSimulation(
   design = Design,
-  replications = 100,
+  replications = 1,
   generate = Generate,
   analyse = Analyse,
   summarise = Summarise,
   parallel = F,
   filename = "sim_results.rds"
 )
-

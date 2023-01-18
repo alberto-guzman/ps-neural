@@ -30,19 +30,18 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     # if the method is bag, then estimate the ATT using bagging
   } else if (method == "bag") {
     # estimate the propensity score using bagging
-    mod <- bagging(T ~ . - Y - trueps, data = train_data, nbag = 100)
+    mod <- bagging(T ~ . - Y - trueps, data = train_data)
     # save the propensity score to a vector
     ps <- predict(mod, newdata = dat, type = "prob")
     # if the method is forest, then estimate the ATT using random forest
   } else if (method == "forest") {
     # estimate the propensity score using random forest
-    mod <- randomForest(factor(T) ~ . - Y - trueps, ntree = 500, data = train_data)
+    mod <- randomForest(factor(T) ~ . - Y - trueps, data = train_data)
     # save the propensity score to a vector
     ps <- predict(mod, newdata = dat, type = "prob")[, 2]
   } else if (method == "nnet") {
     # estimate the propensity score using neural net
-    neuro_n <- ceiling((2 / 3) * length(dat))
-    mod <- nnet(factor(T) ~ . - Y - trueps, data = train_data, size = neuro_n, decay = 0.01, maxit = 500, trace = F, MaxNWts = 90000)
+    mod <- nnet(factor(T) ~ . - Y - trueps, data = train_data, size = p)
     ps <- as.numeric(predict(mod, newdata = dat, type = "raw"))
   } else if (method == "dnn-2") {
     # Preprocess data
