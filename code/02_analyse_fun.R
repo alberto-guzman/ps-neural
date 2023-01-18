@@ -41,7 +41,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     ps <- predict(mod, newdata = dat, type = "prob")[, 2]
   } else if (method == "nnet") {
     # estimate the propensity score using neural net
-    mod <- nnet(factor(T) ~ . - Y - trueps, data = train_data, size = p)
+    mod <- nnet(factor(T) ~ . - Y - trueps, data = train_data, size = p, MaxNWts = 150000)
     ps <- as.numeric(predict(mod, newdata = dat, type = "raw"))
   } else if (method == "dnn-2") {
     # Preprocess data
