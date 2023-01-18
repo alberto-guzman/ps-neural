@@ -2,10 +2,9 @@
 #SBATCH --job-name=dnn_sim
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=32
+#SBATCH --cpus-per-task=48
 #SBATCH --mem=500GB
-#SBATCH --cluster=smp
-#SBATCH --partition=high-mem
+#SBATCH --cluster=htc
 #SBATCH --time=2-00:00:00
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=alg223@pitt.edu
