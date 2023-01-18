@@ -6,7 +6,7 @@
 #SBATCH --mem=500GB
 #SBATCH --cluster=smp
 #SBATCH --partition=high-mem
-#SBATCH --time=24:00:00
+#SBATCH --time=2-00:00:00
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=alg223@pitt.edu
 
@@ -15,9 +15,4 @@ module load gcc/8.2.0
 module load r/4.1.0
 module load python/anaconda3.7-2019.03
 
-#export MKL_NUM_THREADS=1
-#export NUMEXPR_NUM_THREADS=1
-#export OMP_NUM_THREADS=1
-
 Rscript code/run_sim.R >& R.log
-
