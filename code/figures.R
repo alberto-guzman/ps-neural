@@ -7,16 +7,16 @@ library(tidyverse)
 #####
 
 init_df <-
-res %>% 
+  res %>% 
   group_by(scenarioT, scenarioY) %>% 
   summarise(Std_In_Bias = mean(Std_In_Bias),
             Prob_Treat = mean(Prob_Treat), .groups = "rowwise") |> 
   ungroup() 
- 
+
 
 gt(init_df) |> 
   tab_spanner(label = "Condition",
-    columns = c(scenarioT, scenarioY)) |> 
+              columns = c(scenarioT, scenarioY)) |> 
   fmt_number(columns = c(Std_In_Bias, Prob_Treat), decimals = 2) |> 
   cols_label(
     scenarioT = md("Treatment<br />Model"),
@@ -24,7 +24,7 @@ gt(init_df) |>
     Std_In_Bias = md("Standardized<br />Initial Bias"),
     Prob_Treat = "P(Z=1)") |> 
   cols_align_decimal()
-  
+
 
 
 #####
@@ -37,6 +37,7 @@ over_df <-
   summarise(Bias = mean(Bias),
             RelBias = mean(RelBias),
             SE = mean(ATT_se),
+            ATT = mean(ATT),
             ASAM = mean(ASAM),
             coverage_95 = mean(coverage_95),
             .groups = "rowwise") %>%
@@ -69,6 +70,7 @@ res_sum_df <-
   group_by(p, method, scenarioT, scenarioY) %>% 
   summarise(Bias = mean(Bias),
             RelBias = mean(RelBias),
+            ATT = mean(ATT),
             ATT_se = mean(ATT_se),
             ASAM = mean(ASAM),
             coverage_95 = mean(coverage_95),
@@ -82,6 +84,17 @@ names(t.labs) <- c("A", "B", "C", "D")
 # New facet label names for supp variable
 y.labs <- c("Base", "Interactions", "Quad Terms", "Complex")
 names(y.labs) <- c("a", "b", "c", "d")
+
+
+res_sum_df %>%
+  ggplot(aes(x = method, y = ATT, fill = as.factor(p))) +
+  ylab("ATT") +
+  geom_bar(position = "dodge", stat = "identity") +
+  geom_hline(yintercept = 0.3, linetype = "solid", color = "black") +
+  facet_grid(scenarioT ~ scenarioY, labeller = labeller(scenarioT = t.labs, scenarioY = y.labs), scales = "fixed") +
+  scale_fill_discrete(name = "# Covars") +
+  theme(legend.position = "top") +
+  theme_minimal()
 
 
 res_sum_df %>%

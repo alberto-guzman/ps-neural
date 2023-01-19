@@ -145,11 +145,11 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
   true_ATT <- 0.3
 
   # calculate standardized initial bias prior to weighting
-  Std_In_Bias <- (mean(dat$Y[dat$T == 1]) - mean(dat$Y[dat$T == 0]) - true_ATT) / sd(dat$Y[dat$T == 1])
+  Std_In_Bias <- ((mean(dat$Y[dat$T == 1]) - mean(dat$Y[dat$T == 0])) - true_ATT) / sd(dat$Y[dat$T == 1])
   Prob_Treat <- mean(dat$T)
 
   # estimate the ATT with the weights
-  d.w <- svydesign(~1, weights = dat$ps_weights, data = dat)
+  d.w <- svydesign(~0, weights = dat$ps_weights, data = dat)
   fit <- svyglm(Y ~ T, design = d.w)
 
   # save the ATT and se_ATT
