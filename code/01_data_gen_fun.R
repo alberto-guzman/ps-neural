@@ -6,6 +6,8 @@
 # It also samples various subsets of these variables and assigns them to different sets (covar_confound, covar_rel_outcome, etc.).
 # Finally, it generates coefficients for various population treatment and outcome models and uses them to simulate treatment and outcome data for a population, and returns this data in a tibble.
 
+
+# Based correlation, intercept, and coeffecient values on CommonApp study
 #############
 
 Generate <- function(condition, fixed_objects = NULL) {
@@ -14,8 +16,8 @@ Generate <- function(condition, fixed_objects = NULL) {
   # Generate a mean vector of 0s
   mean <- rep(0, p)
 
-  # Generate a correlation matrix with correlations between -0.6 and 0.6
-  cor <- Matrix(runif(p^2, -0.6, 0.6), nrow = p)
+  # Generate a correlation matrix with correlations between -.3 to .3
+  cor <- Matrix(runif(p^2, -.3, .3), nrow = p)
   diag(cor) <- 1
 
   # Convert the correlation matrix to a numeric matrix
@@ -28,8 +30,8 @@ Generate <- function(condition, fixed_objects = NULL) {
   vars <- mvrnorm(n, mean, cor)
 
   # Calculate the number of normal, Bernoulli, and uniform variables to generate
-  num_norm_vars <- floor(p / 2)
-  num_bern_vars <- floor(p / 4)
+  num_norm_vars <- floor(p / 4)
+  num_bern_vars <- floor(p / 2)
   num_uniform_vars <- p - num_norm_vars - num_bern_vars
 
   # Convert all variables to uniform variables between 0 and 1
@@ -81,15 +83,15 @@ Generate <- function(condition, fixed_objects = NULL) {
 
   # Generate b coefficients for population treatment models
   # Initialize b0 to -1
-  b0 <- -1
+  b0 <- 0.25
 
   # Create an empty list to store the b coefficients
   beta <- vector("list", length(master_covar))
 
   # Loop through all variables in the master covariate list
   for (i in seq_len(length(master_covar))) {
-    # Generate a random beta value between 0 and 0.5
-    g <- round(runif(1, min = 0, max = 0.5), 2)
+    # Generate a random number between -0.4 and 0.4
+    g <- runif(1, min = -0.4, max = 0.4)
 
     # Assign the value to a variable named b1, b2, etc.
     assign(paste0("b", i), g)
@@ -202,7 +204,7 @@ Generate <- function(condition, fixed_objects = NULL) {
   #########################################
 
   unif1 <- runif(n, 0, 1)
-  T <- ifelse(unif1 <= trueps, 1, 0)
+  T <- ifelse(unif1 < trueps, 1, 0)
 
   #########################################
   #########################################
@@ -212,15 +214,15 @@ Generate <- function(condition, fixed_objects = NULL) {
 
   # Generate a coefficients for population outcome models
   # Initialize a0 to 1
-  a0 <- 1
+  a0 <- -0.18
   # Initialize population treatment effect g to 0.3
   g <- 0.3
 
   alpha <- vector("list", length(master_covar))
 
   for (i in 1:length(master_covar)) {
-    # Generate a random beta value
-    g <- round(runif(1, min = 0, max = 0.5), 2)
+    # Generate a random number between -0.2 and 0.3
+    g <- runif(1, min = -0.2, max = 0.3)
     # Assign the value to a1, a2, a3, etc.
     assign(paste0("a", i), g)
     a <- paste0("a", i)

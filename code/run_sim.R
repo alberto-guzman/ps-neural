@@ -42,21 +42,21 @@ source(here("code", "03_summarize_fun.R"))
 Design <- createDesign(
   n = c(5000),
   p = c(20, 100),
-  scenarioT = c("A", "D"),
-  scenarioY = c("a", "d"),
-  method = c("logit","cart","bag","forest","nnet","dnn-2","dnn-3")
+  scenarioT = c("A", "B", "C", "D"),
+  scenarioY = c("a", "b", "c", "d"),
+  method = c("logit", "cart", "bag", "forest", "nnet", "dnn-2", "dnn-3")
 )
 
 ######################################################################
 # Run Simulation
 ######################################################################
 
-use_virtualenv("/ihome/xqin/alg223/.virtualenvs/r-reticulate")
-#use_condaenv("r-reticulate")
+# use_virtualenv("/ihome/xqin/alg223/.virtualenvs/r-reticulate")
+# use_condaenv("r-reticulate")
 
 res <- runSimulation(
   design = Design,
-  replications = 50,
+  replications = 5,
   generate = Generate,
   analyse = Analyse,
   summarise = Summarise,
