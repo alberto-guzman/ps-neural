@@ -89,7 +89,7 @@ Generate <- function(condition, fixed_objects = NULL) {
   # Loop through all variables in the master covariate list
   for (i in seq_len(length(master_covar))) {
     # Generate a random beta value between -0.5 and 0.5
-    g <- round(runif(1, min = -0.5, max = 0.5), 2)
+    g <- round(runif(1, min = 0, max = 0.5), 2)
 
     # Assign the value to a variable named b1, b2, etc.
     assign(paste0("b", i), g)
@@ -220,7 +220,7 @@ Generate <- function(condition, fixed_objects = NULL) {
 
   for (i in 1:length(master_covar)) {
     # Generate a random beta value
-    g <- round(runif(1, min = -0.5, max = 0.5), 2)
+    g <- round(runif(1, min = 0, max = 0.5), 2)
     # Assign the value to a1, a2, a3, etc.
     assign(paste0("a", i), g)
     a <- paste0("a", i)

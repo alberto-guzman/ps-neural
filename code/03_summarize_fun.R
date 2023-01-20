@@ -31,8 +31,7 @@ Summarise <- function(condition, results, fixed_objects = NULL) {
     ps_weight_control = ps_weight_control,
     ASAM = ASAM,
     Power = Power,
-    coverage_95 = coverage_95
-  )
+    coverage_95 = coverage_95)
   # Return the vector
   ret
 }

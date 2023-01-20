@@ -42,19 +42,16 @@ source(here("code", "03_summarize_fun.R"))
 Design <- createDesign(
   n = c(5000),
   p = c(20, 100),
-  scenarioT = c("A","D"),
-  scenarioY = c("a","d"),
-  method = c("logit", "cart", "bag", "forest","nnet", "dnn-2", "dnn-3")
+  scenarioT = c("A"),
+  scenarioY = c("a"),
+  method = c("logit","cart")
 )
-
-#change crossings
-#consider using 500
 
 ######################################################################
 # Run Simulation
 ######################################################################
 
-use_virtualenv("/ihome/xqin/alg223/.virtualenvs/r-reticulate")
+#use_virtualenv("/ihome/xqin/alg223/.virtualenvs/r-reticulate")
 #use_condaenv("r-reticulate")
 
 res <- runSimulation(
@@ -63,7 +60,7 @@ res <- runSimulation(
   generate = Generate,
   analyse = Analyse,
   summarise = Summarise,
-  parallel = F,
+  parallel = T,
   filename = "sim_results.rds"
 )
 
