@@ -236,6 +236,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     mean_ps_weights = mean_ps_weights,
     ASAM = ASAM,
     p_val = p_val,
-    ci_95 = ci_95)
+    ci_95 = ci_95
+  )
   ret
 }
