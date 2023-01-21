@@ -5,7 +5,7 @@
 #SBATCH --cpus-per-task=64
 #SBATCH --mem=250GB
 #SBATCH --cluster=htc
-#SBATCH --time=2-00:00:00
+#SBATCH --time=20:00:00
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=alg223@pitt.edu
 
