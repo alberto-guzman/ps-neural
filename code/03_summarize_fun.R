@@ -4,6 +4,8 @@ Summarise <- function(condition, results, fixed_objects = NULL) {
   Std_In_Bias <- mean(results$Std_In_Bias)
   # Calculate probability of treatment
   Prob_Treat <- mean(results$Prob_Treat)
+  # Calculate MSE
+  MSE <- RMSE(results$ATT, parameter = 0.3, MSE = T)
   # Calculate bias
   Bias <- mean(results$Bias)
   # Calculate relative bis
