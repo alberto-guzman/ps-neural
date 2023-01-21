@@ -28,6 +28,7 @@ Summarise <- function(condition, results, fixed_objects = NULL) {
     Prob_Treat = Prob_Treat,
     ATE = ATE_se,
     ATE_se = ATE_se,
+    MSE = MSE,
     Bias = Bias,
     RelBias = RelBias,
     ps_weight_control = ps_weight_control,

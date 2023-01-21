@@ -42,8 +42,8 @@ source(here("code", "03_summarize_fun.R"))
 Design <- createDesign(
   n = c(5000),
   p = c(20, 100),
-  scenarioT = c("A", "B", "C", "D"),
-  scenarioY = c("a", "b", "c", "d"),
+  scenarioT = c("A"),
+  scenarioY = c("a"),
   method = c("logit", "cart", "bag", "forest", "nn-1", "dnn-2", "dnn-3")
 )
 

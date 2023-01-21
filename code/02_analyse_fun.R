@@ -39,11 +39,6 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     mod <- randomForest(factor(T) ~ . - Y - trueps, data = train_data)
     # save the propensity score to a vector
     ps <- predict(mod, newdata = dat, type = "prob")[, 2]
-  } else if (method == "nnet") {
-    # estimate the propensity score using neural net
-    neuro_n <- ceiling((2 / 3) * length(dat))
-    mod <- nnet(factor(T) ~ . - Y - trueps, data = train_data, size = neuro_n)
-    ps <- as.numeric(predict(mod, newdata = dat, type = "raw"))
   } else if (method == "nn-1") {
     # Preprocess data
     x_train <- as.matrix(train_data[, grep("^v", names(train_data))]) # select columns that start with "v" for input features
@@ -56,6 +51,48 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     input_layer <- layer_input(shape = c(p)) # input layer
     hidden_layer <- layer_dense(units = 2 * p / 3, activation = "relu")(input_layer) # hidden layer
     output_layer <- layer_dense(units = 1, activation = "sigmoid")(hidden_layer) # output layer
+    model <- keras_model(inputs = input_layer, outputs = output_layer)
+
+    # Compile model
+    model %>% compile(
+      optimizer = "adam",
+      loss = "binary_crossentropy",
+      metrics = c("accuracy")
+    )
+
+    # Define callbacks
+    early_stopping <- callback_early_stopping(monitor = "val_loss", min_delta = 0, patience = 5)
+
+    # Fit model
+    history <- model %>% fit(
+      x_train,
+      y_train,
+      epochs = 100,
+      batch_size = 32,
+      validation_data = list(x_validation, y_validation),
+      callbacks = list(early_stopping),
+      verbose = 0
+    )
+
+    # Preprocess data
+    x <- as.matrix(dat[, grep("^v", names(dat))]) # select columns that start with "v" for input features
+
+    # Predict propensity scores on entire dataset
+    ps <- model %>% predict(x)
+    ps <- ps[, 1]
+  } else if (method == "dnn-2") {
+    # Preprocess data
+    x_train <- as.matrix(train_data[, grep("^v", names(train_data))]) # select columns that start with "v" for input features
+    y_train <- as.matrix(train_data[, "T"]) # select column for treatment assignment
+    x_validation <- as.matrix(validation_data[, grep("^v", names(validation_data))]) # select columns that start with "v" for input features
+    y_validation <- as.matrix(validation_data[, "T"]) # select column for treatment assignment
+
+    # Define model
+    p <- ncol(x_train) # number of input features
+    input_layer <- layer_input(shape = c(p)) # input layer
+    hidden_layer1 <- layer_dense(units = 2 * p / 3, activation = "relu")(input_layer) # first hidden layer
+    hidden_layer2 <- layer_dense(units = 2 * p / 3, activation = "relu")(hidden_layer1) # second hidden layer
+    output_layer <- layer_dense(units = 1, activation = "sigmoid")(hidden_layer2) # output layer
     model <- keras_model(inputs = input_layer, outputs = output_layer)
 
     # Compile model
