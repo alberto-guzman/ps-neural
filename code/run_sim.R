@@ -44,7 +44,7 @@ Design <- createDesign(
   p = c(20, 100),
   scenarioT = c("A", "B", "C", "D"),
   scenarioY = c("a", "b", "c", "d"),
-  method = c("logit", "cart", "bag", "forest", "nnet", "dnn-2", "dnn-3")
+  method = c("logit", "cart", "bag", "forest", "nn-1", "dnn-2", "dnn-3")
 )
 
 ######################################################################

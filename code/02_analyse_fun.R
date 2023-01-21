@@ -44,7 +44,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     neuro_n <- ceiling((2 / 3) * length(dat))
     mod <- nnet(factor(T) ~ . - Y - trueps, data = train_data, size = neuro_n)
     ps <- as.numeric(predict(mod, newdata = dat, type = "raw"))
-  } else if (method == "dnn-2") {
+  } else if (method == "nn-1") {
     # Preprocess data
     x_train <- as.matrix(train_data[, grep("^v", names(train_data))]) # select columns that start with "v" for input features
     y_train <- as.matrix(train_data[, "T"]) # select column for treatment assignment
@@ -54,9 +54,8 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     # Define model
     p <- ncol(x_train) # number of input features
     input_layer <- layer_input(shape = c(p)) # input layer
-    hidden_layer1 <- layer_dense(units = 2 * p / 3, activation = "relu")(input_layer) # first hidden layer
-    hidden_layer2 <- layer_dense(units = 2 * p / 3, activation = "relu")(hidden_layer1) # second hidden layer
-    output_layer <- layer_dense(units = 1, activation = "sigmoid")(hidden_layer2) # output layer
+    hidden_layer <- layer_dense(units = 2 * p / 3, activation = "relu")(input_layer) # hidden layer
+    output_layer <- layer_dense(units = 1, activation = "sigmoid")(hidden_layer) # output layer
     model <- keras_model(inputs = input_layer, outputs = output_layer)
 
     # Compile model
@@ -139,9 +138,9 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
   dat <- dat %>%
     mutate(
       ps_pred = ps,
-      ps_weights = case_when(T == 1 ~ 1/ps, T == 0 ~ 1/(1-ps))
+      ps_weights = case_when(T == 1 ~ 1 / ps, T == 0 ~ 1 / (1 - ps))
     )
-  
+
 
   true_ATT <- 0.3
 
