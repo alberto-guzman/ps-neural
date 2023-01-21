@@ -82,7 +82,7 @@ Generate <- function(condition, fixed_objects = NULL) {
   #########################################
 
   # Generate b coefficients for population treatment models
-  # Initialize b0 to -1
+  # Initialize b0 to -0.25
   b0 <- 0.25
 
   # Create an empty list to store the b coefficients
@@ -213,7 +213,7 @@ Generate <- function(condition, fixed_objects = NULL) {
   #########################################
 
   # Generate a coefficients for population outcome models
-  # Initialize a0 to 1
+  # Initialize a0 to -0.18
   a0 <- -0.18
   # Initialize population treatment effect g to 0.3
   g <- 0.3

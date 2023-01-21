@@ -90,7 +90,7 @@ res_sum_df %>%
   ggplot(aes(x = method, y = ATT, fill = as.factor(p))) +
   ylab("ATT") +
   geom_bar(position = "dodge", stat = "identity") +
-  geom_hline(yintercept = 0.3, linetype = "solid", color = "black") +
+  geom_hline(yintercept = 0.3, linetype = "dashed", color = "black") +
   facet_grid(scenarioT ~ scenarioY, labeller = labeller(scenarioT = t.labs, scenarioY = y.labs), scales = "fixed") +
   scale_fill_discrete(name = "# Covars") +
   theme(legend.position = "top") +
@@ -101,7 +101,7 @@ res_sum_df %>%
   ggplot(aes(x = method, y = Bias, fill = as.factor(p))) +
   ylab("Bias") +
   geom_bar(position = "dodge", stat = "identity") +
-  geom_hline(yintercept = 0, linetype = "solid", color = "black") +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
   facet_grid(scenarioT ~ scenarioY, labeller = labeller(scenarioT = t.labs, scenarioY = y.labs), scales = "fixed") +
   scale_fill_discrete(name = "# Covars") +
   theme(legend.position = "top") +
@@ -111,7 +111,7 @@ res_sum_df %>%
   ggplot(aes(x = method, y = RelBias, fill = as.factor(p))) +
   ylab("Relative Bias") +
   geom_bar(position = "dodge", stat = "identity") +
-  geom_hline(yintercept = 0, linetype = "solid", color = "black") +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
   facet_grid(scenarioT ~ scenarioY, labeller = labeller(scenarioT = t.labs, scenarioY = y.labs), scales = "fixed") +
   scale_fill_discrete(name = "# Covars") +
   theme(legend.position = "top") +

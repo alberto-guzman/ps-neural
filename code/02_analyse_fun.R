@@ -139,8 +139,9 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
   dat <- dat %>%
     mutate(
       ps_pred = ps,
-      ps_weights = if_else(T == 0, ps / (1 - ps), 1)
+      ps_weights = case_when(T == 1 ~ 1/ps, T == 0 ~ 1/(1-ps))
     )
+  
 
   true_ATT <- 0.3
 
