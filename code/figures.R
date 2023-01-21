@@ -36,10 +36,11 @@ over_df <-
   group_by(p, method) %>% 
   summarise(Bias = mean(Bias),
             RelBias = mean(RelBias),
-            SE = mean(ATT_se),
-            ATT = mean(ATT),
+            SE = mean(ATE_se),
+            ATT = mean(ATE),
             ASAM = mean(ASAM),
             coverage_95 = mean(coverage_95),
+            MSE = mean(MSE),
             .groups = "rowwise") %>%
   ungroup() %>%
   pivot_longer(-c(p, method), names_to = "metric", values_to = "value") %>%
@@ -70,10 +71,11 @@ res_sum_df <-
   group_by(p, method, scenarioT, scenarioY) %>% 
   summarise(Bias = mean(Bias),
             RelBias = mean(RelBias),
-            ATT = mean(ATT),
-            ATT_se = mean(ATT_se),
+            ATE = mean(ATE),
+            ATE_se = mean(ATE_se),
             ASAM = mean(ASAM),
             coverage_95 = mean(coverage_95),
+            MSE = mean(MSE),
             .groups = "rowwise") %>%
   ungroup() 
 
@@ -87,8 +89,8 @@ names(y.labs) <- c("a", "b", "c", "d")
 
 
 res_sum_df %>%
-  ggplot(aes(x = method, y = ATT, fill = as.factor(p))) +
-  ylab("ATT") +
+  ggplot(aes(x = method, y = ATE, fill = as.factor(p))) +
+  ylab("ATE") +
   geom_bar(position = "dodge", stat = "identity") +
   geom_hline(yintercept = 0.3, linetype = "dashed", color = "black") +
   facet_grid(scenarioT ~ scenarioY, labeller = labeller(scenarioT = t.labs, scenarioY = y.labs), scales = "fixed") +
@@ -118,7 +120,7 @@ res_sum_df %>%
   theme_minimal()
 
 res_sum_df %>%
-  ggplot(aes(x = method, y = ATT_se, fill = as.factor(p))) +
+  ggplot(aes(x = method, y = ATE_se, fill = as.factor(p))) +
   ylab("Standard Error") +
   geom_bar(position = "dodge", stat = "identity") +
   facet_grid(scenarioT ~ scenarioY, labeller = labeller(scenarioT = t.labs, scenarioY = y.labs), scales = "fixed") +
@@ -137,6 +139,15 @@ res_sum_df %>%
   theme(legend.position = "top") +
   theme_minimal()
 
+
+res_sum_df %>%
+  ggplot(aes(x = method, y = MSE, fill = as.factor(p))) +
+  ylab("MSE") +
+  geom_bar(position = "dodge", stat = "identity") +
+  facet_grid(scenarioT ~ scenarioY, labeller = labeller(scenarioT = t.labs, scenarioY = y.labs), scales = "fixed") +
+  scale_fill_discrete(name = "# Covars") +
+  theme(legend.position = "top") +
+  theme_minimal()
 
 # ggplot(dat, aes(x = trueps, y = ps_pred)) +
 #   geom_point(shape = 21, alpha = 0.2) +
