@@ -5,15 +5,15 @@ Summarise <- function(condition, results, fixed_objects = NULL) {
   # Calculate probability of treatment
   Prob_Treat <- mean(results$Prob_Treat)
   # Calculate MSE
-  MSE <- RMSE(results$ATT, parameter = 0.3, MSE = T)
+  MSE <- RMSE(results$ATE, parameter = 0.3, MSE = T)
   # Calculate bias
   Bias <- mean(results$Bias)
   # Calculate relative bis
-  RelBias <- bias(results$ATT, parameter = 0.3, type = "relative")
+  RelBias <- bias(results$ATE, parameter = 0.3, type = "relative")
   # Standard error
-  ATT <- mean(results$ATT)
+  ATE <- mean(results$ATE)
   # Standard error
-  ATT_se <- mean(results$ATT_se)
+  ATE_se <- mean(results$ATE_se)
   # Calculate power
   Power <- EDR(results$p_val, alpha = 0.05)
   # Coverage
@@ -26,8 +26,8 @@ Summarise <- function(condition, results, fixed_objects = NULL) {
   ret <- c(
     Std_In_Bias = Std_In_Bias,
     Prob_Treat = Prob_Treat,
-    ATT = ATT,
-    ATT_se = ATT_se,
+    ATE = ATE_se,
+    ATE_se = ATE_se,
     Bias = Bias,
     RelBias = RelBias,
     ps_weight_control = ps_weight_control,

@@ -142,20 +142,20 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     )
 
 
-  true_ATT <- 0.3
+  true_ATE <- 0.3
 
   # calculate standardized initial bias prior to weighting
-  Std_In_Bias <- ((mean(dat$Y[dat$T == 1]) - mean(dat$Y[dat$T == 0])) - true_ATT) / sd(dat$Y[dat$T == 1])
+  Std_In_Bias <- ((mean(dat$Y[dat$T == 1]) - mean(dat$Y[dat$T == 0])) - true_ATE) / sd(dat$Y[dat$T == 1])
   Prob_Treat <- mean(dat$T)
 
-  # estimate the ATT with the weights
+  # estimate the true_ATE with the weights
   d.w <- svydesign(~0, weights = dat$ps_weights, data = dat)
   fit <- svyglm(Y ~ T, design = d.w)
 
-  # save the ATT and se_ATT
-  ATT <- unname(coef(fit)["T"])
+  # save the true_ATE and se_true_ATE
+  ATE <- unname(coef(fit)["T"])
   vcov_matrix <- vcov(fit)
-  ATT_se <- unname(sqrt(vcov_matrix["T", "T"]))
+  ATE_se <- unname(sqrt(vcov_matrix["T", "T"]))
 
   # extract the p-value of T
   p_val <- summary(fit)$coefficients["T", "Pr(>|t|)"]
@@ -165,10 +165,10 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
   lower_bound <- conf_interval[1]
   upper_bound <- conf_interval[2]
 
-  ci_95 <- ifelse(lower_bound < true_ATT && true_ATT < upper_bound, 1, 0)
+  ci_95 <- ifelse(lower_bound < true_ATE && true_ATE < upper_bound, 1, 0)
 
   # calculate the bias metrics
-  Bias <- ATT - true_ATT
+  Bias <- ATE - true_ATE
 
   # calculate the mean of control group weights
   dat_int <- subset(dat, T == 0)
@@ -230,8 +230,8 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
   ret <- c(
     Std_In_Bias = Std_In_Bias,
     Prob_Treat = Prob_Treat,
-    ATT = ATT,
-    ATT_se = ATT_se,
+    ATE = ATE,
+    ATE_se = ATE_se,
     Bias = Bias,
     mean_ps_weights = mean_ps_weights,
     ASAM = ASAM,
