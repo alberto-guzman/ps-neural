@@ -30,8 +30,8 @@ Generate <- function(condition, fixed_objects = NULL) {
   vars <- mvrnorm(n, mean, cor)
 
   # Calculate the number of normal, Bernoulli, and uniform variables to generate
-  num_norm_vars <- floor(p / 4)
-  num_bern_vars <- floor(p / 2)
+  num_norm_vars <- floor(p / 2)
+  num_bern_vars <- floor(p / 4)
   num_uniform_vars <- p - num_norm_vars - num_bern_vars
 
   # Convert all variables to uniform variables between 0 and 1
@@ -240,7 +240,7 @@ Generate <- function(condition, fixed_objects = NULL) {
   #########################################
   if (scenarioY == "a") {
     # Concatenate the variables from covar_for_outcome into a single string
-    equation_Y <- paste0("a0 + g * T ", " + ", paste(element, collapse = " + "))
+    equation_Y <- paste0("a0 + g * T", " + ", paste(element, collapse = " + "))
 
     # Evaluate the equation
     Y <- eval(parse(text = equation_Y))
