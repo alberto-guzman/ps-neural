@@ -41,18 +41,18 @@ source(here("code", "03_summarize_fun.R"))
 # fully-crossed simulation experiment
 # Design <- createDesign(
 #   n = c(5000),
-#   p = c(20, 100),
+#   p = c(100),
 #   scenarioT = c("A"),
 #   scenarioY = c("a"),
-#   method = c("logit")
+#   method = c("logit","glm-p")
 # )
 
 # fully-crossed simulation experiment
 Design <- createDesign(
   n = c(5000),
   p = c(20, 100),
-  scenarioT = c("A","B","C","D"),
-  scenarioY = c("a","b","c","d"),
+  scenarioT = c("A", "B", "C", "D"),
+  scenarioY = c("a", "b", "c", "d"),
   method = c("logit", "cart", "bag", "forest", "nn-1", "dnn-2", "dnn-3")
 )
 
@@ -62,11 +62,11 @@ Design <- createDesign(
 ######################################################################
 
 use_virtualenv("/ihome/xqin/alg223/.virtualenvs/r-reticulate")
-#use_condaenv("r-reticulate")
+# use_condaenv("r-reticulate")
 
 res <- runSimulation(
   design = Design,
-  replications = 10,
+  replications = 40,
   generate = Generate,
   analyse = Analyse,
   summarise = Summarise,
