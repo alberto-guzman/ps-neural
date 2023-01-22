@@ -176,13 +176,15 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     mutate(
       ps_pred = ps,
       ps_weights = case_when(T == 1 ~ 1 / ps, T == 0 ~ 1 / (1 - ps))
+      
     )
-
 
   true_ATE <- 0.3
 
   # calculate standardized initial bias prior to weighting
-  Std_In_Bias <- ((mean(dat$Y[dat$T == 1]) - mean(dat$Y[dat$T == 0])) - true_ATE) / sd(dat$Y[dat$T == 1])
+  Std_In_Bias <- ((mean(dat$Y[dat$T == 1]) - mean(dat$Y[dat$T == 0])) - true_ATE) 
+  
+  #Std_In_Bias <- ((mean(dat$Y[dat$T == 1]) - mean(dat$Y[dat$T == 0])) - true_ATE) / sd(dat$Y[dat$T == 1])
   Prob_Treat <- mean(dat$T)
 
   # estimate the true_ATE with the weights
@@ -205,7 +207,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
   ci_95 <- ifelse(lower_bound < true_ATE && true_ATE < upper_bound, 1, 0)
 
   # calculate the bias metrics
-  Bias <- ATE - true_ATE
+  # Bias <- ATE - true_ATE
 
   # calculate the mean of control group weights
   dat_int <- subset(dat, T == 0)
@@ -269,7 +271,6 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     Prob_Treat = Prob_Treat,
     ATE = ATE,
     ATE_se = ATE_se,
-    Bias = Bias,
     mean_ps_weights = mean_ps_weights,
     ASAM = ASAM,
     p_val = p_val,
