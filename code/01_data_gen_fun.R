@@ -86,10 +86,10 @@ Generate <- function(condition, fixed_objects = NULL) {
   # Loop through all variables in the master covariate list
   for (i in seq_len(length(master_covar))) {
     # Generate a random number between -0.4 and 0.4
-    g <- runif(1, min = -0.4, max = 0.4)
+    x <- runif(1, min = -0.4, max = 0.4)
 
     # Assign the value to a variable named b1, b2, etc.
-    assign(paste0("b", i), g)
+    assign(paste0("b", i), x)
 
     # Store the variable names in the beta list
     b <- paste0("b", i)
@@ -217,9 +217,9 @@ Generate <- function(condition, fixed_objects = NULL) {
 
   for (i in 1:length(master_covar)) {
     # Generate a random number between -0.2 and 0.3
-    g <- runif(1, min = -0.2, max = 0.3)
+    x <- runif(1, min = -0.2, max = 0.3)
     # Assign the value to a1, a2, a3, etc.
-    assign(paste0("a", i), g)
+    assign(paste0("a", i), x)
     a <- paste0("a", i)
     alpha[[i + 1]] <- a
   }
