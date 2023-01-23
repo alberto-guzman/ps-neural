@@ -2,14 +2,14 @@
 Summarise <- function(condition, results, fixed_objects = NULL) {
   Std_In_Bias <- mean(results$Std_In_Bias)
   Prob_Treat <- mean(results$Prob_Treat)
-  Bias <- bias(results$ATE, parameter = 0.3, type = "bias")
-  Abs_Per_Bias <- bias(results$ATE, parameter = 0.3, type = "bias", abs = T, percent = T)
-  Abs_Per_Rel_Bias <- bias(results$ATE, parameter = 0.3, type = "relative", abs = T, percent = T)
+  Bias <- bias(results$ATE, parameter = results$true_ATE, type = "bias")
+  Abs_Per_Bias <- bias(results$ATE, parameter = results$true_ATE, type = "bias", abs = T, percent = T)
+  Abs_Per_Rel_Bias <- bias(results$ATE, parameter = results$true_ATE, type = "relative", abs = T, percent = T)
   ATE_se <- mean(results$ATE_se)
-  RMSE <- RMSE(results$ATE, parameter = 0.3)
+  RMSE <- RMSE(results$ATE, parameter = results$true_ATE)
   Power <- EDR(results$p_val, alpha = 0.05)
   coverage_95 <- mean(results$ci_95)
-  ps_weight_control <- mean(results$mean_ps_weights)
+  mean_ps_weights <- mean(results$mean_ps_weights)
   ASAM <- mean(results$ASAM)
   # Create a vector of the results
   ret <- c(
@@ -22,7 +22,7 @@ Summarise <- function(condition, results, fixed_objects = NULL) {
     RMSE = RMSE,
     Power = Power,
     coverage_95 = coverage_95,
-    ps_weight_control = ps_weight_control,
+    mean_ps_weights = mean_ps_weights,
     ASAM = ASAM
   )
   # Return the vector

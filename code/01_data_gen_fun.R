@@ -1,18 +1,13 @@
 #############
 
 ## WHAT DOES THIS FUNCTIOND DO?
-
-# This function generates correlated normal variables, converts them into uniform, normal, and Bernoulli variables, and then assigns each column of the resulting transformed variables to an object with a name "v1", "v2", etc.
-# It also samples various subsets of these variables and assigns them to different sets (covar_confound, covar_rel_outcome, etc.).
-# Finally, it generates coefficients for various population treatment and outcome models and uses them to simulate treatment and outcome data for a population, and returns this data in a tibble.
-
-
-# Based correlation, intercept, and coeffecient values on CommonApp study
+# Based correlation, intercept, and coefficient values on CommonApp study
 #############
 
 Generate <- function(condition, fixed_objects = NULL) {
   # Makes the tibble of sim crossed conditions accessible to the function, from SimDesign package
   Attach(condition)
+
   # Generate a mean vector of 0s
   mean <- rep(0, p)
 
@@ -82,7 +77,7 @@ Generate <- function(condition, fixed_objects = NULL) {
   #########################################
 
   # Generate b coefficients for population treatment models
-  # Initialize b0 to -0.25
+  # Initialize b0 to 0.25
   b0 <- 0.25
 
   # Create an empty list to store the b coefficients
@@ -239,11 +234,12 @@ Generate <- function(condition, fixed_objects = NULL) {
   # Population outcome model - Generate base model
   #########################################
   if (scenarioY == "a") {
-    # Concatenate the variables from covar_for_outcome into a single string
-    equation_Y <- paste0("a0 + g * T", " + ", paste(element, collapse = " + "))
-
-    # Evaluate the equation
-    Y <- eval(parse(text = equation_Y))
+    equation_Y1 <- paste0("a0 + g", " + ", paste(element, collapse = " + "))
+    equation_Y0 <- paste0("a0", " + ", paste(element, collapse = " + "))
+    Y1 <- eval(parse(text = equation_Y1))
+    Y0 <- eval(parse(text = equation_Y0))
+    Y <- T * Y1 + (1 - T) * Y0
+    indeff <- Y1 - Y0
   } else
 
   #########################################
@@ -269,10 +265,12 @@ Generate <- function(condition, fixed_objects = NULL) {
       quadratic_terms[[group]] <- paste0("a", a, " * ", group, "^2")
     }
 
-    equation_Y <- paste0("a0 + g * T + ", paste(c(unlist(quadratic_terms), element), collapse = " + "), "")
-
-    # Evaluate the equation
-    Y <- eval(parse(text = equation_Y))
+    equation_Y1 <- paste0("a0 + g + ", paste(c(unlist(quadratic_terms), element), collapse = " + "), "")
+    equation_Y0 <- paste0("a0 + ", paste(c(unlist(quadratic_terms), element), collapse = " + "), "")
+    Y1 <- eval(parse(text = equation_Y1))
+    Y0 <- eval(parse(text = equation_Y0))
+    Y <- T * Y1 + (1 - T) * Y0
+    indeff <- Y1 - Y0
   } else
 
   #########################################
@@ -292,10 +290,12 @@ Generate <- function(condition, fixed_objects = NULL) {
       paste0("a", a, " * ", group[1], " * ", group[2])
     })
 
-    equation_Y <- paste0("a0 + g * T + ", paste(c(unlist(interaction_terms), element), collapse = " + "), "")
-
-    # Evaluate the equation
-    Y <- eval(parse(text = equation_Y))
+    equation_Y1 <- paste0("a0 + g + ", paste(c(unlist(interaction_terms), element), collapse = " + "), "")
+    equation_Y0 <- paste0("a0 + ", paste(c(unlist(interaction_terms), element), collapse = " + "), "")
+    Y1 <- eval(parse(text = equation_Y1))
+    Y0 <- eval(parse(text = equation_Y0))
+    Y <- T * Y1 + (1 - T) * Y0
+    indeff <- Y1 - Y0
   } else
 
   #########################################
@@ -318,15 +318,13 @@ Generate <- function(condition, fixed_objects = NULL) {
       terms[[paste0(group[1], " * ", group[2])]] <- paste0("a", a, " * ", group[1], " * ", group[2])
     }
 
-    # Concatenate all of the terms together and store the result in a new variable called equation
-    equation_Y <- paste0("a0 + g * T + ", paste(c(unlist(terms), element), collapse = " + "), "")
-
-
-    # Evaluate the equation
-    Y <- eval(parse(text = equation_Y))
+    equation_Y1 <- paste0("a0 + g + ", paste(c(unlist(terms), element), collapse = " + "), "")
+    equation_Y0 <- paste0("a0 + ", paste(c(unlist(terms), element), collapse = " + "), "")
+    Y1 <- eval(parse(text = equation_Y1))
+    Y0 <- eval(parse(text = equation_Y0))
+    Y <- T * Y1 + (1 - T) * Y0
+    indeff <- Y1 - Y0
   }
-
-
 
 
   #########################################
@@ -337,6 +335,7 @@ Generate <- function(condition, fixed_objects = NULL) {
   dat <- as_tibble(v_list)
   dat$T <- T
   dat$Y <- Y
+  dat$indeff <- indeff
   dat$trueps <- trueps
   dat
 }

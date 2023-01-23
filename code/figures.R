@@ -27,6 +27,37 @@ gt(init_df) |>
 
 
 
+
+over_df <-
+  res %>% 
+  group_by(p, method) %>% 
+  summarise(Abs_Per_Bias = mean(Abs_Per_Bias),
+            RMSE = mean(RMSE),
+            .groups = "rowwise") %>%
+  ungroup() %>%
+  pivot_longer(-c(p, method), names_to = "metric", values_to = "value") %>%
+  mutate(p = as.factor(p),
+         method = as.factor(method),
+         metric = as.factor(metric))
+
+
+ggplot(data = over_df, aes(x = method, y = value, fill = as.factor(p))) +
+  geom_bar(stat = "identity", position = "dodge", colour = "black") +
+  facet_wrap(~ metric, scales = "free") +
+  theme_minimal() +
+  guides(fill = guide_legend(title = "p")) +
+  theme(legend.position = "right",
+        panel.spacing = unit(1, "cm")) +
+  ylab(element_blank()) +
+  xlab(element_blank()) 
+
+
+
+
+
+
+
+
 #####
 # overall figures
 #####
