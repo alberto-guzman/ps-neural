@@ -178,7 +178,6 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
       ps_weights = case_when(T == 1 ~ 1 / ps, T == 0 ~ 1 / (1 - ps))
     )
 
-  # true_ATE <- 0.3
   true_ATE <- mean(dat$indeff)
 
   # calculate standardized initial bias prior to weighting
