@@ -129,8 +129,8 @@ res_sum_df %>%
   theme_minimal()
 
 res_sum_df %>%
-  ggplot(aes(x = method, y = RelBias, fill = as.factor(p))) +
-  ylab("Relative Bias") +
+  ggplot(aes(x = method, y = Abs_Per_Rel_Bias, fill = as.factor(p))) +
+  ylab("Abs_Per_Rel_Bias") +
   geom_bar(position = "dodge", stat = "identity") +
   geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
   facet_grid(scenarioT ~ scenarioY, labeller = labeller(scenarioT = t.labs, scenarioY = y.labs), scales = "fixed") +
@@ -139,8 +139,8 @@ res_sum_df %>%
   theme_minimal()
 
 res_sum_df %>%
-  ggplot(aes(x = method, y = ATE_se, fill = as.factor(p))) +
-  ylab("Standard Error") +
+  ggplot(aes(x = method, y = Abs_Per_Bias, fill = as.factor(p))) +
+  ylab("Abs_Per_Bias") +
   geom_bar(position = "dodge", stat = "identity") +
   facet_grid(scenarioT ~ scenarioY, labeller = labeller(scenarioT = t.labs, scenarioY = y.labs), scales = "fixed") +
   scale_fill_discrete(name = "# Covars") +

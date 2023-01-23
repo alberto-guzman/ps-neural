@@ -239,7 +239,7 @@ Generate <- function(condition, fixed_objects = NULL) {
     Y1 <- eval(parse(text = equation_Y1))
     Y0 <- eval(parse(text = equation_Y0))
     Y <- T * Y1 + (1 - T) * Y0
-    indeff <- Y1 - Y0
+    # indeff <- Y1 - Y0
   } else
 
   #########################################
@@ -270,7 +270,7 @@ Generate <- function(condition, fixed_objects = NULL) {
     Y1 <- eval(parse(text = equation_Y1))
     Y0 <- eval(parse(text = equation_Y0))
     Y <- T * Y1 + (1 - T) * Y0
-    indeff <- Y1 - Y0
+    # indeff <- Y1 - Y0
   } else
 
   #########################################
@@ -295,7 +295,7 @@ Generate <- function(condition, fixed_objects = NULL) {
     Y1 <- eval(parse(text = equation_Y1))
     Y0 <- eval(parse(text = equation_Y0))
     Y <- T * Y1 + (1 - T) * Y0
-    indeff <- Y1 - Y0
+    # indeff <- Y1 - Y0
   } else
 
   #########################################
@@ -323,7 +323,7 @@ Generate <- function(condition, fixed_objects = NULL) {
     Y1 <- eval(parse(text = equation_Y1))
     Y0 <- eval(parse(text = equation_Y0))
     Y <- T * Y1 + (1 - T) * Y0
-    indeff <- Y1 - Y0
+    # indeff <- Y1 - Y0
   }
 
 
@@ -335,7 +335,7 @@ Generate <- function(condition, fixed_objects = NULL) {
   dat <- as_tibble(v_list)
   dat$T <- T
   dat$Y <- Y
-  dat$indeff <- indeff
+  # dat$indeff <- indeff
   dat$trueps <- trueps
   dat
 }
