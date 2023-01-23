@@ -66,12 +66,12 @@ over_df <-
   res %>% 
   group_by(p, method) %>% 
   summarise(Bias = mean(Bias),
-            RelBias = mean(RelBias),
+            Abs_Per_Bias = mean(Abs_Per_Bias),
+            Abs_Per_Rel_Bias = mean(Abs_Per_Rel_Bias),
             SE = mean(ATE_se),
-            ATT = mean(ATE),
             ASAM = mean(ASAM),
             coverage_95 = mean(coverage_95),
-            MSE = mean(MSE),
+            RMSE = mean(RMSE),
             .groups = "rowwise") %>%
   ungroup() %>%
   pivot_longer(-c(p, method), names_to = "metric", values_to = "value") %>%
@@ -101,12 +101,12 @@ res_sum_df <-
   res %>% 
   group_by(p, method, scenarioT, scenarioY) %>% 
   summarise(Bias = mean(Bias),
-            RelBias = mean(RelBias),
-            ATE = mean(ATE),
-            ATE_se = mean(ATE_se),
+            Abs_Per_Bias = mean(Abs_Per_Bias),
+            Abs_Per_Rel_Bias = mean(Abs_Per_Rel_Bias),
+            SE = mean(ATE_se),
             ASAM = mean(ASAM),
             coverage_95 = mean(coverage_95),
-            MSE = mean(MSE),
+            RMSE = mean(RMSE),
             .groups = "rowwise") %>%
   ungroup() 
 
@@ -117,18 +117,6 @@ names(t.labs) <- c("A", "B", "C", "D")
 # New facet label names for supp variable
 y.labs <- c("Base", "Interactions", "Quad Terms", "Complex")
 names(y.labs) <- c("a", "b", "c", "d")
-
-
-res_sum_df %>%
-  ggplot(aes(x = method, y = ATE, fill = as.factor(p))) +
-  ylab("ATE") +
-  geom_bar(position = "dodge", stat = "identity") +
-  geom_hline(yintercept = 0.3, linetype = "dashed", color = "black") +
-  facet_grid(scenarioT ~ scenarioY, labeller = labeller(scenarioT = t.labs, scenarioY = y.labs), scales = "fixed") +
-  scale_fill_discrete(name = "# Covars") +
-  theme(legend.position = "top") +
-  theme_minimal()
-
 
 res_sum_df %>%
   ggplot(aes(x = method, y = Bias, fill = as.factor(p))) +
