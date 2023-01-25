@@ -6,7 +6,7 @@
 Analyse <- function(condition, dat, fixed_objects = NULL) {
   Attach(condition)
 
-  # Split the data into training and validation sets
+  # Split the data into training and validation sets (80/20)
   split <- sample(2, nrow(dat), replace = TRUE, prob = c(0.8, 0.2)) # random split of data
   train_data <- dat[split == 1, ]
   validation_data <- dat[split == 2, ]
@@ -86,8 +86,8 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     # Define model
     p <- ncol(x_train) # number of input features
     input_layer <- layer_input(shape = c(p)) # input layer
-    hidden_layer1 <- layer_dense(units = 2 * p / 3, activation = "relu", kernel_regularizer = regularizer_l2(l = 0.01))(input_layer) # first hidden layer
-    hidden_layer2 <- layer_dense(units = 2 * p / 3, activation = "relu", kernel_regularizer = regularizer_l2(l = 0.01))(hidden_layer1) # second hidden layer
+    hidden_layer1 <- layer_dense(units = ceiling(2 * p / 3), activation = "relu", kernel_regularizer = regularizer_l2(l = 0.01))(input_layer) # first hidden layer
+    hidden_layer2 <- layer_dense(units = ceiling(2 * p / 3), activation = "relu", kernel_regularizer = regularizer_l2(l = 0.01))(hidden_layer1) # second hidden layer
     output_layer <- layer_dense(units = 1, activation = "sigmoid", kernel_regularizer = regularizer_l2(l = 0.01))(hidden_layer2) # output layer
     model <- keras_model(inputs = input_layer, outputs = output_layer)
 
@@ -128,9 +128,9 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     # Define model
     p <- ncol(x_train) # number of input features
     input_layer <- layer_input(shape = c(p)) # input layer
-    hidden_layer1 <- layer_dense(units = 2 * p / 3, activation = "relu", kernel_regularizer = regularizer_l2(l = 0.01))(input_layer) # first hidden layer
-    hidden_layer2 <- layer_dense(units = 2 * p / 3, activation = "relu", kernel_regularizer = regularizer_l2(l = 0.01))(hidden_layer1) # second hidden layer
-    hidden_layer3 <- layer_dense(units = 2 * p / 3, activation = "relu", kernel_regularizer = regularizer_l2(l = 0.01))(hidden_layer2) # third hidden layer
+    hidden_layer1 <- layer_dense(units = ceiling(2 * p / 3), activation = "relu", kernel_regularizer = regularizer_l2(l = 0.01))(input_layer) # first hidden layer
+    hidden_layer2 <- layer_dense(units = ceiling(2 * p / 3), activation = "relu", kernel_regularizer = regularizer_l2(l = 0.01))(hidden_layer1) # second hidden layer
+    hidden_layer3 <- layer_dense(units = ceiling(2 * p / 3), activation = "relu", kernel_regularizer = regularizer_l2(l = 0.01))(hidden_layer2) # third hidden layer
     output_layer <- layer_dense(units = 1, activation = "sigmoid", kernel_regularizer = regularizer_l2(l = 0.01))(hidden_layer3) # output layer
     model <- keras_model(inputs = input_layer, outputs = output_layer)
 
@@ -174,9 +174,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
       ps_weights = case_when(T == 1 ~ 1 / ps, T == 0 ~ 1 / (1 - ps))
     )
 
-  # true_ATE <- mean(dat$indeff)
   true_ATE <- 0.3
-
 
   # calculate standardized initial bias prior to weighting
   Std_In_Bias <- ((mean(dat$Y[dat$T == 1]) - mean(dat$Y[dat$T == 0])) - true_ATE) / sd(dat$Y[dat$T == 1])
@@ -235,13 +233,11 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     treatment_mean <- weighted.mean(treatment_data, treatment_weights)
     comparison_mean <- weighted.mean(comparison_data, comparison_weights)
 
-    # calculate the variances of the treatment and comparison groups
+    # calculate the variances of the treatment group
     treatment_var <- wtd.var(treatment_data, treatment_weights)
-    comparison_var <- wtd.var(comparison_data, comparison_weights)
 
-    # calculate the standard deviations of the treatment and comparison groups
+    # calculate the standard deviations of the treatment groups
     treatment_sd <- sqrt(treatment_var)
-    comparison_sd <- sqrt(comparison_var)
 
     # calculate the standardized difference of means
     sd_diff <- (treatment_mean - comparison_mean) / treatment_sd

@@ -31,7 +31,7 @@ Generate <- function(condition, fixed_objects = NULL) {
   # Convert the first num_norm_vars variables to normal variable with mean = 0 and sd = 1
   vars_normal <- qnorm(vars_unif[, 1:num_norm_vars])
 
-  # Convert the next num_bern_vars variables to Bernoulli variables
+  # Convert the next num_bern_vars variables to Bernoulli variables with probability of success = 0.5
   vars_bern <- qbern(vars_unif[, (num_norm_vars + 1):(num_norm_vars + num_bern_vars)], 0.5)
 
   # The remainder are left as uniform variables
@@ -46,7 +46,7 @@ Generate <- function(condition, fixed_objects = NULL) {
   # Generate variable names and store in the master_covar list
   master_covar <- dimnames(vars_transformed)[[2]]
 
-  # Create p objects with names v1, v2, etc., and assign the corresponding column from vars to each object
+  # Create p objects with names v1, v2, etc. in working environment
   for (i in 1:p) {
     assign(colnames(vars_transformed)[i], vars_transformed[, i])
   }
