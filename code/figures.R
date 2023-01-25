@@ -123,7 +123,7 @@ res_sum_df %>%
   ylab("Bias") +
   geom_bar(position = "dodge", stat = "identity") +
   geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
-  facet_grid(scenarioT ~ scenarioY, labeller = labeller(scenarioT = t.labs, scenarioY = y.labs), scales = "fixed") +
+  facet_grid(scenarioT ~ scenarioY, scales = "fixed") +
   scale_fill_discrete(name = "# Covars") +
   theme(legend.position = "top") +
   theme_minimal()
@@ -142,7 +142,7 @@ res_sum_df %>%
   ggplot(aes(x = method, y = Abs_Per_Bias, fill = as.factor(p))) +
   ylab("Abs_Per_Bias") +
   geom_bar(position = "dodge", stat = "identity") +
-  facet_grid(scenarioT ~ scenarioY, labeller = labeller(scenarioT = t.labs, scenarioY = y.labs), scales = "fixed") +
+  facet_grid(scenarioT ~ scenarioY, scales = "fixed") +
   scale_fill_discrete(name = "# Covars") +
   theme(legend.position = "top") +
   theme_minimal()
@@ -153,17 +153,26 @@ res_sum_df %>%
   ylab("ASAM") +
   geom_bar(position = "dodge", stat = "identity") +
   geom_hline(yintercept = 0.2, linetype = "dashed", color = "black") +
-  facet_grid(scenarioT ~ scenarioY, labeller = labeller(scenarioT = t.labs, scenarioY = y.labs), scales = "fixed") +
+  facet_grid(scenarioT ~ scenarioY, scales = "fixed") +
   scale_fill_discrete(name = "# Covars") +
   theme(legend.position = "top") +
   theme_minimal()
 
 
 res_sum_df %>%
-  ggplot(aes(x = method, y = MSE, fill = as.factor(p))) +
-  ylab("MSE") +
+  ggplot(aes(x = method, y = RMSE, fill = as.factor(p))) +
+  ylab("RMSE") +
   geom_bar(position = "dodge", stat = "identity") +
-  facet_grid(scenarioT ~ scenarioY, labeller = labeller(scenarioT = t.labs, scenarioY = y.labs), scales = "fixed") +
+  facet_grid(scenarioT ~ scenarioY, scales = "fixed") +
+  scale_fill_discrete(name = "# Covars") +
+  theme(legend.position = "top") +
+  theme_minimal()
+
+res_sum_df %>%
+  ggplot(aes(x = method, y = SE, fill = as.factor(p))) +
+  ylab("SE") +
+  geom_bar(position = "dodge", stat = "identity") +
+  facet_grid(scenarioT ~ scenarioY, scales = "fixed") +
   scale_fill_discrete(name = "# Covars") +
   theme(legend.position = "top") +
   theme_minimal()

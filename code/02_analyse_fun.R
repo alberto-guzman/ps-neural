@@ -1,9 +1,5 @@
 #############
-
 ## WHAT DOES THIS FUNCTIOND DO?
-
-# this function estimates the ATT and other metrics
-
 #############
 
 # function to estimate the ATT and other metrics
@@ -18,7 +14,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
   # if the method is logit, then estimate the ATT using logistic regression
   if (method == "logit") {
     # estimate the propensity score using logistic regression
-    mod <- glm(T ~ . - Y - trueps, data = train_data, family = binomial)
+    mod <- glm(T ~ . - Y - trueps, data = train_data, family = binomial(link = "logit"))
     # predict on the entire dataframe to generate ps
     ps <- predict(mod, newdata = dat, type = "response")
     # if the method is cart, then estimate the ATT using classification and regression trees
@@ -49,8 +45,8 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     # Define model
     p <- ncol(x_train) # number of input features
     input_layer <- layer_input(shape = c(p)) # input layer
-    hidden_layer <- layer_dense(units = 2 * p / 3, activation = "relu")(input_layer) # hidden layer
-    output_layer <- layer_dense(units = 1, activation = "sigmoid")(hidden_layer) # output layer
+    hidden_layer <- layer_dense(units = p, activation = "relu")(input_layer)
+    output_layer <- layer_dense(units = 1, activation = "sigmoid")(hidden_layer)
     model <- keras_model(inputs = input_layer, outputs = output_layer)
 
     # Compile model
@@ -67,8 +63,8 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     history <- model %>% fit(
       x_train,
       y_train,
-      epochs = 100,
-      batch_size = 32,
+      epochs = 20,
+      batch_size = 62,
       validation_data = list(x_validation, y_validation),
       callbacks = list(early_stopping),
       verbose = 0
@@ -90,9 +86,9 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     # Define model
     p <- ncol(x_train) # number of input features
     input_layer <- layer_input(shape = c(p)) # input layer
-    hidden_layer1 <- layer_dense(units = 2 * p / 3, activation = "relu")(input_layer) # first hidden layer
-    hidden_layer2 <- layer_dense(units = 2 * p / 3, activation = "relu")(hidden_layer1) # second hidden layer
-    output_layer <- layer_dense(units = 1, activation = "sigmoid")(hidden_layer2) # output layer
+    hidden_layer1 <- layer_dense(units = 2 * p / 3, activation = "relu", kernel_regularizer = regularizer_l2(l = 0.01))(input_layer) # first hidden layer
+    hidden_layer2 <- layer_dense(units = 2 * p / 3, activation = "relu", kernel_regularizer = regularizer_l2(l = 0.01))(hidden_layer1) # second hidden layer
+    output_layer <- layer_dense(units = 1, activation = "sigmoid", kernel_regularizer = regularizer_l2(l = 0.01))(hidden_layer2) # output layer
     model <- keras_model(inputs = input_layer, outputs = output_layer)
 
     # Compile model
@@ -109,8 +105,8 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     history <- model %>% fit(
       x_train,
       y_train,
-      epochs = 100,
-      batch_size = 32,
+      epochs = 20,
+      batch_size = 62,
       validation_data = list(x_validation, y_validation),
       callbacks = list(early_stopping),
       verbose = 0
@@ -132,11 +128,12 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     # Define model
     p <- ncol(x_train) # number of input features
     input_layer <- layer_input(shape = c(p)) # input layer
-    hidden_layer1 <- layer_dense(units = 2 * p / 3, activation = "relu")(input_layer) # first hidden layer
-    hidden_layer2 <- layer_dense(units = 2 * p / 3, activation = "relu")(hidden_layer1) # second hidden layer
-    hidden_layer3 <- layer_dense(units = 2 * p / 3, activation = "relu")(hidden_layer2) # third hidden layer
-    output_layer <- layer_dense(units = 1, activation = "sigmoid")(hidden_layer3) # output layer
+    hidden_layer1 <- layer_dense(units = 2 * p / 3, activation = "relu", kernel_regularizer = regularizer_l2(l = 0.01))(input_layer) # first hidden layer
+    hidden_layer2 <- layer_dense(units = 2 * p / 3, activation = "relu", kernel_regularizer = regularizer_l2(l = 0.01))(hidden_layer1) # second hidden layer
+    hidden_layer3 <- layer_dense(units = 2 * p / 3, activation = "relu", kernel_regularizer = regularizer_l2(l = 0.01))(hidden_layer2) # third hidden layer
+    output_layer <- layer_dense(units = 1, activation = "sigmoid", kernel_regularizer = regularizer_l2(l = 0.01))(hidden_layer3) # output layer
     model <- keras_model(inputs = input_layer, outputs = output_layer)
+
 
     # Compile model
     model %>% compile(
@@ -152,8 +149,8 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     history <- model %>% fit(
       x_train,
       y_train,
-      epochs = 100,
-      batch_size = 32,
+      epochs = 20,
+      batch_size = 62,
       validation_data = list(x_validation, y_validation),
       callbacks = list(early_stopping),
       verbose = 0
