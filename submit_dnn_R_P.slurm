@@ -15,4 +15,4 @@ module load r/4.1.0
 module load python/anaconda3.7-2019.03
 module load cuda/11.0
 
-Rscript code/run_sim_P.R >& R_P.log
+Rscript code/run_sim_P.R >& R_P_100.log
