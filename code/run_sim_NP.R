@@ -56,7 +56,7 @@ use_virtualenv("/ihome/xqin/alg223/.virtualenvs/r-reticulate")
 
 res <- runSimulation(
   design = Design,
-  replications = 500,
+  replications = 1,
   generate = Generate,
   analyse = Analyse,
   summarise = Summarise,
