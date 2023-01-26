@@ -64,7 +64,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
       x_train,
       y_train,
       epochs = 20,
-      batch_size = 62,
+      batch_size = 32,
       validation_data = list(x_validation, y_validation),
       callbacks = list(early_stopping),
       verbose = 0
@@ -106,7 +106,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
       x_train,
       y_train,
       epochs = 20,
-      batch_size = 62,
+      batch_size = 32,
       validation_data = list(x_validation, y_validation),
       callbacks = list(early_stopping),
       verbose = 0
@@ -150,7 +150,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
       x_train,
       y_train,
       epochs = 20,
-      batch_size = 62,
+      batch_size = 32,
       validation_data = list(x_validation, y_validation),
       callbacks = list(early_stopping),
       verbose = 0
