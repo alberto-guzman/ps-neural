@@ -44,7 +44,7 @@ Design <- createDesign(
   p = c(20, 100, 200),
   scenarioT = c("base_T", "complex_T"),
   scenarioY = c("base_Y", "complex_Y"),
-  method = c("logit", "cart", "bag", "forest", "nn-1", "dnn-2")
+  method = c("logit", "cart", "bag", "forest")
 )
 
 ######################################################################
@@ -56,10 +56,10 @@ use_virtualenv("/ihome/xqin/alg223/.virtualenvs/r-reticulate")
 
 res <- runSimulation(
   design = Design,
-  replications = 500,
+  replications = 5,
   generate = Generate,
   analyse = Analyse,
   summarise = Summarise,
   parallel = T,
-  filename = "sim_results_n10000_r500.rds"
+  filename = "sim_results_n10000_r500_P.rds"
 )
