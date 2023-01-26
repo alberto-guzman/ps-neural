@@ -1,9 +1,10 @@
 #!/bin/bash
 #SBATCH --job-name=dnn_sim_n10000_r500_gpu
 #SBATCH --nodes=1
-#SBATCH --mem=128GB
+#SBATCH --cpus-per-task=8
+#SBATCH --mem=95GB
 #SBATCH --cluster=gpu
-#SBATCH --gres=gpu:4
+#SBATCH --gres=gpu:2
 #SBATCH --time=1:00:00
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=alg223@pitt.edu
