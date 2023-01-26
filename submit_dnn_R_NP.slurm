@@ -3,7 +3,7 @@
 #SBATCH --nodes=1
 #SBATCH --mem=128GB
 #SBATCH --cluster=gpu
-#SBATCH --gres=gpu:1
+#SBATCH --gres=gpu:4
 #SBATCH --time=1:00:00
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=alg223@pitt.edu
