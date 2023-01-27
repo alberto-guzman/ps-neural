@@ -21,7 +21,8 @@ packages <- c(
   "SimDesign",
   "keras",
   "tensorflow",
-  "reticulate"
+  "reticulate",
+  "gt"
 )
 
 lapply(packages, library, character.only = TRUE)
