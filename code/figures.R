@@ -39,6 +39,7 @@ over_df <-
             Power = mean(Power),
             PS_Weights = mean(mean_ps_weights),
             ASAM = mean(ASAM),
+            coverage_95 = mean(coverage_95),
             .groups = "rowwise") %>%
   ungroup() %>%
   pivot_longer(-c(p, method), names_to = "metric", values_to = "value") %>%
@@ -73,6 +74,7 @@ res_sum_df <-
             Power = mean(Power),
             PS_Weights = mean(mean_ps_weights),
             ASAM = mean(ASAM),
+            coverage_95 = mean(coverage_95),
             .groups = "rowwise") %>%
   ungroup() 
 
