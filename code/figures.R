@@ -1,27 +1,33 @@
 # append simulation for rep=100
-sim_results_n10000_r100_NP <- readRDS(here("data","sim_results_n10000_r100_NP.rds"))
-sim_results_n10000_r100_P <- readRDS(here("data","sim_results_n10000_r100_P.rds"))
-res <-bind_rows(sim_results_n10000_r100_NP,sim_results_n10000_r100_P)
+sim_results_n10000_r100_NP <- readRDS(here("data", "sim_results_n10000_r500_NP.rds"))
+sim_results_n10000_r100_P <- readRDS(here("data", "sim_results_n10000_r500_P.rds"))
+res <- bind_rows(sim_results_n10000_r100_NP, sim_results_n10000_r100_P)
 
 
 # table for standardized initial bias and probability of treatment
 init_df <-
-  res %>% 
-  group_by(scenarioT, scenarioY) %>% 
-  summarise(Std_In_Bias = mean(Std_In_Bias),
-            Prob_Treat = mean(Prob_Treat), .groups = "rowwise") |> 
-  ungroup() 
+  res %>%
+  group_by(scenarioT, scenarioY) %>%
+  summarise(
+    Std_In_Bias = mean(Std_In_Bias),
+    Prob_Treat = mean(Prob_Treat),
+    .groups = "rowwise"
+  ) |>
+  ungroup()
 
 
-gt(init_df) |> 
-  tab_spanner(label = "Condition",
-              columns = c(scenarioT, scenarioY)) |> 
-  fmt_number(columns = c(Std_In_Bias, Prob_Treat), decimals = 2) |> 
+gt(init_df) |>
+  tab_spanner(
+    label = "Condition",
+    columns = c(scenarioT, scenarioY)
+  ) |>
+  fmt_number(columns = c(Std_In_Bias, Prob_Treat), decimals = 2) |>
   cols_label(
     scenarioT = md("Treatment<br />Model"),
     scenarioY = md("Outcome<br />Model"),
     Std_In_Bias = md("Standardized<br />Initial Bias"),
-    Prob_Treat = "P(Z=1)") |> 
+    Prob_Treat = "P(Z=1)"
+  ) |>
   cols_align_decimal()
 
 
@@ -29,58 +35,76 @@ gt(init_df) |>
 # overall figure
 
 over_df <-
-  res %>% 
-  group_by(p, method) %>% 
-  summarise(Bias = mean(Bias),
-            Abs_Per_Bias = mean(Abs_Per_Bias),
-            Abs_Per_Rel_Bias = mean(Abs_Per_Rel_Bias),
-            ATE_se = mean(ATE_se),
-            MSE = mean(RMSE),
-            Power = mean(Power),
-            PS_Weights = mean(mean_ps_weights),
-            ASAM = mean(ASAM),
-            coverage_95 = mean(coverage_95),
-            .groups = "rowwise") %>%
+  res %>%
+  group_by(p, method) %>%
+  summarise(
+    Bias = mean(Bias),
+    Abs_Per_Bias = mean(Abs_Per_Bias),
+    Abs_Per_Rel_Bias = mean(Abs_Per_Rel_Bias),
+    ATE_se = mean(ATE_se),
+    MSE = mean(RMSE),
+    Power = mean(Power),
+    PS_Weights = mean(mean_ps_weights),
+    ASAM = mean(ASAM),
+    coverage_95 = mean(coverage_95),
+    .groups = "rowwise"
+  ) %>%
   ungroup() %>%
   pivot_longer(-c(p, method), names_to = "metric", values_to = "value") %>%
-  mutate(p = as.factor(p),
-         method = as.factor(method),
-         metric = as.factor(metric))
+  mutate(
+    p = as.factor(p),
+    method = as.factor(method),
+    metric = as.factor(metric)
+  )
 
 
 ggplot(data = over_df, aes(x = method, y = value, fill = as.factor(p))) +
   geom_bar(stat = "identity", position = "dodge", colour = "black") +
-  facet_wrap(~ metric, scales = "free") +
+  facet_wrap(~metric, scales = "free") +
   theme_minimal() +
   guides(fill = guide_legend(title = "p")) +
-  theme(legend.position = "right",
-        panel.spacing = unit(1, "cm")) +
+  theme(
+    legend.position = "right",
+    panel.spacing = unit(1, "cm")
+  ) +
   ylab(element_blank()) +
-  xlab(element_blank()) 
+  xlab(element_blank())
 
 
-# figures by condition 
+# figures by condition
 
 
 
 res_sum_df <-
-  res %>% 
-  group_by(p, method, scenarioT, scenarioY) %>% 
-  summarise(Bias = mean(Bias),
-            Abs_Per_Bias = mean(Abs_Per_Bias),
-            Abs_Per_Rel_Bias = mean(Abs_Per_Rel_Bias),
-            ATE_se = mean(ATE_se),
-            MSE = mean(RMSE),
-            Power = mean(Power),
-            PS_Weights = mean(mean_ps_weights),
-            ASAM = mean(ASAM),
-            coverage_95 = mean(coverage_95),
-            .groups = "rowwise") %>%
-  ungroup() 
+  res %>%
+  group_by(p, method, scenarioT, scenarioY) %>%
+  summarise(
+    Bias = mean(Bias),
+    Abs_Per_Bias = mean(Abs_Per_Bias),
+    Abs_Per_Rel_Bias = mean(Abs_Per_Rel_Bias),
+    ATE_se = mean(ATE_se),
+    MSE = mean(RMSE),
+    Power = mean(Power),
+    PS_Weights = mean(mean_ps_weights),
+    ASAM = mean(ASAM),
+    coverage_95 = mean(coverage_95),
+    .groups = "rowwise"
+  ) %>%
+  ungroup()
 
 res_sum_df %>%
   ggplot(aes(x = method, y = Bias, fill = as.factor(p))) +
   ylab("Bias") +
+  geom_bar(position = "dodge", stat = "identity") +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
+  facet_grid(scenarioT ~ scenarioY, scales = "fixed") +
+  scale_fill_discrete(name = "# Covars") +
+  theme(legend.position = "top") +
+  theme_minimal()
+
+res_sum_df %>%
+  ggplot(aes(x = method, y = Abs_Per_Bias, fill = as.factor(p))) +
+  ylab("Abs_Per_Bias") +
   geom_bar(position = "dodge", stat = "identity") +
   geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
   facet_grid(scenarioT ~ scenarioY, scales = "fixed") +

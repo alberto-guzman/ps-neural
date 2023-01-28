@@ -21,8 +21,7 @@ packages <- c(
   "SimDesign",
   "keras",
   "tensorflow",
-  "reticulate",
-  "gt"
+  "reticulate"
 )
 
 lapply(packages, library, character.only = TRUE)
@@ -52,15 +51,15 @@ Design <- createDesign(
 # Run Simulation
 ######################################################################
 
-use_virtualenv("/ihome/xqin/alg223/.virtualenvs/r-reticulate")
-# use_condaenv("r-reticulate")
+#use_virtualenv("/ihome/xqin/alg223/.virtualenvs/r-reticulate")
+#use_condaenv("r-reticulate")
 
 res <- runSimulation(
   design = Design,
-  replications = 100,
+  replications = 1000,
   generate = Generate,
   analyse = Analyse,
   summarise = Summarise,
   parallel = T,
-  filename = "sim_results_n10000_r100_P.rds"
+  filename = "sim_results_n10000_r1000_P.rds"
 )

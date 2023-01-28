@@ -45,7 +45,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     # Define model
     p <- ncol(x_train) # number of input features
     input_layer <- layer_input(shape = c(p)) # input layer
-    hidden_layer <- layer_dense(units = p, activation = "relu")(input_layer)
+    hidden_layer <- layer_dense(units = ceiling(2 * p / 3), activation = "relu")(input_layer)
     output_layer <- layer_dense(units = 1, activation = "sigmoid")(hidden_layer)
     model <- keras_model(inputs = input_layer, outputs = output_layer)
 
