@@ -52,7 +52,7 @@ Design <- createDesign(
 ######################################################################
 
 use_virtualenv("/ihome/xqin/alg223/.virtualenvs/r-reticulate")
-# use_condaenv("r-reticulate")
+#use_condaenv("r-reticulate")
 
 res <- runSimulation(
   design = Design,

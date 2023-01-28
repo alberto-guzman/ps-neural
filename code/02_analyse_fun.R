@@ -6,37 +6,36 @@
 Analyse <- function(condition, dat, fixed_objects = NULL) {
   Attach(condition)
 
-  # Split the data into training and validation sets (80/20)
-  split <- sample(2, nrow(dat), replace = TRUE, prob = c(0.8, 0.2)) # random split of data
-  train_data <- dat[split == 1, ]
-  validation_data <- dat[split == 2, ]
-
   # if the method is logit, then estimate the ATT using logistic regression
   if (method == "logit") {
     # estimate the propensity score using logistic regression
-    mod <- glm(T ~ . - Y - trueps, data = train_data, family = binomial(link = "logit"))
+    mod <- glm(T ~ . - Y - trueps, data = dat, family = binomial(link = "logit"))
     # predict on the entire dataframe to generate ps
     ps <- predict(mod, newdata = dat, type = "response")
     # if the method is cart, then estimate the ATT using classification and regression trees
   } else if (method == "cart") {
     # estimate the propensity score using classification and regression trees
-    mod <- rpart(T ~ . - Y - trueps, method = "class", data = train_data)
+    mod <- rpart(T ~ . - Y - trueps, method = "class", data = dat)
     # predict on the entire dataframe to generate ps
     ps <- predict(mod, newdata = dat, type = "prob")[, 2]
     # if the method is bag, then estimate the ATT using bagging
   } else if (method == "bag") {
     # estimate the propensity score using bagging
-    mod <- bagging(T ~ . - Y - trueps, data = train_data)
+    mod <- bagging(T ~ . - Y - trueps, data = dat)
     # save the propensity score to a vector
     ps <- predict(mod, newdata = dat, type = "prob")
     # if the method is forest, then estimate the ATT using random forest
   } else if (method == "forest") {
     # estimate the propensity score using random forest
-    mod <- randomForest(factor(T) ~ . - Y - trueps, data = train_data)
+    mod <- randomForest(factor(T) ~ . - Y - trueps, data = dat)
     # save the propensity score to a vector
     ps <- predict(mod, newdata = dat, type = "prob")[, 2]
   } else if (method == "nn-1") {
     # Preprocess data
+    # Split the data into training and validation sets (80/20)
+    split <- sample(2, nrow(dat), replace = TRUE, prob = c(0.8, 0.2)) # random split of data
+    train_data <- dat[split == 1, ]
+    validation_data <- dat[split == 2, ]
     x_train <- as.matrix(train_data[, grep("^v", names(train_data))]) # select columns that start with "v" for input features
     y_train <- as.matrix(train_data[, "T"]) # select column for treatment assignment
     x_validation <- as.matrix(validation_data[, grep("^v", names(validation_data))]) # select columns that start with "v" for input features
@@ -45,8 +44,8 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     # Define model
     p <- ncol(x_train) # number of input features
     input_layer <- layer_input(shape = c(p)) # input layer
-    hidden_layer <- layer_dense(units = ceiling(2 * p / 3), activation = "relu")(input_layer)
-    output_layer <- layer_dense(units = 1, activation = "sigmoid")(hidden_layer)
+    hidden_layer <- layer_dense(units = ceiling(2 * p / 3), activation = "relu", kernel_regularizer = regularizer_l2(l = 0.01))(input_layer)
+    output_layer <- layer_dense(units = 1, activation = "sigmoid", kernel_regularizer = regularizer_l2(l = 0.01))(hidden_layer)
     model <- keras_model(inputs = input_layer, outputs = output_layer)
 
     # Compile model
@@ -63,7 +62,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     history <- model %>% fit(
       x_train,
       y_train,
-      epochs = 20,
+      epochs = 100,
       batch_size = 64,
       validation_data = list(x_validation, y_validation),
       callbacks = list(early_stopping),
@@ -78,6 +77,10 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     ps <- ps[, 1]
   } else if (method == "dnn-2") {
     # Preprocess data
+    # Split the data into training and validation sets (80/20)
+    split <- sample(2, nrow(dat), replace = TRUE, prob = c(0.8, 0.2)) # random split of data
+    train_data <- dat[split == 1, ]
+    validation_data <- dat[split == 2, ]
     x_train <- as.matrix(train_data[, grep("^v", names(train_data))]) # select columns that start with "v" for input features
     y_train <- as.matrix(train_data[, "T"]) # select column for treatment assignment
     x_validation <- as.matrix(validation_data[, grep("^v", names(validation_data))]) # select columns that start with "v" for input features
@@ -105,7 +108,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     history <- model %>% fit(
       x_train,
       y_train,
-      epochs = 20,
+      epochs = 100,
       batch_size = 64,
       validation_data = list(x_validation, y_validation),
       callbacks = list(early_stopping),
@@ -120,6 +123,10 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     ps <- ps[, 1]
   } else if (method == "dnn-3") {
     # Preprocess data
+    # Split the data into training and validation sets (80/20)
+    split <- sample(2, nrow(dat), replace = TRUE, prob = c(0.8, 0.2)) # random split of data
+    train_data <- dat[split == 1, ]
+    validation_data <- dat[split == 2, ]
     x_train <- as.matrix(train_data[, grep("^v", names(train_data))]) # select columns that start with "v" for input features
     y_train <- as.matrix(train_data[, "T"]) # select column for treatment assignment
     x_validation <- as.matrix(validation_data[, grep("^v", names(validation_data))]) # select columns that start with "v" for input features
@@ -149,7 +156,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     history <- model %>% fit(
       x_train,
       y_train,
-      epochs = 20,
+      epochs = 100,
       batch_size = 64,
       validation_data = list(x_validation, y_validation),
       callbacks = list(early_stopping),

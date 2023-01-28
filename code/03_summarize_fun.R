@@ -6,7 +6,7 @@ Summarise <- function(condition, results, fixed_objects = NULL) {
   Abs_Per_Bias <- bias(results$ATE, parameter = 0.3, type = "bias", abs = T, percent = T)
   Abs_Per_Rel_Bias <- bias(results$ATE, parameter = 0.3, type = "relative", abs = T, percent = T)
   ATE_se <- mean(results$ATE_se)
-  RMSE <- RMSE(results$ATE, parameter = 0.3, MSE = T)
+  MSE <- RMSE(results$ATE, parameter = 0.3, MSE = T)
   Power <- EDR(results$p_val, alpha = 0.05)
   coverage_95 <- mean(results$ci_95)
   mean_ps_weights <- mean(results$mean_ps_weights)
