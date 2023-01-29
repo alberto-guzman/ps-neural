@@ -1,7 +1,32 @@
+
+library(gt)
+
 # append simulation for rep=100
 sim_results_n10000_r100_NP <- readRDS(here("data", "sim_results_n10000_r500_NP.rds"))
 sim_results_n10000_r100_P <- readRDS(here("data", "sim_results_n10000_r500_P.rds"))
 res <- bind_rows(sim_results_n10000_r100_NP, sim_results_n10000_r100_P)
+
+
+
+# generate overall table
+over_df <- res |> 
+  dplyr::select(p, scenarioT, scenarioY, method, Bias, Abs_Per_Bias, Abs_Per_Rel_Bias, ATE_se, MSE, Power, coverage_95, ASAM)  
+
+gt(over_df) |>
+  tab_spanner(
+    label = "Condition",
+    columns = c(p, scenarioT, scenarioY)
+  ) |>
+  tab_spanner(
+    label = "Performance Measure",
+    columns = c(Bias, Abs_Per_Bias, Abs_Per_Rel_Bias, ATE_se, MSE, Power, coverage_95, ASAM)
+  ) |>
+  fmt_number(columns = c(Bias, Abs_Per_Bias, Abs_Per_Rel_Bias, ATE_se, MSE, Power, coverage_95, ASAM), decimals = 3) |>
+  cols_align_decimal()
+
+# table for weights
+
+
 
 
 # table for standardized initial bias and probability of treatment
@@ -42,7 +67,7 @@ over_df <-
     Abs_Per_Bias = mean(Abs_Per_Bias),
     Abs_Per_Rel_Bias = mean(Abs_Per_Rel_Bias),
     ATE_se = mean(ATE_se),
-    MSE = mean(RMSE),
+    MSE = mean(MSE),
     Power = mean(Power),
     PS_Weights = mean(mean_ps_weights),
     ASAM = mean(ASAM),
@@ -83,7 +108,7 @@ res_sum_df <-
     Abs_Per_Bias = mean(Abs_Per_Bias),
     Abs_Per_Rel_Bias = mean(Abs_Per_Rel_Bias),
     ATE_se = mean(ATE_se),
-    MSE = mean(RMSE),
+    MSE = mean(MSE),
     Power = mean(Power),
     PS_Weights = mean(mean_ps_weights),
     ASAM = mean(ASAM),
@@ -133,7 +158,7 @@ res_sum_df %>%
   theme_minimal()
 
 res_sum_df %>%
-  ggplot(aes(x = method, y = SE, fill = as.factor(p))) +
+  ggplot(aes(x = method, y = ATE_se, fill = as.factor(p))) +
   ylab("SE") +
   geom_bar(position = "dodge", stat = "identity") +
   facet_grid(scenarioT ~ scenarioY, scales = "fixed") +
