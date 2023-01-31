@@ -1,6 +1,7 @@
 use_condaenv("r-reticulate")
 # Define weight decay values to try
-weight_decay_values <- c(0.0001, 0.001, 0.01, 0.1)
+reg <- c(.01, .005)
+p = 200
 
 # Initialize vector to store bias values
 bias_values <- c()
@@ -10,7 +11,7 @@ bias_values <- c()
 dat_iteration <- dat
 
 
-for (l in weight_decay_values) {
+for (l in reg) {
   
   dat_iteration <- dat
   
@@ -31,8 +32,8 @@ for (l in weight_decay_values) {
   # Define model
   p <- ncol(x_train) # number of input features
   input_layer <- layer_input(shape = c(p)) # input layer
-  hidden_layer1 <- layer_dense(units = ceiling(2 * p / 3), activation = "relu", kernel_regularizer = regularizer_l2(l = l))(input_layer) # first hidden layer
-  hidden_layer2 <- layer_dense(units = ceiling(2 * p / 3), activation = "relu", kernel_regularizer = regularizer_l2(l = l))(hidden_layer1) # second hidden layer
+  hidden_layer1 <- layer_dense(units = 134, activation = "relu", kernel_regularizer = regularizer_l2(l = l))(input_layer) # first hidden layer
+  hidden_layer2 <- layer_dense(units = 134, activation = "relu", kernel_regularizer = regularizer_l2(l = l))(hidden_layer1) # second hidden layer
   output_layer <- layer_dense(units = 1, activation = "sigmoid", kernel_regularizer = regularizer_l2(l = l))(hidden_layer2) # output layer
   model <- keras_model(inputs = input_layer, outputs = output_layer)
   
@@ -51,7 +52,7 @@ for (l in weight_decay_values) {
     x_train,
     y_train,
     epochs = 100,
-    batch_size = 64,
+    batch_size = 32,
     validation_data = list(x_validation, y_validation),
     callbacks = list(early_stopping)
   )
@@ -82,4 +83,3 @@ for (l in weight_decay_values) {
   bias_values <- c(bias_values, abs(ATE - true_ATE))
   
 }
-  

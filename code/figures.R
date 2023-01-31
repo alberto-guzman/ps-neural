@@ -2,9 +2,9 @@
 library(gt)
 
 # append simulation for rep=100
-sim_results_n10000_r100_NP <- readRDS(here("data", "sim_results_n10000_r500_NP.rds"))
-sim_results_n10000_r100_P <- readRDS(here("data", "sim_results_n10000_r500_P.rds"))
-res <- bind_rows(sim_results_n10000_r100_NP, sim_results_n10000_r100_P)
+sim_results_n10000_r1000_NP <- readRDS(here("data", "sim_results_n10000_r1000_NP.rds"))
+sim_results_n10000_r1000_P <- readRDS(here("data", "sim_results_n10000_r1000_P.rds"))
+res <- bind_rows(sim_results_n10000_r1000_NP, sim_results_n10000_r1000_P)
 
 
 
