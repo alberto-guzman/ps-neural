@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=dnn_sim_n10000_r50_gpu_opt
+#SBATCH --job-name=dnn_sim_n10000_r1000_gpu_batch32
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=128GB
