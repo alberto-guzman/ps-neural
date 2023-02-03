@@ -1,10 +1,19 @@
+######################################################################
+# Load libraries and source functions
+######################################################################
 
-library(gt)
+packages <- c(
+  "tidyverse",
+  "gt"
+)
+
+lapply(packages, library, character.only = TRUE)
+
 
 # append simulation for rep=100
-sim_results_n10000_r1000_NP <- readRDS(here("data", "sim_results_n10000_r1000_NP.rds"))
-sim_results_n10000_r1000_P <- readRDS(here("data", "sim_results_n10000_r1000_P.rds"))
-res <- bind_rows(sim_results_n10000_r1000_NP, sim_results_n10000_r1000_P)
+df1 <- readRDS("~/Projects/inProgress/2018_propensity_neuralnet_paper/data/sim_results_n10000_r1000_NP.rds")
+df2 <- readRDS("~/Projects/inProgress/2018_propensity_neuralnet_paper/data/sim_results_n10000_r1000_P.rds")
+res <- bind_rows(df1, df2)
 
 
 
@@ -93,7 +102,8 @@ ggplot(data = over_df, aes(x = method, y = value, fill = as.factor(p))) +
     panel.spacing = unit(1, "cm")
   ) +
   ylab(element_blank()) +
-  xlab(element_blank())
+  xlab(element_blank()) +
+  coord_cartesian(ylim=c(0,1))
 
 
 # figures by condition
@@ -135,7 +145,8 @@ res_sum_df %>%
   facet_grid(scenarioT ~ scenarioY, scales = "fixed") +
   scale_fill_discrete(name = "# Covars") +
   theme(legend.position = "top") +
-  theme_minimal()
+  theme_minimal() +
+  coord_cartesian(ylim=c(0,10))
 
 res_sum_df %>%
   ggplot(aes(x = method, y = ASAM, fill = as.factor(p))) +
@@ -175,10 +186,9 @@ res_sum_df %>%
   theme(legend.position = "top") +
   theme_minimal()
 
-# ggplot(dat, aes(x = trueps, y = ps_pred)) +
-#   geom_point(shape = 21, alpha = 0.2) +
-#   geom_abline(slope = 1, intercept = 0) +
-#   scale_x_continuous(limits = c(0, 1)) +
-#   scale_y_continuous(limits = c(0, 1)) +
-#   labs(x = "True PS", y = "PS predicted by main effects logistic regression")
-#
+ggplot(dat, aes(x = trueps, y = ps_pred)) +
+  geom_point(shape = 21, alpha = 0.2) +
+  geom_abline(slope = 1, intercept = 0) +
+  scale_x_continuous(limits = c(0, 1)) +
+  scale_y_continuous(limits = c(0, 1)) +
+  labs(x = "True PS", y = "PS predicted by main effects logistic regression")
