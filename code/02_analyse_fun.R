@@ -2,29 +2,29 @@
 ## WHAT DOES THIS FUNCTIOND DO?
 #############
 
-# function to estimate the ATT and other metrics
+# function to estimate the ATE and other metrics
 Analyse <- function(condition, dat, fixed_objects = NULL) {
   Attach(condition)
 
-  # if the method is logit, then estimate the ATT using logistic regression
+  # if the method is logit, then estimate the ATE using logistic regression
   if (method == "logit") {
     # estimate the propensity score using logistic regression
     mod <- glm(T ~ . - Y - trueps, data = dat, family = binomial(link = "logit"))
     # predict on the entire dataframe to generate ps
     ps <- predict(mod, newdata = dat, type = "response")
-    # if the method is cart, then estimate the ATT using classification and regression trees
+    # if the method is cart, then estimate the ATE using classification and regression trees
   } else if (method == "cart") {
     # estimate the propensity score using classification and regression trees
     mod <- rpart(T ~ . - Y - trueps, method = "class", data = dat)
     # predict on the entire dataframe to generate ps
     ps <- predict(mod, newdata = dat, type = "prob")[, 2]
-    # if the method is bag, then estimate the ATT using bagging
+    # if the method is bag, then estimate the ATE using bagging
   } else if (method == "bag") {
     # estimate the propensity score using bagging
     mod <- bagging(T ~ . - Y - trueps, data = dat, nbagg = 100)
     # save the propensity score to a vector
     ps <- predict(mod, newdata = dat, type = "prob")
-    # if the method is forest, then estimate the ATT using random forest
+    # if the method is forest, then estimate the ATE using random forest
   } else if (method == "forest") {
     # estimate the propensity score using random forest
     mod <- randomForest(factor(T) ~ . - Y - trueps, data = dat)
@@ -44,8 +44,8 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     # Define model
     p <- ncol(x_train) # number of input features
     input_layer <- layer_input(shape = c(p)) # input layer
-    hidden_layer <- layer_dense(units = ceiling(2 * p / 3), activation = "relu", kernel_regularizer = regularizer_l2(l = 0.01))(input_layer)
-    output_layer <- layer_dense(units = 1, activation = "sigmoid", kernel_regularizer = regularizer_l2(l = 0.01))(hidden_layer)
+    hidden_layer <- layer_dense(units = p, activation = "relu")(input_layer)
+    output_layer <- layer_dense(units = 1, activation = "sigmoid")(hidden_layer)
     model <- keras_model(inputs = input_layer, outputs = output_layer)
 
     # Compile model
@@ -56,7 +56,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     )
 
     # Define callbacks
-    early_stopping <- callback_early_stopping(monitor = "val_loss", min_delta = 0, patience = 3)
+    early_stopping <- callback_early_stopping(monitor = "val_loss", min_delta = 0.001, patience = 3)
 
     # Fit model
     history <- model %>% fit(
@@ -66,7 +66,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
       batch_size = 64,
       validation_data = list(x_validation, y_validation),
       callbacks = list(early_stopping),
-      verbose = 0
+      verbose = 2
     )
 
     # Preprocess data
@@ -102,7 +102,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     )
 
     # Define callbacks
-    early_stopping <- callback_early_stopping(monitor = "val_loss", min_delta = 0, patience = 3)
+    early_stopping <- callback_early_stopping(monitor = "val_loss", min_delta = 0.001, patience = 3)
 
     # Fit model
     history <- model %>% fit(
@@ -112,7 +112,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
       batch_size = 64,
       validation_data = list(x_validation, y_validation),
       callbacks = list(early_stopping),
-      verbose = 0
+      verbose = 2
     )
 
     # Preprocess data
@@ -150,7 +150,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     )
 
     # Define callbacks
-    early_stopping <- callback_early_stopping(monitor = "val_loss", min_delta = 0, patience = 3)
+    early_stopping <- callback_early_stopping(monitor = "val_loss", min_delta = 0.001, patience = 3)
 
     # Fit model
     history <- model %>% fit(
@@ -160,7 +160,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
       batch_size = 64,
       validation_data = list(x_validation, y_validation),
       callbacks = list(early_stopping),
-      verbose = 0
+      verbose = 2
     )
 
     # Preprocess data
