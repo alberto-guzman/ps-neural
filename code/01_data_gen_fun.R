@@ -162,9 +162,7 @@ Generate <- function(condition, fixed_objects = NULL) {
   # Generate a coefficients for population outcome models
   # Initialize a0 to -0.18
   a0 <- -0.18
-  # Initialize population treatment effect g to 0.3
-  g <- 0.3
-  
+
   # Generate error terms for population outcome models
   e <- rnorm(n, mean = 0, sd = sqrt(0.17))
   
@@ -227,7 +225,6 @@ Generate <- function(condition, fixed_objects = NULL) {
     Y <- eval(parse(text = equation))
     
   }
-
 
   #########################################
   # Form simulated data tibble
