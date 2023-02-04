@@ -21,7 +21,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     # if the method is bag, then estimate the ATT using bagging
   } else if (method == "bag") {
     # estimate the propensity score using bagging
-    mod <- bagging(T ~ . - Y - trueps, data = dat)
+    mod <- bagging(T ~ . - Y - trueps, data = dat, nbagg = 100)
     # save the propensity score to a vector
     ps <- predict(mod, newdata = dat, type = "prob")
     # if the method is forest, then estimate the ATT using random forest
@@ -56,14 +56,14 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     )
 
     # Define callbacks
-    early_stopping <- callback_early_stopping(monitor = "val_loss", min_delta = 0, patience = 5)
+    early_stopping <- callback_early_stopping(monitor = "val_loss", min_delta = 0, patience = 3)
 
     # Fit model
     history <- model %>% fit(
       x_train,
       y_train,
       epochs = 100,
-      batch_size = 32,
+      batch_size = 64,
       validation_data = list(x_validation, y_validation),
       callbacks = list(early_stopping),
       verbose = 0
@@ -102,14 +102,14 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     )
 
     # Define callbacks
-    early_stopping <- callback_early_stopping(monitor = "val_loss", min_delta = 0, patience = 5)
+    early_stopping <- callback_early_stopping(monitor = "val_loss", min_delta = 0, patience = 3)
 
     # Fit model
     history <- model %>% fit(
       x_train,
       y_train,
       epochs = 100,
-      batch_size = 32,
+      batch_size = 64,
       validation_data = list(x_validation, y_validation),
       callbacks = list(early_stopping),
       verbose = 0
@@ -150,14 +150,14 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     )
 
     # Define callbacks
-    early_stopping <- callback_early_stopping(monitor = "val_loss", min_delta = 0, patience = 5)
+    early_stopping <- callback_early_stopping(monitor = "val_loss", min_delta = 0, patience = 3)
 
     # Fit model
     history <- model %>% fit(
       x_train,
       y_train,
       epochs = 100,
-      batch_size = 32,
+      batch_size = 64,
       validation_data = list(x_validation, y_validation),
       callbacks = list(early_stopping),
       verbose = 0

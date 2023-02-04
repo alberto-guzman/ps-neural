@@ -41,7 +41,6 @@ source(here("code", "03_summarize_fun.R"))
 # fully-crossed simulation experiment
 Design <- createDesign(
   n = c(10000),
-  g = c(0.3,0),
   p = c(20, 100, 200),
   scenarioT = c("base_T", "complex_T"),
   scenarioY = c("base_Y", "complex_Y"),
@@ -52,15 +51,16 @@ Design <- createDesign(
 # Run Simulation
 ######################################################################
 
-#use_virtualenv("/ihome/xqin/alg223/.virtualenvs/r-reticulate")
-#use_condaenv("r-reticulate")
+# use_virtualenv("/ihome/xqin/alg223/.virtualenvs/r-reticulate")
+# use_condaenv("r-reticulate")
 
 res <- runSimulation(
   design = Design,
-  replications = 1000,
+  replications = 100,
   generate = Generate,
   analyse = Analyse,
   summarise = Summarise,
   parallel = T,
-  filename = "sim_results_n10000_r1000_P.rds"
+  filename = "sim_results_n10000_r100_P_e.rds",
+  save_results = T
 )

@@ -163,9 +163,12 @@ Generate <- function(condition, fixed_objects = NULL) {
   # Initialize a0 to -0.18
   a0 <- -0.18
 
+  # Set ATE to 0.3
+  g <- 0.3
+
   # Generate error terms for population outcome models
   e <- rnorm(n, mean = 0, sd = sqrt(0.17))
-  
+
   alpha <- vector("list", length(master_covar))
 
   for (i in 1:length(master_covar)) {
@@ -182,12 +185,12 @@ Generate <- function(condition, fixed_objects = NULL) {
 
   # Create a new variable called element with the format "a * covar_for_outcome"
   element <- paste0("a", a, " * ", covar_for_outcome)
-  
+
   #########################################
   # Population outcome model - Generate base model
   #########################################
   if (scenarioY == "base_Y") {
-    equation <- paste0("a0 + g * T", " + ", paste(element, collapse = " + ")," + e")
+    equation <- paste0("a0 + g * T", " + ", paste(element, collapse = " + "), " + e")
     Y <- eval(parse(text = equation))
   } else
 
@@ -223,7 +226,6 @@ Generate <- function(condition, fixed_objects = NULL) {
 
     equation <- paste0("a0 + g * T + ", paste(c(unlist(terms), element), collapse = " + "), " + e")
     Y <- eval(parse(text = equation))
-    
   }
 
   #########################################
