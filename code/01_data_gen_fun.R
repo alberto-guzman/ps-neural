@@ -164,7 +164,10 @@ Generate <- function(condition, fixed_objects = NULL) {
   a0 <- -0.18
   # Initialize population treatment effect g to 0.3
   g <- 0.3
-
+  
+  # Generate error terms for population outcome models
+  e <- rnorm(n, mean = 0, sd = sqrt(0.17))
+  
   alpha <- vector("list", length(master_covar))
 
   for (i in 1:length(master_covar)) {
@@ -181,16 +184,13 @@ Generate <- function(condition, fixed_objects = NULL) {
 
   # Create a new variable called element with the format "a * covar_for_outcome"
   element <- paste0("a", a, " * ", covar_for_outcome)
-
+  
   #########################################
   # Population outcome model - Generate base model
   #########################################
   if (scenarioY == "base_Y") {
-    equation_Y1 <- paste0("a0 + g", " + ", paste(element, collapse = " + "))
-    equation_Y0 <- paste0("a0", " + ", paste(element, collapse = " + "))
-    Y1 <- eval(parse(text = equation_Y1))
-    Y0 <- eval(parse(text = equation_Y0))
-    Y <- T * Y1 + (1 - T) * Y0
+    equation <- paste0("a0 + g * T", " + ", paste(element, collapse = " + ")," + e")
+    Y <- eval(parse(text = equation))
   } else
 
   #########################################
@@ -223,11 +223,9 @@ Generate <- function(condition, fixed_objects = NULL) {
       terms[[inter]] <- inter_term
     }
 
-    equation_Y1 <- paste0("a0 + g + ", paste(c(unlist(terms), element), collapse = " + "), "")
-    equation_Y0 <- paste0("a0 + ", paste(c(unlist(terms), element), collapse = " + "), "")
-    Y1 <- eval(parse(text = equation_Y1))
-    Y0 <- eval(parse(text = equation_Y0))
-    Y <- T * Y1 + (1 - T) * Y0
+    equation <- paste0("a0 + g * T + ", paste(c(unlist(terms), element), collapse = " + "), " + e")
+    Y <- eval(parse(text = equation))
+    
   }
 
 

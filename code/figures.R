@@ -102,9 +102,7 @@ ggplot(data = over_df, aes(x = method, y = value, fill = as.factor(p))) +
     panel.spacing = unit(1, "cm")
   ) +
   ylab(element_blank()) +
-  xlab(element_blank()) +
-  coord_cartesian(ylim=c(0,1))
-
+  xlab(element_blank()) 
 
 # figures by condition
 
