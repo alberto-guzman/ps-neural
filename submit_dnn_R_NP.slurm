@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=sim_results_n10000_r1000_NP_e_batch32
+#SBATCH --job-name=sim_results_n10000_r1000_NP_e_batch32_L2_1
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=128GB
@@ -15,4 +15,4 @@ module load r/4.1.0
 module load python/anaconda3.7-2019.03
 module load cuda/11.0
 
-Rscript code/run_sim_NP.R >& sim_results_n10000_r1000_NP_e_batch32.log
+Rscript code/run_sim_NP.R >& sim_results_n10000_r1000_NP_e_batch32_L2_1.log
