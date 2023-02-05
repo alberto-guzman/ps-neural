@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=dnn_sim_n10000_r100_gpu_e
+#SBATCH --job-name=dnn_sim_n10000_r1000_gpu_e
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=128GB
@@ -15,4 +15,4 @@ module load r/4.1.0
 module load python/anaconda3.7-2019.03
 module load cuda/11.0
 
-Rscript code/run_sim_NP.R >& dnn_sim_n10000_r100_gpu_e.log
+Rscript code/run_sim_NP.R >& dnn_sim_n10000_r1000_gpu_e.log

@@ -56,7 +56,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     )
 
     # Define callbacks
-    early_stopping <- callback_early_stopping(monitor = "val_loss", min_delta = 0.001, patience = 3)
+    early_stopping <- callback_early_stopping(monitor = "val_loss", min_delta = 0.001, patience = 5)
 
     # Fit model
     history <- model %>% fit(
@@ -66,7 +66,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
       batch_size = 64,
       validation_data = list(x_validation, y_validation),
       callbacks = list(early_stopping),
-      verbose = 2
+      verbose = 0
     )
 
     # Preprocess data
@@ -102,7 +102,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     )
 
     # Define callbacks
-    early_stopping <- callback_early_stopping(monitor = "val_loss", min_delta = 0.001, patience = 3)
+    early_stopping <- callback_early_stopping(monitor = "val_loss", min_delta = 0.001, patience = 5)
 
     # Fit model
     history <- model %>% fit(
@@ -112,7 +112,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
       batch_size = 64,
       validation_data = list(x_validation, y_validation),
       callbacks = list(early_stopping),
-      verbose = 2
+      verbose = 0
     )
 
     # Preprocess data
@@ -150,7 +150,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     )
 
     # Define callbacks
-    early_stopping <- callback_early_stopping(monitor = "val_loss", min_delta = 0.001, patience = 3)
+    early_stopping <- callback_early_stopping(monitor = "val_loss", min_delta = 0.001, patience = 5)
 
     # Fit model
     history <- model %>% fit(
@@ -160,7 +160,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
       batch_size = 64,
       validation_data = list(x_validation, y_validation),
       callbacks = list(early_stopping),
-      verbose = 2
+      verbose = 0
     )
 
     # Preprocess data
