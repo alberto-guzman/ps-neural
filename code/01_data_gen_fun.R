@@ -1,6 +1,11 @@
 #############
-## WHAT DOES THIS FUNCTIOND DO?
-# Based correlation, intercept, and coefficient values on CommonApp study
+## WHAT DOES THIS FUNCTION DO?
+# The Generate function generates simulated data based on specified conditions. 
+# The input is a tibble containing information about the sample size, number of covariates, and conditions for the population treatment and outcome models. 
+# The function first generates correlated normal variables and transforms them into normal, Bernoulli, and uniform variables. It then selects a subset of the covariates for use in the population treatment and outcome models. 
+# The population treatment and outcome models are generated based on the specified conditions 
+# and the selected covariates, and the treatment status is also generated. 
+# The function returns a simulated data tibble that includes the original covariates, treatment status, and generated outcome.
 #############
 
 Generate <- function(condition, fixed_objects = NULL) {

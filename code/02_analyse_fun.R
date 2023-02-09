@@ -1,5 +1,12 @@
 #############
-## WHAT DOES THIS FUNCTIOND DO?
+## WHAT DOES THIS FUNCTION DO?
+# The Analyse function is used to estimate the average treatment effect (ATE) and related metrics for a given condition. 
+# The function uses one of several methods, specified by the method argument, to estimate the propensity score.
+# The methods used to estimate the propensity score are 
+# logistic regression (logit), classification and regression trees (cart), bagging (bag), random forest (forest), 
+# and three neural network models (nn-1, dnn-2, and dnn-3). Once the propensity score is estimated, 
+# the function uses survey-weighted regression to estimate the ATE, standard error of the ATE, p-value, and 95% confidence interval of the ATE. 
+# The function also calculates the absolute standardized average mean (ASAM) for each covariate in the data.
 #############
 
 # function to estimate the ATE and other metrics
@@ -63,7 +70,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
       x_train,
       y_train,
       epochs = 100,
-      batch_size = 32,
+      batch_size = 64,
       validation_data = list(x_validation, y_validation),
       callbacks = list(early_stopping),
       verbose = 0
@@ -89,9 +96,9 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     # Define model
     p <- ncol(x_train) # number of input features
     input_layer <- layer_input(shape = c(p)) # input layer
-    hidden_layer1 <- layer_dense(units = ceiling(2 * p / 3), activation = "relu", kernel_regularizer = regularizer_l2(l = 0.1))(input_layer) # first hidden layer
-    hidden_layer2 <- layer_dense(units = ceiling(2 * p / 3), activation = "relu", kernel_regularizer = regularizer_l2(l = 0.1))(hidden_layer1) # second hidden layer
-    output_layer <- layer_dense(units = 1, activation = "sigmoid", kernel_regularizer = regularizer_l2(l = 0.1))(hidden_layer2) # output layer
+    hidden_layer1 <- layer_dense(units = ceiling(2 * p / 3), activation = "relu", kernel_regularizer = regularizer_l2(l = 0.01))(input_layer) # first hidden layer
+    hidden_layer2 <- layer_dense(units = ceiling(2 * p / 3), activation = "relu", kernel_regularizer = regularizer_l2(l = 0.01))(hidden_layer1) # second hidden layer
+    output_layer <- layer_dense(units = 1, activation = "sigmoid", kernel_regularizer = regularizer_l2(l = 0.01))(hidden_layer2) # output layer
     model <- keras_model(inputs = input_layer, outputs = output_layer)
 
     # Compile model
@@ -109,7 +116,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
       x_train,
       y_train,
       epochs = 100,
-      batch_size = 32,
+      batch_size = 64,
       validation_data = list(x_validation, y_validation),
       callbacks = list(early_stopping),
       verbose = 0
@@ -135,10 +142,10 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     # Define model
     p <- ncol(x_train) # number of input features
     input_layer <- layer_input(shape = c(p)) # input layer
-    hidden_layer1 <- layer_dense(units = ceiling(2 * p / 3), activation = "relu", kernel_regularizer = regularizer_l2(l = 0.1))(input_layer) # first hidden layer
-    hidden_layer2 <- layer_dense(units = ceiling(2 * p / 3), activation = "relu", kernel_regularizer = regularizer_l2(l = 0.1))(hidden_layer1) # second hidden layer
-    hidden_layer3 <- layer_dense(units = ceiling(2 * p / 3), activation = "relu", kernel_regularizer = regularizer_l2(l = 0.1))(hidden_layer2) # third hidden layer
-    output_layer <- layer_dense(units = 1, activation = "sigmoid", kernel_regularizer = regularizer_l2(l = 0.1))(hidden_layer3) # output layer
+    hidden_layer1 <- layer_dense(units = ceiling(2 * p / 3), activation = "relu", kernel_regularizer = regularizer_l2(l = 0.01))(input_layer) # first hidden layer
+    hidden_layer2 <- layer_dense(units = ceiling(2 * p / 3), activation = "relu", kernel_regularizer = regularizer_l2(l = 0.01))(hidden_layer1) # second hidden layer
+    hidden_layer3 <- layer_dense(units = ceiling(2 * p / 3), activation = "relu", kernel_regularizer = regularizer_l2(l = 0.01))(hidden_layer2) # third hidden layer
+    output_layer <- layer_dense(units = 1, activation = "sigmoid", kernel_regularizer = regularizer_l2(l = 0.01))(hidden_layer3) # output layer
     model <- keras_model(inputs = input_layer, outputs = output_layer)
 
 
@@ -157,7 +164,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
       x_train,
       y_train,
       epochs = 100,
-      batch_size = 32,
+      batch_size = 64,
       validation_data = list(x_validation, y_validation),
       callbacks = list(early_stopping),
       verbose = 0
