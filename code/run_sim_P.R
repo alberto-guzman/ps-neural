@@ -56,11 +56,11 @@ Design <- createDesign(
 
 res <- runSimulation(
   design = Design,
-  replications = 1000,
+  replications = 100,
   generate = Generate,
   analyse = Analyse,
   summarise = Summarise,
   parallel = T,
-  filename = "sim_results_n10000_r1000_P_e.rds",
-  save_results = T
-)
+  filename = "sim_results_n10000_r1000_P_e_boot_100.rds",
+  save_results = T,
+  boot_method = "basic")

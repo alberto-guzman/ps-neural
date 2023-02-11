@@ -56,10 +56,11 @@ use_virtualenv("/ihome/xqin/alg223/.virtualenvs/r-reticulate")
 
 res <- runSimulation(
   design = Design,
-  replications = 1000,
+  replications = 100,
   generate = Generate,
   analyse = Analyse,
   summarise = Summarise,
   parallel = F,
-  filename = "sim_results_n10000_r1000_NP_e_batch32_L2_1.rds",
-  save_results = T)
+  filename = "sim_results_n10000_r1000_NP_e_boot_100.rds",
+  save_results = T,
+  boot_method = "basic")
