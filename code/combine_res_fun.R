@@ -8,6 +8,7 @@ library(tibble)
 library(dplyr)
 library(simhelpers)
 library(rsimsum)
+library(ggplot2)
 
 combine_results <- function(dir_path) {
   # Get a list of all the "results-row-*.rds" files in the directory
@@ -34,10 +35,8 @@ result2 <- combine_results("~/Projects/inProgress/2018_propensity_neuralnet_pape
 res <- bind_rows(result1,result2)
 res <- res %>% mutate(true_para = 0.3)
 
-
-test <- res %>%
-  group_by(p,method) %>% # grouping 
-  do(calc_absolute(., estimates = ATE, true_param = true_para)) # run the function
-
-s1 <- simsum(data = res, estvarname = "ATE", true = 0.3, se = "ATE_se", methodvar = "method", by = c("p"), ref = "logit", dropbig = F)
+s1 <- simsum(data = res, estvarname = "ATE", true = 0.3, se = "ATE_se", methodvar = "method", by = c("p"), ref = "logit", dropbig = TRUE)
 summary(s1)
+autoplot(summary(s1), type = "forest", stats = "bias")
+autoplot(s1, type = "zip")
+autoplot(s1, type = "est_density")

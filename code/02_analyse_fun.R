@@ -210,8 +210,9 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
   conf_interval <- confint(fit, level = 0.95)["T", ]
   lower_bound <- conf_interval[1]
   upper_bound <- conf_interval[2]
+  CIs <- c(lower_bound,upper_bound)
 
-  ci_95 <- ifelse(lower_bound < true_ATE && true_ATE < upper_bound, 1, 0)
+  #ci_95 <- ifelse(lower_bound < true_ATE && true_ATE < upper_bound, 1, 0)
 
   # calculate the mean of weights
   mean_ps_weights <- mean(dat$ps_weights)
@@ -275,7 +276,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     mean_ps_weights = mean_ps_weights,
     ASAM = ASAM,
     p_val = p_val,
-    ci_95 = ci_95
+    CIs = CIs
   )
   ret
 }
