@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=dnn_n10000_r1000_P_e_boot_100
+#SBATCH --job-name=dnn_n10000_r1000_P_e_0212
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=64
@@ -15,4 +15,4 @@ module load r/4.1.0
 module load python/anaconda3.7-2019.03
 module load cuda/11.0
 
-Rscript code/run_sim_P.R >& dnn_n10000_r1000_P_e_boot_100.log
+Rscript code/run_sim_P.R >& dnn_n10000_r1000_P_e_0212.log

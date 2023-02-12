@@ -61,5 +61,5 @@ res <- runSimulation(
   analyse = Analyse,
   summarise = Summarise,
   parallel = F,
-  filename = "sim_results_n10000_r1000_NP_e_mod.rds",
+  filename = "sim_results_n10000_r1000_NP_e_0212.rds",
   save_results = T)

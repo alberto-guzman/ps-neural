@@ -1,11 +1,11 @@
 #############
 ## WHAT DOES THIS FUNCTION DO?
-# The Analyse function is used to estimate the average treatment effect (ATE) and related metrics for a given condition. 
+# The Analyse function is used to estimate the average treatment effect (ATE) and related metrics for a given condition.
 # The function uses one of several methods, specified by the method argument, to estimate the propensity score.
-# The methods used to estimate the propensity score are 
-# logistic regression (logit), classification and regression trees (cart), bagging (bag), random forest (forest), 
-# and three neural network models (nn-1, dnn-2, and dnn-3). Once the propensity score is estimated, 
-# the function uses survey-weighted regression to estimate the ATE, standard error of the ATE, p-value, and 95% confidence interval of the ATE. 
+# The methods used to estimate the propensity score are
+# logistic regression (logit), classification and regression trees (cart), bagging (bag), random forest (forest),
+# and three neural network models (nn-1, dnn-2, and dnn-3). Once the propensity score is estimated,
+# the function uses survey-weighted regression to estimate the ATE, standard error of the ATE, p-value, and 95% confidence interval of the ATE.
 # The function also calculates the absolute standardized average mean (ASAM) for each covariate in the data.
 #############
 
@@ -34,7 +34,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     # if the method is forest, then estimate the ATE using random forest
   } else if (method == "forest") {
     # estimate the propensity score using random forest
-    mod <- randomForest(T ~ . - Y - trueps, data = dat)
+    mod <- randomForest(factor(T) ~ . - Y - trueps, data = dat)
     # save the propensity score to a vector
     ps <- predict(mod, newdata = dat, type = "prob")[, 2]
   } else if (method == "nn-1") {
@@ -54,14 +54,14 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     hidden_layer <- layer_dense(units = ceiling(2 * p / 3), activation = "relu", kernel_regularizer = regularizer_l2(l = 0.1))(input_layer)
     output_layer <- layer_dense(units = 1, activation = "sigmoid", kernel_regularizer = regularizer_l2(l = 0.1))(hidden_layer)
     model <- keras_model(inputs = input_layer, outputs = output_layer)
-    
+
     # Compile model
     model %>% compile(
       optimizer = "adam",
       loss = "binary_crossentropy",
       metrics = c("accuracy")
     )
-    
+
     # Define callbacks
     early_stopping <- callback_early_stopping(monitor = "val_loss", min_delta = 0, patience = 5)
 
@@ -208,11 +208,9 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
 
   # calculate the 95% coverage
   conf_interval <- confint(fit, level = 0.95)["T", ]
-  lower_bound <- conf_interval[1]
-  upper_bound <- conf_interval[2]
-  CIs <- c(lower_bound,upper_bound)
-
-  #ci_95 <- ifelse(lower_bound < true_ATE && true_ATE < upper_bound, 1, 0)
+  lower_bound <- as.numeric(conf_interval[1])
+  upper_bound <- as.numeric(conf_interval[2])
+  ci_95 <- ifelse(lower_bound < true_ATE & true_ATE < upper_bound, 1, 0)
 
   # calculate the mean of weights
   mean_ps_weights <- mean(dat$ps_weights)
@@ -276,7 +274,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     mean_ps_weights = mean_ps_weights,
     ASAM = ASAM,
     p_val = p_val,
-    CIs = CIs
+    ci_95 = ci_95
   )
   ret
 }

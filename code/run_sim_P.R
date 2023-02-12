@@ -47,6 +47,7 @@ Design <- createDesign(
   method = c("logit", "cart", "bag", "forest")
 )
 
+
 ######################################################################
 # Run Simulation
 ######################################################################
@@ -56,11 +57,11 @@ Design <- createDesign(
 
 res <- runSimulation(
   design = Design,
-  replications = 100,
+  replications = 1000,
   generate = Generate,
   analyse = Analyse,
   summarise = Summarise,
   parallel = T,
-  filename = "sim_results_n10000_r1000_P_e_boot_100.rds",
-  save_results = T,
-  boot_method = "basic")
+  filename = "sim_results_n10000_r1000_P_e_0212.rds",
+  save_results = T
+)
