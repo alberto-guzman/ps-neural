@@ -16,7 +16,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
   # if the method is logit, then estimate the ATE using logistic regression
   if (method == "logit") {
     # estimate the propensity score using logistic regression
-    mod <- glm(T ~ . - Y - trueps, data = dat, family = binomial(link = "logit"))
+    mod <- glm(T ~ . - Y - trueps, data = dat, family = binomial)
     # predict on the entire dataframe to generate ps
     ps <- predict(mod, newdata = dat, type = "response")
     # if the method is cart, then estimate the ATE using classification and regression trees
@@ -34,7 +34,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     # if the method is forest, then estimate the ATE using random forest
   } else if (method == "forest") {
     # estimate the propensity score using random forest
-    mod <- randomForest(factor(T) ~ . - Y - trueps, data = dat)
+    mod <- randomForest(T ~ . - Y - trueps, data = dat)
     # save the propensity score to a vector
     ps <- predict(mod, newdata = dat, type = "prob")[, 2]
   } else if (method == "nn-1") {
@@ -51,19 +51,19 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     # Define model
     p <- ncol(x_train) # number of input features
     input_layer <- layer_input(shape = c(p)) # input layer
-    hidden_layer <- layer_dense(units = p, activation = "relu")(input_layer)
-    output_layer <- layer_dense(units = 1, activation = "sigmoid")(hidden_layer)
+    hidden_layer <- layer_dense(units = ceiling(2 * p / 3), activation = "relu", kernel_regularizer = regularizer_l2(l = 0.1))(input_layer)
+    output_layer <- layer_dense(units = 1, activation = "sigmoid", kernel_regularizer = regularizer_l2(l = 0.1))(hidden_layer)
     model <- keras_model(inputs = input_layer, outputs = output_layer)
-
+    
     # Compile model
     model %>% compile(
       optimizer = "adam",
       loss = "binary_crossentropy",
       metrics = c("accuracy")
     )
-
+    
     # Define callbacks
-    early_stopping <- callback_early_stopping(monitor = "val_loss", min_delta = 0.001, patience = 5)
+    early_stopping <- callback_early_stopping(monitor = "val_loss", min_delta = 0, patience = 5)
 
     # Fit model
     history <- model %>% fit(
@@ -96,9 +96,9 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     # Define model
     p <- ncol(x_train) # number of input features
     input_layer <- layer_input(shape = c(p)) # input layer
-    hidden_layer1 <- layer_dense(units = ceiling(2 * p / 3), activation = "relu", kernel_regularizer = regularizer_l2(l = 0.01))(input_layer) # first hidden layer
-    hidden_layer2 <- layer_dense(units = ceiling(2 * p / 3), activation = "relu", kernel_regularizer = regularizer_l2(l = 0.01))(hidden_layer1) # second hidden layer
-    output_layer <- layer_dense(units = 1, activation = "sigmoid", kernel_regularizer = regularizer_l2(l = 0.01))(hidden_layer2) # output layer
+    hidden_layer1 <- layer_dense(units = ceiling(2 * p / 3), activation = "relu", kernel_regularizer = regularizer_l2(l = 0.1))(input_layer) # first hidden layer
+    hidden_layer2 <- layer_dense(units = ceiling(2 * p / 3), activation = "relu", kernel_regularizer = regularizer_l2(l = 0.1))(hidden_layer1) # second hidden layer
+    output_layer <- layer_dense(units = 1, activation = "sigmoid", kernel_regularizer = regularizer_l2(l = 0.1))(hidden_layer2) # output layer
     model <- keras_model(inputs = input_layer, outputs = output_layer)
 
     # Compile model
@@ -109,7 +109,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     )
 
     # Define callbacks
-    early_stopping <- callback_early_stopping(monitor = "val_loss", min_delta = 0.001, patience = 5)
+    early_stopping <- callback_early_stopping(monitor = "val_loss", min_delta = 0, patience = 5)
 
     # Fit model
     history <- model %>% fit(
@@ -142,10 +142,10 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     # Define model
     p <- ncol(x_train) # number of input features
     input_layer <- layer_input(shape = c(p)) # input layer
-    hidden_layer1 <- layer_dense(units = ceiling(2 * p / 3), activation = "relu", kernel_regularizer = regularizer_l2(l = 0.01))(input_layer) # first hidden layer
-    hidden_layer2 <- layer_dense(units = ceiling(2 * p / 3), activation = "relu", kernel_regularizer = regularizer_l2(l = 0.01))(hidden_layer1) # second hidden layer
-    hidden_layer3 <- layer_dense(units = ceiling(2 * p / 3), activation = "relu", kernel_regularizer = regularizer_l2(l = 0.01))(hidden_layer2) # third hidden layer
-    output_layer <- layer_dense(units = 1, activation = "sigmoid", kernel_regularizer = regularizer_l2(l = 0.01))(hidden_layer3) # output layer
+    hidden_layer1 <- layer_dense(units = ceiling(2 * p / 3), activation = "relu", kernel_regularizer = regularizer_l2(l = 0.1))(input_layer) # first hidden layer
+    hidden_layer2 <- layer_dense(units = ceiling(2 * p / 3), activation = "relu", kernel_regularizer = regularizer_l2(l = 0.1))(hidden_layer1) # second hidden layer
+    hidden_layer3 <- layer_dense(units = ceiling(2 * p / 3), activation = "relu", kernel_regularizer = regularizer_l2(l = 0.1))(hidden_layer2) # third hidden layer
+    output_layer <- layer_dense(units = 1, activation = "sigmoid", kernel_regularizer = regularizer_l2(l = 0.1))(hidden_layer3) # output layer
     model <- keras_model(inputs = input_layer, outputs = output_layer)
 
 
@@ -157,7 +157,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     )
 
     # Define callbacks
-    early_stopping <- callback_early_stopping(monitor = "val_loss", min_delta = 0.001, patience = 5)
+    early_stopping <- callback_early_stopping(monitor = "val_loss", min_delta = 0, patience = 5)
 
     # Fit model
     history <- model %>% fit(
