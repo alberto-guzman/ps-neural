@@ -44,7 +44,7 @@ Design <- createDesign(
   p = c(20, 100, 200),
   scenarioT = c("base_T", "complex_T"),
   scenarioY = c("base_Y", "complex_Y"),
-  method = c("nn-1", "dnn-2", "dnn-3")
+  method = c("nn-1")
 )
 
 ######################################################################
@@ -61,5 +61,5 @@ res <- runSimulation(
   analyse = Analyse,
   summarise = Summarise,
   parallel = F,
-  filename = "sim_results_n10000_r1000_NP_e_0212.rds",
+  filename = "sim_results_n10000_r1000_NP_e_NNonly.rds",
   save_results = T)
