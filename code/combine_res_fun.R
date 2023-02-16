@@ -20,5 +20,12 @@ combine_results <- function(dir_path) {
 result1 <- combine_results("~/Projects/inProgress/2018_propensity_neuralnet_paper/data/sim_results_n10000_r1000_P_e_all/")
 result2 <- combine_results("~/Projects/inProgress/2018_propensity_neuralnet_paper/data/sim_results_n10000_r1000_NP_e_all/")
 
-res <- bind_rows(result1, result2)
-# res <- saveRDS(res)
+
+result2 <- result2 |> 
+  filter(method != "nn-1")
+  
+
+nn_results <- combine_results("~/Projects/inProgress/2018_propensity_neuralnet_paper/data/sim_results_n10000_r1000_NP_e_NNonly_all//")
+
+res <- bind_rows(result1, result2, nn_results)
+saveRDS(res, file = "res_all.rds")
