@@ -41,7 +41,7 @@ source(here("code", "03_summarize_fun.R"))
 # fully-crossed simulation experiment
 Design <- createDesign(
   n = c(10000),
-  p = c(20, 100, 200),
+  p = c(20,200),
   scenarioT = c("base_T", "complex_T"),
   scenarioY = c("base_Y", "complex_Y"),
   method = c("logit", "cart", "bag", "forest")
@@ -62,6 +62,6 @@ res <- runSimulation(
   analyse = Analyse,
   summarise = Summarise,
   parallel = T,
-  filename = "sim_results_n10000_r1000_P_e_0212.rds",
+  filename = "sim_results_n10000_r1000_P_lmSE.rds",
   save_results = T
 )

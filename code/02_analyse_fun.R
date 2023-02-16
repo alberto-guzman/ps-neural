@@ -51,9 +51,8 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     # Define model
     p <- ncol(x_train) # number of input features
     input_layer <- layer_input(shape = c(p)) # input layer
-    hidden_layer <- layer_dense(units = ceiling(2 * p / 3), activation = "relu")(input_layer)
-    dropout_layer <- layer_dropout(hidden_layer, rate = 0.2) 
-    output_layer <- layer_dense(units = 1, activation = "sigmoid")(dropout_layer)
+    hidden_layer <- layer_dense(units = ceiling(2 * p / 3), activation = "relu", kernel_regularizer = regularizer_l2(l = 0.01))(input_layer)
+    output_layer <- layer_dense(units = 1, activation = "sigmoid", kernel_regularizer = regularizer_l2(l = 0.01))(hidden_layer)
     model <- keras_model(inputs = input_layer, outputs = output_layer)
 
     # Compile model
@@ -63,6 +62,9 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
       metrics = c("accuracy")
     )
 
+    # Define callbacks
+    early_stopping <- callback_early_stopping(monitor = "val_loss", min_delta = 0.001, patience = 5)
+
     # Fit model
     history <- model %>% fit(
       x_train,
@@ -70,6 +72,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
       epochs = 100,
       batch_size = 64,
       validation_data = list(x_validation, y_validation),
+      callbacks = list(early_stopping),
       verbose = 0
     )
 
@@ -93,11 +96,9 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     # Define model
     p <- ncol(x_train) # number of input features
     input_layer <- layer_input(shape = c(p)) # input layer
-    hidden_layer1 <- layer_dense(units = ceiling(2 * p / 3))(input_layer) # first hidden layer
-    dropout_layer1 <- layer_dropout(hidden_layer1, rate = 0.2) # add dropout layer after first hidden layer
-    hidden_layer2 <- layer_dense(units = ceiling(2 * p / 3))(dropout_layer1) # second hidden layer with dropout applied
-    dropout_layer2 <- layer_dropout(hidden_layer2, rate = 0.2) # add dropout layer after second hidden layer
-    output_layer <- layer_dense(units = 1, activation = "sigmoid")(dropout_layer2) # output layer
+    hidden_layer1 <- layer_dense(units = ceiling(2 * p / 3), activation = "relu", kernel_regularizer = regularizer_l2(l = 0.01))(input_layer) # first hidden layer
+    hidden_layer2 <- layer_dense(units = ceiling(2 * p / 3), activation = "relu", kernel_regularizer = regularizer_l2(l = 0.01))(hidden_layer1) # second hidden layer
+    output_layer <- layer_dense(units = 1, activation = "sigmoid", kernel_regularizer = regularizer_l2(l = 0.01))(hidden_layer2) # output layer
     model <- keras_model(inputs = input_layer, outputs = output_layer)
 
     # Compile model
@@ -107,6 +108,9 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
       metrics = c("accuracy")
     )
 
+    # Define callbacks
+    early_stopping <- callback_early_stopping(monitor = "val_loss", min_delta = 0.001, patience = 5)
+
     # Fit model
     history <- model %>% fit(
       x_train,
@@ -114,6 +118,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
       epochs = 100,
       batch_size = 64,
       validation_data = list(x_validation, y_validation),
+      callbacks = list(early_stopping),
       verbose = 0
     )
 
@@ -137,14 +142,12 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     # Define model
     p <- ncol(x_train) # number of input features
     input_layer <- layer_input(shape = c(p)) # input layer
-    hidden_layer1 <- layer_dense(units = ceiling(2 * p / 3), activation = "relu")(input_layer) # first hidden layer
-    dropout_layer1 <- layer_dropout(hidden_layer1, rate = 0.2) # add dropout layer after first hidden layer
-    hidden_layer2 <- layer_dense(units = ceiling(2 * p / 3), activation = "relu")(dropout_layer1) # second hidden layer with dropout applied
-    dropout_layer2 <- layer_dropout(hidden_layer2, rate = 0.2) # add dropout layer after second hidden layer
-    hidden_layer3 <- layer_dense(units = ceiling(2 * p / 3), activation = "relu")(dropout_layer2) # third hidden layer with dropout applied
-    dropout_layer3 <- layer_dropout(hidden_layer3, rate = 0.2) # add dropout layer after third hidden layer
-    output_layer <- layer_dense(units = 1, activation = "sigmoid")(dropout_layer3) # output layer
+    hidden_layer1 <- layer_dense(units = ceiling(2 * p / 3), activation = "relu", kernel_regularizer = regularizer_l2(l = 0.01))(input_layer) # first hidden layer
+    hidden_layer2 <- layer_dense(units = ceiling(2 * p / 3), activation = "relu", kernel_regularizer = regularizer_l2(l = 0.01))(hidden_layer1) # second hidden layer
+    hidden_layer3 <- layer_dense(units = ceiling(2 * p / 3), activation = "relu", kernel_regularizer = regularizer_l2(l = 0.01))(hidden_layer2) # third hidden layer
+    output_layer <- layer_dense(units = 1, activation = "sigmoid", kernel_regularizer = regularizer_l2(l = 0.01))(hidden_layer3) # output layer
     model <- keras_model(inputs = input_layer, outputs = output_layer)
+
 
     # Compile model
     model %>% compile(
@@ -153,6 +156,9 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
       metrics = c("accuracy")
     )
 
+    # Define callbacks
+    early_stopping <- callback_early_stopping(monitor = "val_loss", min_delta = 0.001, patience = 5)
+
     # Fit model
     history <- model %>% fit(
       x_train,
@@ -160,6 +166,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
       epochs = 100,
       batch_size = 64,
       validation_data = list(x_validation, y_validation),
+      callbacks = list(early_stopping),
       verbose = 0
     )
 
@@ -193,8 +200,11 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
 
   # save the true_ATE and se_true_ATE
   ATE <- unname(coef(fit)["T"])
-  vcov_matrix <- vcov(fit)
-  ATE_se <- unname(sqrt(vcov_matrix["T", "T"]))
+  # vcov_matrix <- vcov(fit)
+  # ATE_se <- unname(sqrt(vcov_matrix["T", "T"]))
+
+  modw <- lm(Y ~ T, data = dat, weights = dat$ps_weights)
+  ATE_se <- summary(modw)$coefficients[c("T"), c("Std. Error")]
 
   # extract the p-value of T
   p_val <- summary(fit)$coefficients["T", "Pr(>|t|)"]
