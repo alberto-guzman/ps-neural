@@ -17,9 +17,10 @@ combine_results <- function(dir_path) {
 }
 
 # SimDesign's save_results writes per-condition files into these directories
-# (created by run_sim_P.R and run_sim_NP.R respectively)
+# (created by run_sim_P.R, run_sim_gbm.R, and run_sim_NP.R respectively)
 result_p <- combine_results(here("data", "sim_results_v2_P"))
+result_gbm <- combine_results(here("data", "sim_results_v2_gbm"))
 result_np <- combine_results(here("data", "sim_results_v2_NP"))
 
-res <- bind_rows(result_p, result_np)
+res <- bind_rows(result_p, result_gbm, result_np)
 saveRDS(res, file = here("data", "res_all_v2.rds"))

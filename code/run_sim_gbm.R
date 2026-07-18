@@ -1,6 +1,6 @@
 ######################################################################
-# Canonical runner: parallel-safe methods (logit, cart, bag, forest)
-# Full crossed design; keras-based methods run via run_sim_NP.R
+# Canonical runner: GBM only — split into its own Slurm job because 5-fold
+# CV of 10,000 trees makes it the longest block (~30 min/rep at p=200)
 ######################################################################
 
 packages <- c(
@@ -47,7 +47,7 @@ Design <- createDesign(
   p = c(20, 100, 200),
   scenarioT = c("base_T", "complex_T"),
   scenarioY = c("base_Y", "complex_Y"),
-  method = c("logit", "cart", "bag", "forest", "bart", "sl")
+  method = c("gbm")
 )
 
 ######################################################################
@@ -64,8 +64,8 @@ res <- runSimulation(
   analyse = Analyse,
   summarise = Summarise,
   parallel = TRUE,
-  seed = 42000 + seq_len(nrow(Design)),
-  filename = "sim_results_v2_P.rds",
+  seed = 44000 + seq_len(nrow(Design)),
+  filename = "sim_results_v2_gbm.rds",
   save_results = TRUE,
-  save_details = list(save_results_dirname = here("data", "sim_results_v2_P"))
+  save_details = list(save_results_dirname = here("data", "sim_results_v2_gbm"))
 )
