@@ -18,6 +18,14 @@
 #   generated all pairwise combinations (2,775 interactions at p = 200), which
 #   saturated the true propensity score.
 # - Linear predictors are computed with matrix algebra instead of eval(parse()).
+# - The POPULATION is now fixed within each design cell: the correlation matrix,
+#   covariate roles, coefficients, and complex-term selections are drawn under a
+#   seed derived from (n, p, scenarioT, scenarioY) — deliberately NOT method, so
+#   every method faces the same population — and the replication's RNG state is
+#   restored before the data draws. The original redrew the population every
+#   replication, which conflates sampling variance with between-population bias
+#   variation and makes CI coverage uninterpretable (cf. Cannas & Arpino 2019 /
+#   Setoguchi 2008, whose DGP coefficients are fixed constants).
 #############
 
 Generate <- function(condition, fixed_objects = NULL) {
@@ -25,8 +33,13 @@ Generate <- function(condition, fixed_objects = NULL) {
   Attach(condition)
 
   #########################################
-  # Correlated covariates
+  # Population parameters (fixed within a design cell)
   #########################################
+
+  # Deterministic population seed from the design cell; restore the replication
+  # stream afterwards so data draws still vary across replications
+  rep_stream <- .Random.seed
+  set.seed(1e6 + n + 100 * p + 10 * (scenarioT == "complex_T") + (scenarioY == "complex_Y"))
 
   # Generate a symmetric correlation matrix with off-diagonals between -.3 and .3
   cor <- matrix(0, nrow = p, ncol = p)
@@ -36,6 +49,39 @@ Generate <- function(condition, fixed_objects = NULL) {
 
   # Smooth the correlation matrix to ensure it is positive definite
   cor <- psych::cor.smooth(cor)
+
+  # Covariate roles: half confounders, a quarter outcome-only, a quarter treatment-only
+  perm <- sample(p)
+  n_confound <- floor(p / 2)
+  n_rel_outcome <- floor(p / 4)
+
+  covar_confound <- perm[1:n_confound]
+  covar_rel_outcome <- perm[(n_confound + 1):(n_confound + n_rel_outcome)]
+  covar_rel_treatment <- perm[(n_confound + n_rel_outcome + 1):p]
+
+  # Column indices used by the population treatment and outcome models
+  covar_for_treatment <- c(covar_confound, covar_rel_treatment)
+  covar_for_outcome <- c(covar_confound, covar_rel_outcome)
+
+  # Model coefficients (aligned to columns of X)
+  b0 <- 0.25
+  beta <- runif(p, min = -0.4, max = 0.4)
+  a0 <- -0.18
+  g <- 0.3
+  alpha <- runif(p, min = -0.2, max = 0.3)
+
+  # Covariates carrying quadratic/interaction terms in the complex scenarios
+  J_T <- floor(length(covar_for_treatment) / 2)
+  cvars_T <- sample(covar_for_treatment, J_T)
+  J_Y <- floor(length(covar_for_outcome) / 2)
+  cvars_Y <- sample(covar_for_outcome, J_Y)
+
+  # Population fully specified; hand the RNG back to the replication stream
+  assign(".Random.seed", rep_stream, envir = .GlobalEnv)
+
+  #########################################
+  # Correlated covariates
+  #########################################
 
   # Generate correlated normal variables
   vars <- mvrnorm(n, mu = numeric(p), Sigma = cor)
@@ -62,28 +108,8 @@ Generate <- function(condition, fixed_objects = NULL) {
   colnames(X) <- sprintf("v%d", 1:p)
 
   #########################################
-  # Covariate roles: half confounders, a quarter outcome-only, a quarter treatment-only
-  #########################################
-
-  perm <- sample(p)
-  n_confound <- floor(p / 2)
-  n_rel_outcome <- floor(p / 4)
-
-  covar_confound <- perm[1:n_confound]
-  covar_rel_outcome <- perm[(n_confound + 1):(n_confound + n_rel_outcome)]
-  covar_rel_treatment <- perm[(n_confound + n_rel_outcome + 1):p]
-
-  # Column indices used by the population treatment and outcome models
-  covar_for_treatment <- c(covar_confound, covar_rel_treatment)
-  covar_for_outcome <- c(covar_confound, covar_rel_outcome)
-
-  #########################################
   # Population treatment model
   #########################################
-
-  # Intercept and main-effect coefficients (aligned to columns of X)
-  b0 <- 0.25
-  beta <- runif(p, min = -0.4, max = 0.4)
 
   # Base model: main effects only
   eta_T <- b0 + X[, covar_for_treatment, drop = FALSE] %*% beta[covar_for_treatment]
@@ -91,12 +117,10 @@ Generate <- function(condition, fixed_objects = NULL) {
   # Complex model: add quadratic terms for half of the treatment-model covariates and
   # adjacent-pair interactions within that sampled set, per eq-psD in the manuscript
   if (scenarioT == "complex_T") {
-    J <- floor(length(covar_for_treatment) / 2)
-    cvars <- sample(covar_for_treatment, J)
-    Xc <- X[, cvars, drop = FALSE]
-    eta_T <- eta_T + (Xc^2) %*% beta[cvars]
-    if (J >= 2) {
-      eta_T <- eta_T + (Xc[, -J, drop = FALSE] * Xc[, -1, drop = FALSE]) %*% beta[cvars[-J]]
+    Xc <- X[, cvars_T, drop = FALSE]
+    eta_T <- eta_T + (Xc^2) %*% beta[cvars_T]
+    if (J_T >= 2) {
+      eta_T <- eta_T + (Xc[, -J_T, drop = FALSE] * Xc[, -1, drop = FALSE]) %*% beta[cvars_T[-J_T]]
     }
   }
 
@@ -109,10 +133,7 @@ Generate <- function(condition, fixed_objects = NULL) {
   # Population outcome model
   #########################################
 
-  # Intercept, treatment effect (ATE), coefficients, and error term
-  a0 <- -0.18
-  g <- 0.3
-  alpha <- runif(p, min = -0.2, max = 0.3)
+  # Error term
   e <- rnorm(n, mean = 0, sd = sqrt(0.17))
 
   # Base model: main effects only
@@ -120,12 +141,10 @@ Generate <- function(condition, fixed_objects = NULL) {
 
   # Complex model: quadratics and adjacent-pair interactions, per eq-outcome_d
   if (scenarioY == "complex_Y") {
-    J <- floor(length(covar_for_outcome) / 2)
-    cvars <- sample(covar_for_outcome, J)
-    Xc <- X[, cvars, drop = FALSE]
-    Y <- Y + (Xc^2) %*% alpha[cvars]
-    if (J >= 2) {
-      Y <- Y + (Xc[, -J, drop = FALSE] * Xc[, -1, drop = FALSE]) %*% alpha[cvars[-J]]
+    Xc <- X[, cvars_Y, drop = FALSE]
+    Y <- Y + (Xc^2) %*% alpha[cvars_Y]
+    if (J_Y >= 2) {
+      Y <- Y + (Xc[, -J_Y, drop = FALSE] * Xc[, -1, drop = FALSE]) %*% alpha[cvars_Y[-J_Y]]
     }
   }
 
