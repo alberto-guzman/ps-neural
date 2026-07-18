@@ -23,8 +23,8 @@ packages <- c(
 
 lapply(packages, library, character.only = TRUE)
 
-# sets working directory to root of R project
-here()
+# sets working directory to root of R project (save_results paths are cwd-relative)
+setwd(here())
 
 ######### source functions
 source(here("code", "01_data_gen_fun.R"))
@@ -61,8 +61,9 @@ res <- runSimulation(
   analyse = Analyse,
   summarise = Summarise,
   parallel = FALSE,
+  packages = packages,
   seed = 43000 + seq_len(nrow(Design)),
   filename = "sim_results_v2_NP.rds",
   save_results = TRUE,
-  save_details = list(save_results_dirname = here("data", "sim_results_v2_NP"))
+  save_details = list(save_results_dirname = "data/sim_results_v2_NP")
 )

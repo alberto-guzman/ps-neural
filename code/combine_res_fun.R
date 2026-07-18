@@ -1,15 +1,21 @@
 library(tidyverse)
 library(here)
 
+# SimDesign's per-row files are classic RDS in older versions and qs2 qdata
+# format in newer ones (which also drop the .rds extension) — read either
+read_result <- function(file) {
+  tryCatch(readRDS(file), error = function(e) qs2::qd_read(file))
+}
+
 combine_results <- function(dir_path) {
-  # Get a list of all the "results-row-*.rds" files in the directory
-  files <- list.files(dir_path, pattern = "results-row-\\d+\\.rds", full.names = TRUE)
+  # Get a list of all the "results-row-*" files in the directory
+  files <- list.files(dir_path, pattern = "results-row-\\d+", full.names = TRUE)
+  stopifnot("no results-row files found in dir_path" = length(files) > 0)
 
   # Read in the "results" and "condition" dataframes from each file and combine them into a single tibble
   results_list <- lapply(files, function(file) {
-    res <- readRDS(file)[["results"]] %>% as_tibble()
-    cond <- readRDS(file)[["condition"]] %>% as_tibble()
-    bind_cols(res, cond)
+    x <- read_result(file)
+    bind_cols(as_tibble(x[["results"]]), as_tibble(x[["condition"]]))
   })
 
   # Combine all the resulting tibbles into a single tibble

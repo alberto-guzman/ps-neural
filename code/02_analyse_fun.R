@@ -27,8 +27,14 @@
 # Shared keras fitting helper: trains a network with `n_hidden` hidden layers and
 # returns propensity scores predicted for the full data set
 fit_nn_ps <- function(dat, n_hidden) {
-  # Seed TF/Python RNGs from the SimDesign-managed R stream so runs are reproducible
-  tensorflow::set_random_seed(sample.int(.Machine$integer.max, 1))
+  # Release the previous replication's graph memory (36,000 model builds per job)
+  try(keras::k_clear_session(), silent = TRUE)
+
+  # Seed TF/Python RNGs from the SimDesign-managed R stream so runs are
+  # reproducible. disable_gpu = FALSE: the default (TRUE) would silently turn
+  # off the GPU this job's Slurm allocation requests; we accept the minor
+  # cuDNN nondeterminism that GPU training implies.
+  tensorflow::set_random_seed(sample.int(.Machine$integer.max, 1), disable_gpu = FALSE)
 
   # Split the data into training and validation sets (80/20)
   split <- sample(2, nrow(dat), replace = TRUE, prob = c(0.8, 0.2))
