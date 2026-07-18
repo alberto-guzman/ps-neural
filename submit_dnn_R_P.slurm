@@ -15,4 +15,7 @@ module load r/4.1.0
 module load python/anaconda3.7-2019.03
 module load cuda/11.0
 
+export OMP_NUM_THREADS=1
+export OPENBLAS_NUM_THREADS=1
+
 Rscript code/run_sim_P.R >& dnn_n10000_r1000_P_v2.log

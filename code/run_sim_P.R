@@ -54,6 +54,9 @@ Design <- createDesign(
 # Run Simulation
 ######################################################################
 
+# SimDesign does not create parent directories for save_results
+dir.create(here("data"), showWarnings = FALSE)
+
 res <- runSimulation(
   design = Design,
   replications = 1000,
@@ -63,5 +66,6 @@ res <- runSimulation(
   parallel = TRUE,
   seed = 42000 + seq_len(nrow(Design)),
   filename = "sim_results_v2_P.rds",
-  save_results = TRUE
+  save_results = TRUE,
+  save_details = list(save_results_dirname = here("data", "sim_results_v2_P"))
 )

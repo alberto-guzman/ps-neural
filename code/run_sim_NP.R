@@ -51,6 +51,9 @@ Design <- createDesign(
 use_virtualenv("/ihome/xqin/alg223/.virtualenvs/r-reticulate")
 # use_condaenv("r-reticulate")
 
+# SimDesign does not create parent directories for save_results
+dir.create(here("data"), showWarnings = FALSE)
+
 res <- runSimulation(
   design = Design,
   replications = 1000,
@@ -60,5 +63,6 @@ res <- runSimulation(
   parallel = FALSE,
   seed = 43000 + seq_len(nrow(Design)),
   filename = "sim_results_v2_NP.rds",
-  save_results = TRUE
+  save_results = TRUE,
+  save_details = list(save_results_dirname = here("data", "sim_results_v2_NP"))
 )

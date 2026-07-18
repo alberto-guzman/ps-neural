@@ -119,9 +119,12 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     # in-sample predictions. Same hyperparameters as WeightIt's default —
     # the packages differ only in the selection rule (CV deviance vs balance);
     # the CV rule keeps every learner in this study tuned for prediction.
+    # n.cores = 1 pins gbm's internal CV parallelism (compute plumbing only —
+    # SimDesign already parallelizes across replications; letting gbm detect
+    # cores would oversubscribe the node)
     mod <- gbm(T ~ . - Y - trueps, data = dat, distribution = "bernoulli",
                n.trees = 10000, interaction.depth = 3, shrinkage = 0.01,
-               bag.fraction = 1, cv.folds = 5, keep.data = FALSE)
+               bag.fraction = 1, cv.folds = 5, keep.data = FALSE, n.cores = 1)
     best_iter <- gbm.perf(mod, method = "cv", plot.it = FALSE)
     ps <- predict(mod, newdata = dat, n.trees = best_iter, type = "response")
   } else if (method == "bart") {
@@ -129,9 +132,11 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     # exactly as an applied researcher gets them from WeightIt with
     # method = "bart" and all defaults (dbarts::bart2 backend, posterior-mean
     # probabilities)
+    # n.threads = 1 pins dbarts' internal threading (compute plumbing only;
+    # avoids oversubscription under SimDesign's worker pool)
     W <- WeightIt::weightit(
       reformulate(grep("^v", names(dat), value = TRUE), response = "T"),
-      data = dat, method = "bart", estimand = "ATE"
+      data = dat, method = "bart", estimand = "ATE", n.threads = 1L
     )
     ps <- as.numeric(W$ps)
   } else if (method == "sl") {

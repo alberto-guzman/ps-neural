@@ -37,9 +37,16 @@ Generate <- function(condition, fixed_objects = NULL) {
   #########################################
 
   # Deterministic population seed from the design cell; restore the replication
-  # stream afterwards so data draws still vary across replications
+  # stream afterwards so data draws still vary across replications. The RNG
+  # kind is pinned because parallel workers (L'Ecuyer-CMRG) and serial runs
+  # (Mersenne-Twister) would otherwise derive DIFFERENT populations from the
+  # same seed — the P and NP jobs must simulate identical populations.
+  if (!exists(".Random.seed", envir = .GlobalEnv)) runif(1)
   rep_stream <- .Random.seed
-  set.seed(1e6 + n + 100 * p + 10 * (scenarioT == "complex_T") + (scenarioY == "complex_Y"))
+  # NOTE: the additive seed formula is collision-free for this study's design
+  # (n fixed at 10,000); revisit if n ever becomes a crossed factor
+  set.seed(1e6 + n + 100 * p + 10 * (scenarioT == "complex_T") + (scenarioY == "complex_Y"),
+           kind = "Mersenne-Twister")
 
   # Generate a symmetric correlation matrix with off-diagonals between -.3 and .3
   cor <- matrix(0, nrow = p, ncol = p)
