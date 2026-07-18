@@ -111,6 +111,31 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     # out-of-bag vote proportions
     mod <- randomForest(factor(T) ~ . - Y - trueps, data = dat)
     ps <- predict(mod, type = "prob")[, 2]
+  } else if (method == "gbm") {
+    # estimate the propensity score using boosted trees (McCaffrey et al. 2004
+    # convention: bernoulli deviance, depth-3 trees); the number of iterations
+    # is chosen by 5-fold cross-validation, predictions are in-sample at the
+    # CV-selected iteration
+    mod <- gbm(T ~ . - Y - trueps, data = dat, distribution = "bernoulli",
+               n.trees = 1000, interaction.depth = 3, shrinkage = 0.05,
+               cv.folds = 5, verbose = FALSE)
+    best_iter <- gbm.perf(mod, method = "cv", plot.it = FALSE)
+    ps <- predict(mod, newdata = dat, n.trees = best_iter, type = "response")
+  } else if (method == "sl") {
+    # estimate the propensity score with a Super Learner stack: NNLS-weighted
+    # combination of logit, lasso-logit, boosted trees (xgboost), random forest
+    # (ranger), and a single-hidden-layer nnet, with 5-fold CV for the ensemble
+    # weights; ranger/xgboost wrappers rather than randomForest/gbm for runtime
+    x_df <- as.data.frame(dat[, grep("^v", names(dat))])
+    sl <- SuperLearner(
+      Y = dat$T, X = x_df, family = binomial(),
+      SL.library = c("SL.glm", "SL.glmnet", "SL.xgboost", "SL.ranger", "SL.nnet"),
+      cvControl = list(V = 5)
+    )
+    # combine the CROSS-VALIDATED library predictions (Z) with the NNLS weights
+    # rather than SL.predict, which is in-sample and overfits like in-bag forest
+    # predictions; this parallels the OOB choice for bag/forest
+    ps <- as.numeric(sl$Z %*% sl$coef)
   } else if (method == "nn-1") {
     ps <- fit_nn_ps(dat, n_hidden = 1)
   } else if (method == "dnn-2") {

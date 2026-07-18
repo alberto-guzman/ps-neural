@@ -12,6 +12,12 @@ packages <- c(
   "rpart",
   "ipred",
   "randomForest",
+  "gbm",
+  "glmnet",
+  "nnet",
+  "ranger",
+  "xgboost",
+  "SuperLearner",
   "survey",
   "Hmisc",
   "future",
@@ -39,7 +45,7 @@ Design <- createDesign(
   p = c(20, 100, 200),
   scenarioT = c("base_T", "complex_T"),
   scenarioY = c("base_Y", "complex_Y"),
-  method = c("logit", "cart", "bag", "forest")
+  method = c("logit", "cart", "bag", "forest", "gbm", "sl")
 )
 
 ######################################################################
