@@ -6,241 +6,136 @@
 # The population treatment and outcome models are generated based on the specified conditions
 # and the selected covariates, and the treatment status is also generated.
 # The function returns a simulated data tibble that includes the original covariates, treatment status, and generated outcome.
+#
+# 2026-07 revision notes (see git history for the original):
+# - The correlation matrix is now built symmetric BEFORE smoothing. The original
+#   filled all p^2 cells with runif draws; psych::cor.smooth did not recognize the
+#   asymmetric result as a correlation matrix and silently treated it as raw data,
+#   so the correlations actually used did not match the intended U(-0.3, 0.3).
+# - Complex scenarios now follow the manuscript equations (eq-psD / eq-outcome_d):
+#   J quadratic terms plus adjacent-pair interactions X_j * X_{j+1} within the
+#   sampled set, each reusing the variable's main-effect coefficient. The original
+#   generated all pairwise combinations (2,775 interactions at p = 200), which
+#   saturated the true propensity score.
+# - Linear predictors are computed with matrix algebra instead of eval(parse()).
 #############
 
 Generate <- function(condition, fixed_objects = NULL) {
   # Makes the tibble of sim crossed conditions accessible to the function, from SimDesign package
   Attach(condition)
 
-  # Generate a mean vector of 0s
-  mean <- numeric(p)
+  #########################################
+  # Correlated covariates
+  #########################################
 
-  # Generate a correlation matrix with correlations between -.3 to .3
-  cor <- matrix(runif(p^2, min = -.3, max = .3), nrow = p)
+  # Generate a symmetric correlation matrix with off-diagonals between -.3 and .3
+  cor <- matrix(0, nrow = p, ncol = p)
+  cor[upper.tri(cor)] <- runif(p * (p - 1) / 2, min = -.3, max = .3)
+  cor <- cor + t(cor)
   diag(cor) <- 1
 
   # Smooth the correlation matrix to ensure it is positive definite
   cor <- psych::cor.smooth(cor)
 
   # Generate correlated normal variables
-  vars <- mvrnorm(n, mean, cor)
+  vars <- mvrnorm(n, mu = numeric(p), Sigma = cor)
 
   # Calculate the number of normal, Bernoulli, and uniform variables to generate
   num_norm_vars <- floor(p / 2)
   num_bern_vars <- floor(p / 4)
   num_uniform_vars <- p - num_norm_vars - num_bern_vars
 
-  # Convert all variables to uniform variables between 0 and 1
+  # Convert all variables to uniform variables between 0 and 1 (inverse-CDF approach)
   vars_unif <- pnorm(vars)
 
-  # Convert the first num_norm_vars variables to normal variable with mean = 0 and sd = 1
+  # Convert the first num_norm_vars variables to normal variables with mean = 0 and sd = 1
   vars_normal <- qnorm(vars_unif[, 1:num_norm_vars])
 
-  # Convert the next num_bern_vars variables to Bernoulli variables with probability of success = 0.5
-  vars_bern <- qbern(vars_unif[, (num_norm_vars + 1):(num_norm_vars + num_bern_vars)], 0.5)
+  # Convert the next num_uniform_vars variables are left as uniform variables
+  vars_uniform <- vars_unif[, (num_norm_vars + 1):(num_norm_vars + num_uniform_vars)]
 
-  # The remainder are left as uniform variables
-  vars_uniform <- vars_unif[, (num_norm_vars + num_bern_vars + 1):p]
+  # Convert the remaining variables to Bernoulli variables with probability of success = 0.5
+  vars_bern <- qbinom(vars_unif[, (num_norm_vars + num_uniform_vars + 1):p], size = 1, prob = 0.5)
 
-  # Combine the transformed variables
-  vars_transformed <- cbind(vars_normal, vars_uniform, vars_bern)
-
-  # Give the columns of vars names v1,v2,etc.
-  colnames(vars_transformed) <- sprintf("v%d", 1:p)
-
-  # Generate variable names and store in the master_covar list
-  master_covar <- dimnames(vars_transformed)[[2]]
-
-  # Create p objects with names v1, v2, etc. in working environment
-  for (i in 1:p) {
-    assign(colnames(vars_transformed)[i], vars_transformed[, i])
-  }
-
-  # Sample half of the covariates and save to covar_confound
-  covar_confound <- sample(master_covar, size = length(master_covar) / 2)
-
-  # Sample a quarter of the covariates and save to covar_rel_outcome
-  covar_rel_outcome <- sample(setdiff(master_covar, covar_confound), size = length(master_covar) / 4)
-
-  # Save the remaining covariates to covar_rel_treatment
-  covar_rel_treatment <- setdiff(master_covar, union(covar_confound, covar_rel_outcome))
-
-  # Combine covar_confound and covar_rel_outcome, these are the covariates that will be used for the population outcome models
-  covar_for_treatment <- union(covar_confound, covar_rel_treatment)
-
-  # Combine covar_confound and covar_rel_outcome, these are the covariates that will be used for the population outcome models
-  covar_for_outcome <- union(covar_confound, covar_rel_outcome)
+  # Combine the transformed variables into the covariate matrix X
+  X <- cbind(vars_normal, vars_uniform, vars_bern)
+  colnames(X) <- sprintf("v%d", 1:p)
 
   #########################################
-  #########################################
-  # Population treatment models
-  #########################################
+  # Covariate roles: half confounders, a quarter outcome-only, a quarter treatment-only
   #########################################
 
-  # Generate b coefficients for population treatment models
-  # Initialize b0 to 0.25
+  perm <- sample(p)
+  n_confound <- floor(p / 2)
+  n_rel_outcome <- floor(p / 4)
+
+  covar_confound <- perm[1:n_confound]
+  covar_rel_outcome <- perm[(n_confound + 1):(n_confound + n_rel_outcome)]
+  covar_rel_treatment <- perm[(n_confound + n_rel_outcome + 1):p]
+
+  # Column indices used by the population treatment and outcome models
+  covar_for_treatment <- c(covar_confound, covar_rel_treatment)
+  covar_for_outcome <- c(covar_confound, covar_rel_outcome)
+
+  #########################################
+  # Population treatment model
+  #########################################
+
+  # Intercept and main-effect coefficients (aligned to columns of X)
   b0 <- 0.25
+  beta <- runif(p, min = -0.4, max = 0.4)
 
-  # Create an empty list to store the b coefficients
-  beta <- vector("list", length(master_covar))
+  # Base model: main effects only
+  eta_T <- b0 + X[, covar_for_treatment, drop = FALSE] %*% beta[covar_for_treatment]
 
-  # Loop through all variables in the master covariate list
-  for (i in seq_len(length(master_covar))) {
-    # Generate a random number between -0.4 and 0.4
-    x <- runif(1, min = -0.4, max = 0.4)
-
-    # Assign the value to a variable named b1, b2, etc.
-    assign(paste0("b", i), x)
-
-    # Store the variable names in the beta list
-    b <- paste0("b", i)
-    beta[[i]] <- b
-  }
-
-  # Extract the coefficient from the covariate name
-  b <- sub(".*v", "", covar_for_treatment)
-
-  # Create a new variable called element with the format "b * covar_for_treatment"
-  element <- paste0("b", b, " * ", covar_for_treatment)
-
-  #########################################
-  # Population treatment model - Generate base model
-  #########################################
-  if (scenarioT == "base_T") {
-    # Concatenate the variables from covar_for_treatment into a single string
-    equation <- paste0("(1 + exp(-(b0 + ", paste(element, collapse = " + "), ")))^-1")
-
-    # Evaluate the equation and store the result in trueps
-    trueps <- eval(parse(text = equation))
-  } else
-
-  #########################################
-  # Population treatment model - Complex model
-  #########################################
+  # Complex model: add quadratic terms for half of the treatment-model covariates and
+  # adjacent-pair interactions within that sampled set, per eq-psD in the manuscript
   if (scenarioT == "complex_T") {
-    # Sample half of the variables from covar_for_treatment
-    sample_vars <- sample(covar_for_treatment, length(covar_for_treatment) / 2)
-
-    # Create a list to store the terms
-    terms <- list()
-
-    # Iterate over the sampled variables and create the quadratic terms
-    for (var in sample_vars) {
-      b <- sub(".*v", "", var)
-      quad_term <- paste0("b", b, " * ", var, "^2")
-      terms[[var]] <- quad_term
+    J <- floor(length(covar_for_treatment) / 2)
+    cvars <- sample(covar_for_treatment, J)
+    Xc <- X[, cvars, drop = FALSE]
+    eta_T <- eta_T + (Xc^2) %*% beta[cvars]
+    if (J >= 2) {
+      eta_T <- eta_T + (Xc[, -J, drop = FALSE] * Xc[, -1, drop = FALSE]) %*% beta[cvars[-J]]
     }
-
-    # Sample half of the variables again from covar_for_treatment
-    sample_vars2 <- sample(covar_for_treatment, length(covar_for_treatment) / 2)
-
-    # Create a list of all possible interactions between the variables
-    interactions <- combn(sample_vars2, 2, paste0, collapse = "*")
-
-    # Iterate over the interactions and create the interaction terms
-    for (inter in interactions) {
-      b <- sub(".*v", "", inter)
-      inter_term <- paste0("b", b, " * ", inter)
-      terms[[inter]] <- inter_term
-    }
-
-    # Concatenate all of the terms together and store the result in a new variable called equation
-    equation <- paste0("(1 + exp(-(b0 + ", paste(c(unlist(terms), element), collapse = " + "), ")))^-1")
-
-    # Evaluate the equation
-    trueps <- eval(parse(text = equation))
   }
 
-  #########################################
-  # ~~ binary treatment T
-  #########################################
-
+  # True propensity score and binary treatment assignment
+  trueps <- as.numeric(plogis(eta_T))
   unif1 <- runif(n, 0, 1)
   T <- ifelse(unif1 < trueps, 1, 0)
 
   #########################################
-  #########################################
-  # Population outcome models
-  #########################################
+  # Population outcome model
   #########################################
 
-  # Generate a coefficients for population outcome models
-  # Initialize a0 to -0.18
+  # Intercept, treatment effect (ATE), coefficients, and error term
   a0 <- -0.18
-
-  # Set ATE to 0.3
   g <- 0.3
-
-  # Generate error terms for population outcome models
+  alpha <- runif(p, min = -0.2, max = 0.3)
   e <- rnorm(n, mean = 0, sd = sqrt(0.17))
 
-  alpha <- vector("list", length(master_covar))
+  # Base model: main effects only
+  Y <- a0 + g * T + X[, covar_for_outcome, drop = FALSE] %*% alpha[covar_for_outcome] + e
 
-  for (i in 1:length(master_covar)) {
-    # Generate a random number between -0.2 and 0.3
-    x <- runif(1, min = -0.2, max = 0.3)
-    # Assign the value to a1, a2, a3, etc.
-    assign(paste0("a", i), x)
-    a <- paste0("a", i)
-    alpha[[i + 1]] <- a
-  }
-
-  # Extract the coefficient from the covariate name
-  a <- sub(".*v", "", covar_for_outcome)
-
-  # Create a new variable called element with the format "a * covar_for_outcome"
-  element <- paste0("a", a, " * ", covar_for_outcome)
-
-  #########################################
-  # Population outcome model - Generate base model
-  #########################################
-  if (scenarioY == "base_Y") {
-    equation <- paste0("a0 + g * T", " + ", paste(element, collapse = " + "), " + e")
-    Y <- eval(parse(text = equation))
-  } else
-
-  #########################################
-  # Population outcome model - Complex model
-  #########################################
+  # Complex model: quadratics and adjacent-pair interactions, per eq-outcome_d
   if (scenarioY == "complex_Y") {
-    # Sample half of the variables from covar_for_outcome
-    sample_vars <- sample(covar_for_outcome, length(covar_for_outcome) / 2)
-
-    # Create a list to store the terms
-    terms <- list()
-
-    # Iterate over the sampled variables and create the quadratic terms
-    for (var in sample_vars) {
-      a <- sub(".*v", "", var)
-      quad_term <- paste0("a", a, " * ", var, "^2")
-      terms[[var]] <- quad_term
+    J <- floor(length(covar_for_outcome) / 2)
+    cvars <- sample(covar_for_outcome, J)
+    Xc <- X[, cvars, drop = FALSE]
+    Y <- Y + (Xc^2) %*% alpha[cvars]
+    if (J >= 2) {
+      Y <- Y + (Xc[, -J, drop = FALSE] * Xc[, -1, drop = FALSE]) %*% alpha[cvars[-J]]
     }
-
-    # Sample half of the variables again from covar_for_outcome
-    sample_vars2 <- sample(covar_for_outcome, length(covar_for_outcome) / 2)
-
-    # Create a list of all possible interactions between the variables
-    interactions <- combn(sample_vars2, 2, paste0, collapse = "*")
-
-    # Iterate over the interactions and create the interaction terms
-    for (inter in interactions) {
-      a <- sub(".*v", "", inter)
-      inter_term <- paste0("a", a, " * ", inter)
-      terms[[inter]] <- inter_term
-    }
-
-    equation <- paste0("a0 + g * T + ", paste(c(unlist(terms), element), collapse = " + "), " + e")
-    Y <- eval(parse(text = equation))
   }
 
   #########################################
   # Form simulated data tibble
   #########################################
 
-  v_list <- mget(paste0("v", 1:length(master_covar)))
-  dat <- as_tibble(v_list)
+  dat <- as_tibble(X)
   dat$T <- T
-  dat$Y <- Y
+  dat$Y <- as.numeric(Y)
   dat$trueps <- trueps
   dat
 }

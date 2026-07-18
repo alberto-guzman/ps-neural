@@ -1,4 +1,5 @@
 library(tidyverse)
+library(here)
 
 combine_results <- function(dir_path) {
   # Get a list of all the "results-row-*.rds" files in the directory
@@ -12,20 +13,13 @@ combine_results <- function(dir_path) {
   })
 
   # Combine all the resulting tibbles into a single tibble
-  combined_results <- bind_rows(results_list)
-
-  return(combined_results)
+  bind_rows(results_list)
 }
 
-result1 <- combine_results("~/Projects/inProgress/2018_propensity_neuralnet_paper/data/sim_results_n10000_r1000_P_e_all/")
-result2 <- combine_results("~/Projects/inProgress/2018_propensity_neuralnet_paper/data/sim_results_n10000_r1000_NP_e_all/")
+# SimDesign's save_results writes per-condition files into these directories
+# (created by run_sim_P.R and run_sim_NP.R respectively)
+result_p <- combine_results(here("data", "sim_results_v2_P"))
+result_np <- combine_results(here("data", "sim_results_v2_NP"))
 
-
-result2 <- result2 |> 
-  filter(method != "nn-1")
-  
-
-nn_results <- combine_results("~/Projects/inProgress/2018_propensity_neuralnet_paper/data/sim_results_n10000_r1000_NP_e_NNonly_all//")
-
-res <- bind_rows(result1, result2, nn_results)
-saveRDS(res, file = "res_all.rds")
+res <- bind_rows(result_p, result_np)
+saveRDS(res, file = here("data", "res_all_v2.rds"))

@@ -1,27 +1,22 @@
 ######################################################################
-# Load libraries and source functions
+# Canonical runner: parallel-safe methods (logit, cart, bag, forest)
+# Full crossed design; keras-based methods run via run_sim_NP.R
 ######################################################################
 
 packages <- c(
   "here",
   "tidyverse",
   "MASS",
-  "Rlab",
   "Matrix",
   "psych",
-  "Rlab",
   "rpart",
   "ipred",
   "randomForest",
-  "nnet",
   "survey",
   "Hmisc",
   "future",
   "furrr",
-  "SimDesign",
-  "keras",
-  "tensorflow",
-  "reticulate"
+  "SimDesign"
 )
 
 lapply(packages, library, character.only = TRUE)
@@ -41,19 +36,15 @@ source(here("code", "03_summarize_fun.R"))
 # fully-crossed simulation experiment
 Design <- createDesign(
   n = c(10000),
-  p = c(20,200),
+  p = c(20, 100, 200),
   scenarioT = c("base_T", "complex_T"),
   scenarioY = c("base_Y", "complex_Y"),
   method = c("logit", "cart", "bag", "forest")
 )
 
-
 ######################################################################
 # Run Simulation
 ######################################################################
-
-# use_virtualenv("/ihome/xqin/alg223/.virtualenvs/r-reticulate")
-# use_condaenv("r-reticulate")
 
 res <- runSimulation(
   design = Design,
@@ -61,7 +52,8 @@ res <- runSimulation(
   generate = Generate,
   analyse = Analyse,
   summarise = Summarise,
-  parallel = T,
-  filename = "sim_results_n10000_r1000_P_lmSE.rds",
-  save_results = T
+  parallel = TRUE,
+  seed = 42000 + seq_len(nrow(Design)),
+  filename = "sim_results_v2_P.rds",
+  save_results = TRUE
 )

@@ -1,23 +1,20 @@
 ######################################################################
-# Load libraries and source functions
+# Canonical runner: keras-based methods (nn-1, dnn-2, dnn-3), serial
+# (TensorFlow does not play well with SimDesign's parallel workers)
+# Full crossed design; tree/logit methods run via run_sim_P.R
 ######################################################################
 
 packages <- c(
   "here",
   "tidyverse",
   "MASS",
-  "Rlab",
   "Matrix",
   "psych",
-  "Rlab",
   "rpart",
   "ipred",
   "randomForest",
-  "nnet",
   "survey",
   "Hmisc",
-  "future",
-  "furrr",
   "SimDesign",
   "keras",
   "tensorflow",
@@ -44,7 +41,7 @@ Design <- createDesign(
   p = c(20, 100, 200),
   scenarioT = c("base_T", "complex_T"),
   scenarioY = c("base_Y", "complex_Y"),
-  method = c("nn-1")
+  method = c("nn-1", "dnn-2", "dnn-3")
 )
 
 ######################################################################
@@ -56,10 +53,12 @@ use_virtualenv("/ihome/xqin/alg223/.virtualenvs/r-reticulate")
 
 res <- runSimulation(
   design = Design,
-  replications = 100,
+  replications = 1000,
   generate = Generate,
   analyse = Analyse,
   summarise = Summarise,
-  parallel = F,
-  filename = "sim_results_n10000_r100_NP_e_dropout.rds",
-  save_results = T)
+  parallel = FALSE,
+  seed = 43000 + seq_len(nrow(Design)),
+  filename = "sim_results_v2_NP.rds",
+  save_results = TRUE
+)
