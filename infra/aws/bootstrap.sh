@@ -27,10 +27,24 @@ cat("all", length(pkgs), "packages installed\n")
 '
 
 echo "=== TensorFlow (CPU) for keras ==="
-# The simulation uses the keras v2 API ('keras' CRAN package). install_keras
-# creates its own virtualenv that reticulate auto-discovers.
-Rscript -e 'keras::install_keras(method = "virtualenv")'
-Rscript -e '
+# The simulation uses the keras v2 API ('keras' CRAN package). Lessons from
+# the 2026-07 AWS validation, encoded here:
+# - keras::install_keras() pins TF 2.15, which has no wheels for Ubuntu
+#   24.04's Python 3.12 — build the venv manually with TF 2.16.
+# - Python 3.12 removed distutils; the setuptools .pth shim is NOT processed
+#   by R's embedded interpreter, so TF import fails under reticulate even
+#   though it works at the CLI. Use Python 3.11 (deadsnakes), where distutils
+#   is stdlib.
+# - tf-keras (the legacy-API shim TF 2.16 needs) must be version-pinned or it
+#   drags in an incompatible protobuf.
+# - Runners need TF_USE_LEGACY_KERAS=1 at runtime (run_validation.sh sets it).
+sudo add-apt-repository -y ppa:deadsnakes/ppa
+sudo apt-get install -y -q python3.11 python3.11-venv python3.11-dev
+python3.11 -m venv "$HOME/.virtualenvs/r-tensorflow"
+"$HOME/.virtualenvs/r-tensorflow/bin/pip" install -q -U pip
+"$HOME/.virtualenvs/r-tensorflow/bin/pip" install -q \
+  "tensorflow-cpu==2.16.2" "tf-keras==2.16.0" "protobuf>=3.20.3,<5"
+TF_USE_LEGACY_KERAS=1 Rscript -e '
 library(keras)
 ok <- tryCatch(is_keras_available(), error = function(e) FALSE)
 if (!isTRUE(ok)) stop("KERAS/TENSORFLOW NOT AVAILABLE — inspect install_keras output")
@@ -38,7 +52,7 @@ cat("keras backend OK; TF version:", as.character(tensorflow::tf_version()), "\n
 '
 
 echo "=== smoke: every Analyse dependency loads ==="
-Rscript -e '
+TF_USE_LEGACY_KERAS=1 Rscript -e '
 suppressMessages({
   library(tidyverse); library(MASS); library(psych); library(rpart); library(ipred)
   library(randomForest); library(gbm); library(glmnet); library(nnet)
