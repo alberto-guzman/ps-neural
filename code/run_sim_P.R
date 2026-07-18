@@ -18,6 +18,7 @@ packages <- c(
   "ranger",
   "xgboost",
   "SuperLearner",
+  "WeightIt",
   "survey",
   "Hmisc",
   "future",

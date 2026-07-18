@@ -112,15 +112,16 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     mod <- randomForest(factor(T) ~ . - Y - trueps, data = dat)
     ps <- predict(mod, type = "prob")[, 2]
   } else if (method == "gbm") {
-    # estimate the propensity score using boosted trees (McCaffrey et al. 2004
-    # convention: bernoulli deviance, depth-3 trees); the number of iterations
-    # is chosen by 5-fold cross-validation, predictions are in-sample at the
-    # CV-selected iteration
-    mod <- gbm(T ~ . - Y - trueps, data = dat, distribution = "bernoulli",
-               n.trees = 1000, interaction.depth = 3, shrinkage = 0.05,
-               cv.folds = 5, verbose = FALSE)
-    best_iter <- gbm.perf(mod, method = "cv", plot.it = FALSE)
-    ps <- predict(mod, newdata = dat, n.trees = best_iter, type = "response")
+    # estimate the propensity score using boosted trees exactly as an applied
+    # researcher gets them from WeightIt with method = "gbm" and all defaults
+    # (10,000 trees, depth 3, shrinkage 0.01, iteration selected by mean
+    # absolute standardized mean difference — the twang-style balance-stopping
+    # rule of McCaffrey et al. 2004 — with in-sample predictions)
+    W <- WeightIt::weightit(
+      reformulate(grep("^v", names(dat), value = TRUE), response = "T"),
+      data = dat, method = "gbm", estimand = "ATE"
+    )
+    ps <- as.numeric(W$ps)
   } else if (method == "sl") {
     # estimate the propensity score with a Super Learner stack: NNLS-weighted
     # combination of logit, lasso-logit, boosted trees (xgboost), random forest
