@@ -11,3 +11,10 @@
 /docs
 /example_sim_code
 .Rproj.user
+
+# Editor/notebook junk
+.ipynb_checkpoints/
+
+# Rendered output and scratch
+propensity_over.pdf
+/output
