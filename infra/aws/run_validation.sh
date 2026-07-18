@@ -9,6 +9,7 @@
 set -euo pipefail
 cd "$(git -C "$(dirname "$0")" rev-parse --show-toplevel)"
 export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1
+export TF_USE_LEGACY_KERAS=1
 
 mkdir -p aws_validation data
 V=aws_validation
