@@ -8,7 +8,7 @@ export DEBIAN_FRONTEND=noninteractive
 echo "=== system packages ==="
 sudo apt-get update -y
 sudo apt-get install -y --no-install-recommends \
-  ca-certificates curl gnupg git rsync tmux htop python3-venv
+  ca-certificates curl gnupg git rsync tmux htop python3-venv python3-pip python3-dev
 
 echo "=== r2u (CRAN apt binaries + bspm) ==="
 curl -fsSL https://raw.githubusercontent.com/eddelbuettel/r2u/master/inst/scripts/add_cranapt_noble.sh | sudo bash
