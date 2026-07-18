@@ -19,6 +19,7 @@ packages <- c(
   "xgboost",
   "SuperLearner",
   "WeightIt",
+  "dbarts",
   "survey",
   "Hmisc",
   "future",
@@ -46,7 +47,7 @@ Design <- createDesign(
   p = c(20, 100, 200),
   scenarioT = c("base_T", "complex_T"),
   scenarioY = c("base_Y", "complex_Y"),
-  method = c("logit", "cart", "bag", "forest", "gbm", "sl")
+  method = c("logit", "cart", "bag", "forest", "gbm", "bart", "sl")
 )
 
 ######################################################################

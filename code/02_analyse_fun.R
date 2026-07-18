@@ -122,6 +122,16 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
       data = dat, method = "gbm", estimand = "ATE"
     )
     ps <- as.numeric(W$ps)
+  } else if (method == "bart") {
+    # estimate the propensity score using Bayesian additive regression trees
+    # exactly as an applied researcher gets them from WeightIt with
+    # method = "bart" and all defaults (dbarts::bart2 backend, posterior-mean
+    # probabilities)
+    W <- WeightIt::weightit(
+      reformulate(grep("^v", names(dat), value = TRUE), response = "T"),
+      data = dat, method = "bart", estimand = "ATE"
+    )
+    ps <- as.numeric(W$ps)
   } else if (method == "sl") {
     # estimate the propensity score with a Super Learner stack: NNLS-weighted
     # combination of logit, lasso-logit, boosted trees (xgboost), random forest
