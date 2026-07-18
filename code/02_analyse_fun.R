@@ -112,16 +112,18 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     mod <- randomForest(factor(T) ~ . - Y - trueps, data = dat)
     ps <- predict(mod, type = "prob")[, 2]
   } else if (method == "gbm") {
-    # estimate the propensity score using boosted trees exactly as an applied
-    # researcher gets them from WeightIt with method = "gbm" and all defaults
-    # (10,000 trees, depth 3, shrinkage 0.01, iteration selected by mean
-    # absolute standardized mean difference — the twang-style balance-stopping
-    # rule of McCaffrey et al. 2004 — with in-sample predictions)
-    W <- WeightIt::weightit(
-      reformulate(grep("^v", names(dat), value = TRUE), response = "T"),
-      data = dat, method = "gbm", estimand = "ATE"
-    )
-    ps <- as.numeric(W$ps)
+    # estimate the propensity score using boosted trees exactly as MatchIt
+    # delivers them for distance = "gbm" (replicated from MatchIt 4.7.2
+    # source): bernoulli deviance, 10,000 trees, depth 3, shrinkage 0.01,
+    # bag.fraction 1, iteration selected by 5-fold cross-validated deviance,
+    # in-sample predictions. Same hyperparameters as WeightIt's default —
+    # the packages differ only in the selection rule (CV deviance vs balance);
+    # the CV rule keeps every learner in this study tuned for prediction.
+    mod <- gbm(T ~ . - Y - trueps, data = dat, distribution = "bernoulli",
+               n.trees = 10000, interaction.depth = 3, shrinkage = 0.01,
+               bag.fraction = 1, cv.folds = 5, keep.data = FALSE)
+    best_iter <- gbm.perf(mod, method = "cv", plot.it = FALSE)
+    ps <- predict(mod, newdata = dat, n.trees = best_iter, type = "response")
   } else if (method == "bart") {
     # estimate the propensity score using Bayesian additive regression trees
     # exactly as an applied researcher gets them from WeightIt with
