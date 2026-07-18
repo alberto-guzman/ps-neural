@@ -22,8 +22,6 @@ packages <- c(
   "dbarts",
   "survey",
   "Hmisc",
-  "future",
-  "furrr",
   "SimDesign"
 )
 
