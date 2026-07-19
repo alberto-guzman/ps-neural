@@ -319,7 +319,7 @@ $$
 e(x)=Pr(Z = 1|X) = (1 + exp(-(\beta_0 + \sum_{i=1}^{p} \beta_i X_i)))^{-1}
 $$ {#eq-popps}
 
-$X$ represents covariates and their associated coefficients ($\beta$). The output, $Pr(Z = 1|X)$ is the probability of assignment to the treatment condition (i.e., the propensity score, $e(x)$). The intercept, $\beta_0$, was set to 0.25, and the remaining coefficients, $\beta_i$, were randomly assigned values between -0.4 and 0.4, which were based on the corresponding standardized coefficient values in the Common App evaluation.
+$X$ represents covariates and their associated coefficients ($\beta$). The output, $Pr(Z = 1|X)$ is the probability of assignment to the treatment condition (i.e., the propensity score, $e(x)$). The intercept, $\beta_0$, was set to 0.25, and the coefficients, $\beta_i$, were randomly assigned values between -0.4 and 0.4, which were based on the corresponding standardized coefficient values in the Common App evaluation; $\beta_i = 0$ for the quarter of covariates related only to the outcome, which do not enter the treatment model.
 
 Importantly, all population parameters --- the covariate correlation matrix, the assignment of covariates to their confounder, treatment-only, and outcome-only roles, the model coefficients, and the selection of covariates carrying quadratic and interaction terms in the complex scenarios --- were drawn once per simulation condition and held fixed across all replications; only the data were redrawn. This design follows the convention in the propensity score simulation literature of sampling repeatedly from a single fixed population [@Setoguchi.2008ulg; @Cannas.2019], and it is what allows the confidence interval coverage and standard error results reported below to be interpreted as properties of the estimators under repeated sampling. Drawing the coefficients from ranges calibrated to the Common App evaluation, rather than fixing them to a single set of published constants, preserves the benefit that each covariate condition represents a distinct empirically grounded population.
 
@@ -336,8 +336,10 @@ $X$ represents covariates and their associated coefficients $\beta$. The output 
 **Complex(T)**: my simulation's most complex population treatment assignment model. To construct it, I sampled half of the covariates in the treatment model and added, for each sampled covariate $X_j$, a quadratic term and an interaction with the adjacent sampled covariate $X_{j+1}$, each reusing the covariate's main-effect coefficient. This design aims to account for complex relationships between covariates and treatment assignment while keeping the number of complexity terms proportional to the number of covariates.
 
 $$
-e(x)^{Complex} = e(x)^{Base} + \sum_{j=1}^{J} [\beta_jX_j^2 + \beta_jX_jX_{j+1}]
+e(x)^{Complex} = \left(1 + exp\left(-\left(\beta_0 + \sum_{i=1}^{p} \beta_iX_i + \sum_{j=1}^{J} \beta_jX_j^2 + \sum_{j=1}^{J-1} \beta_jX_jX_{j+1}\right)\right)\right)^{-1}
 $$ {#eq-psD}
+
+where $X_1, \dots, X_J$ denote the sampled covariates in their sampled order, so that the model adds $J$ quadratic terms and $J-1$ adjacent-pair interactions to the linear predictor before the logistic transformation.
 
 Using the propensity scores generated from these population selection models, I generated a binary treatment assignment variable by comparing an individual's true propensity score to a random draw from a uniform distribution between 0 and 1. If the propensity score of an individual was higher than the random draw of the uniform distribution, the individual was assigned to treatment such that $Z = 1$, otherwise $Z = 0$. Because the population coefficients are random draws, the marginal treatment rate varies across the fixed populations (from roughly 0.22 to 0.65 across the twelve design cells), as does the strength of selection: with coefficients drawn from a range that does not shrink with $p$, the variance of the true logit grows with the number of covariates, so the higher-dimensional conditions couple dimensionality with stronger selection and less overlap --- a bundle characteristic of high-dimensional administrative data, where richer covariate sets capture more of the selection process. I characterize each population's treatment rate and overlap alongside the results.
 
@@ -345,7 +347,7 @@ Using the propensity scores generated from these population selection models, I 
 
 In addition to the population treatment assignment models, I also generated two population outcome models. To vary the level of complexity between the covariates and the outcome, I included interactions and higher-order terms on covariates related to outcome and overall confounders. Adding complexities to the outcome model is relatively novel in the propensity score literature. However, it is more representative of the complex associations found in datasets in educational research.
 
-The continuous outcome, $Y$, was generated through regression models. The values of $\alpha$ were based on the Common App evaluation, such that the intercept $\alpha_0$ equaled -0.18, and the remaining $\alpha$ coefficients received a random value between -0.2 and 0.3. $X_i$ represents $p$ covariates and their associated coefficients ($\alpha_i$). The error term $\epsilon$ was set to have a mean of 0 and a variance of 0.17, based on the error term in the Common App evaluation. The binary treatment variable $Z$ was multiplied by $\gamma$, representing the population treatment effect, and set to 0.3. This treatment effect is consistent with the small effects typically observed in education research, where the average effect size equals 0.28 SD [@richardson2011eta].
+The continuous outcome, $Y$, was generated through regression models. The values of $\alpha$ were based on the Common App evaluation, such that the intercept $\alpha_0$ equaled -0.18, and the remaining $\alpha$ coefficients received a random value between -0.2 and 0.3. $X_i$ represents $p$ covariates and their associated coefficients ($\alpha_i$). The error term $\epsilon$ was set to have a mean of 0 and a variance of 0.17, based on the error term in the Common App evaluation. As in the treatment model, $\alpha_i = 0$ for the quarter of covariates related only to treatment assignment, which do not enter the outcome model. The binary treatment variable $Z$ was multiplied by $\gamma$, representing the population treatment effect, and set to 0.3. This treatment effect is consistent with the small effects typically observed in education research, where the average effect size equals 0.28 SD [@richardson2011eta].
 
 The general structure of the population outcome models is defined as follows:
 
@@ -362,8 +364,10 @@ $$ {#eq-outcome_a}
 **Complex(Y)**: describes the complex model, which includes the linear terms in addition to non-linearities and non-additivities, which were generated in an identical way to how they were generated in the population treatment outcome models:
 
 $$
-Y^{Complex} =  Y^{Base} + \sum_{j=1}^{J} [\alpha_jX_j^2 + \alpha_jX_jX_{j+1}]
+Y^{Complex} =  Y^{Base} + \sum_{j=1}^{J} \alpha_jX_j^2 + \sum_{j=1}^{J-1} \alpha_jX_jX_{j+1}
 $$ {#eq-outcome_d}
+
+where, as in the treatment model, $X_1, \dots, X_J$ denote the sampled outcome-model covariates in their sampled order.
 
 #### Propensity Score Estimation Methods
 
