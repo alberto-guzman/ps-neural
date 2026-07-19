@@ -97,9 +97,7 @@ The remainder of this article is structured as follows: First, we review the rel
 
 \newpage
 
-## Literature Review
-
-In this section, we review the literature on causal inference and propensity score analysis, focusing specifically on machine-learning approaches for estimating propensity scores. Additionally, we draw from the literature on neural network approaches, including deep neural networks, to motivate their evaluation as propensity score estimators in high-dimensional education data.
+## Causal Framework, Estimands, and Assumptions
 
 ### Neyman--Holland--Rubin Model for Causal Inference
 
@@ -169,11 +167,11 @@ To balance the observed characteristics between treated and untreated students, 
 
 \newpage
 
-### Estimating Propensity Scores
+## Estimating Propensity Scores
 
 Estimating the propensity score ($e(x)$) is a crucial step in propensity score analysis, as a misspecified propensity score model can result in propensity scores with little variability or extreme scores that lead to biased treatment effect estimates [@Hill.201183]. Propensity scores can be estimated using parametric or non-parametric models as long as the model outputs a probability that is bounded between 0 and 1. Logistic regression is a widely used parametric model for estimating propensity scores, particularly in applied educational research [@Stuart.2023].
 
-#### Logistic Regression
+### Logistic Regression
 
 Logistic regression is the most common parametric model used to estimate propensity scores in the social science literature due to its ease of interpretation and familiarity with many applied researchers and its ability to accommodate continuous and categorical covariates [@keller2015neural]. The logistic model is defined as follows:
 
@@ -185,11 +183,11 @@ where $Z$ is a binary indicator equal to 1 if a student is in the treatment grou
 
 Although logistic regression is the most commonly used method for estimating propensity scores, it may not always be the best option for inference [@Lee.2023; @Lee.2010u1]. Several simulation studies have found that using logistic regression for propensity score modeling can result in biased treatment effect estimates when the model is misspecified, especially in complex data where non-linear and non-additive terms are not included in the propensity score model [@Lee.2010u1; @Setoguchi.2008ulg; @Cannas.2019; @McCaffrey.2004pse]. This situational bias occurs because parametric models, such as logistic regression, require assumptions about covariates' functional form and distribution [@Hill.201183]. When estimating propensity scores with many covariates, this problem can be particularly pronounced [@Hill.201183]. In high-dimensional settings, the logistic model may produce propensity scores outside the desired range \[0,1\] [@Hill.201183]. However, non-parametric machine learning algorithms have been proposed as alternatives for estimating the propensity score [@Lee.2010u1; @Setoguchi.2008ulg; @Cannas.2019; @McCaffrey.2004pse].
 
-#### Machine Learning Approaches
+### Machine Learning Approaches
 
 Machine learning algorithms have recently gained popularity in the causal inference and propensity score literature due to these algorithms being highly flexible and able to model complex functional forms iteratively without explicit manipulation from the researcher [@cui2020causal; @grimmer2015we; @athey2015machine]. By making a simple modification, such as applying a logistic activation function to the output layer of a neural network, these algorithms can output bounded probabilities that can be utilized as propensity scores. Given the success of machine learning algorithms for prediction tasks, it is reasonable to think they are worthy candidates for the propensity score estimation problem, which is a prediction problem. Broadly, machine learning algorithms used in propensity score estimation can be classified into tree-based, ensemble methods, and---the focus of this study---neural network-based approaches.
 
-#### Tree-Based Methods
+### Tree-Based Methods
 
 One popular machine learning approach to estimating propensity score is classification and regression trees (CART) [@denison1998bayesian]. This algorithm recursively divides data into subsets based on individual covariates to predict the probability of membership assignment of a given individual. To generate propensity scores, the outcome is set to a binary indicator of treatment assignment ($Z$). This algorithm splits covariates by level of importance, with the first split being the covariate that can produce the most distinctive split. For example, if a student's age is related to the treatment assignment, the first split would divide the data into students with $age > 15$ and $age < 15$. The algorithm continues by splitting the data by the next most influential covariate, creating a tree-like structure (see @fig-decision_tree). Splitting stops when the data are binned into unique "branches," that minimize the prediction error such that an additional split would not improve the prediction of treatment assignment. The final "branches" of the model represent the individual groups of students with similar propensity scores [@denison1998bayesian]. The output of CART is the predicted probabilities, which can be used as propensity scores. Like logistic regression, the CART algorithm can handle continuous and categorical covariates. However, unlike logistic regression, CART is insensitive to outliers and can automatically model interactions and higher-order terms [@Westreich.2010; @Wyss.2014jfk]. Through a simulation study, @Lee.2010u1 found that CART outperformed logistic regression in reducing bias and balancing covariates when the data-generating mechanism had complex associations.
 
@@ -197,7 +195,7 @@ One popular machine learning approach to estimating propensity score is classifi
 
 However, a well-known issue with CART is its tendency to overfit the data [@Lee.2010u1]. A modified version of CART was developed to address this issue; it prunes back branches that do not contribute to reducing prediction error, referred to as pruned-CART [@Westreich.2010]. Although pruning can alleviate some of the changes in overfitting, a significant drawback of CART is its reliance on a single tree, which may be weak in predicting the propensity score.
 
-#### Ensemble Methods
+### Ensemble Methods
 
 Ensemble methods are a family of algorithms that generate multiple trees to predict treatment assignment [@Lee.2010u1; @Stuart.2023; @Stuart.201027c]. By combining the predictions from multiple trees, ensemble methods can improve the accuracy of predictions since many weak trees together can create a better prediction than any single tree [@Lee.2010u1]. A popular ensemble method is bootstrapped aggregated CART, referred to as bagged-CART, which fits multiple CARTs on bootstrapped data samples [@Lee.2010u1]. Growing trees on bootstrapped samples reduce the chances of overfitting the data. Each tree will generate a probability that an individual will be assigned to treatment. The final probability of membership is based on aggregating the probabilities of assignment across all trees (i.e., forest). A more robust ensemble method is random forest [@Suk.20215xt]. Compared to CART and Bagging, the random forest algorithm grows trees by randomly selecting covariates and individuals to grow individual trees. With each new tree, the algorithm "learns" the best combination of covariates to generate a final probabilistic prediction based on the "forest" it has created. These random forest techniques have shown significant promise in predicting propensity scores in complex data associations [@Lee.2010u1; @Cannas.2019].
 
@@ -205,81 +203,11 @@ Two further ensemble strategies figure prominently in the propensity score liter
 
 \newpage
 
-### Artificial Neural Network Architectures
+### Neural Network Approaches
 
-#### Artificial Neuron
+Neural networks build predictions from layers of simple processing units. Each unit forms a weighted combination of its inputs and passes it through a non-linear activation function; a single hidden layer of such units, pooled by an output function, can already approximate complex non-linear and non-additive relationships between covariates and treatment assignment, and applying a logistic activation to the output layer bounds the predictions in [0, 1] so they can serve directly as propensity scores [@rosenblatt1958perceptron; @james2013introduction]. Deep neural networks (DNNs) extend this architecture with multiple hidden layers, each transforming the representations learned by the previous one, which allows increasingly complex functional forms to be approximated as data move through the network; in general, three hidden layers suffice for almost any functional form outside image and speech applications [@james2013introduction]. Appendix A provides a complete development of these architectures, from the single artificial neuron through the multi-layer network, with the associated notation and diagrams. A handful of studies have evaluated the performance of single-hidden-layer networks for estimating propensity scores in low-dimensional settings and found that they represent a suitable method, generally outperforming logistic regression in reducing bias and balancing covariates [@collier2021estimating; @keller2015neural; @Setoguchi.2008ulg; @Cannas.2019].
 
-The building block for artificial neural networks was initially developed by psychologist Frank @rosenblatt1958perceptron with their idea of a perceptron or artificial neuron, see @fig-perceptron. An artificial neuron is a simplified mathematical model of neurons in our brain [@LeCun.201587]. Neurons are biological switches that take input signals from other neurons that cause the neuron to fire. Neurons can be thought of as simple processing units. In our brain, these individual neurons are connected into vast networks of billions of neurons, where the outputs of one neuron become inputs of another, allowing for the transmission of complex information [@LeCun.201587].
-
-![Structure of a Perceptron - Artificial Neuron](figures/perceptron.png){#fig-perceptron fig-align="center" width="437"}
-
-The artificial neuron receives a set of inputs $X_i = (X_1, X_2, \dots, X_p)$ with corresponding weights $w_i = (w_1, w_2, \dots ,w_p)$ that represent the strength of each input variable. The inputs are multiplied by their corresponding weights and then summed with a bias term $\beta_0$ to create a linear transformation of the inputs. The weight and bias terms are similar to the slope and intercept in linear regression. The linear transformation is then passed through an activation function $g(z)$ to generate an output ($\hat{y}$) that is either a 1 or 0, or a value between 0 and 1 if the activation function is set to be linear, such as the logistic function (also refered to as the sigmoid function).
-
-The artificial neuron in @eq-nn can be used to solve a binary classification problem. In our case, we are interested in classifying each student in our sample as belonging to the treatment or control condition based on observed covariates. If the activation function $g(z)$ is set to a logistic function, the desired propensity score will be guaranteed an output value between 0 and 1. For the neuron to make accurate predictions for each student, it must "learn" the correct weight and bias parameter specifications, similar to finding the correct slope and intercept in bivariate data.
-
-$$
-\hat{y} = g(z) = g(\beta_0 + \sum_{i=1}^{p}X_iw_i)
-$$ {#eq-nn}
-
-This learning process starts by feeding each observation in the sample into the neuron. The first pass initializes the weights and biases set to random numbers. The outcome variable is set to the binary indicator of treatment assignment, so a predicted probability of treatment assignment is calculated for each student. However, the initial pass of the data is likely to generate incorrect predictions as the weights and bias terms are initialized to random numbers. In other words, the prediction of treatment assignment ($\hat{y}$) will be far from the actual treatment assignment ($y$), leading to a high associated loss.
-
-It is important to note that this learning process is an optimization problem that can be solved through various optimization algorithms such as gradient descent or stochastic gradient descent [@goodfellow2016deep]. The choice of optimization algorithm will impact the speed and accuracy of the learning process.
-
-The goal of the artificial neuron and many machine learning algorithms is to correctly learn the values of the weights and bias parameters that minimize a loss function, such as the mean squared error (MSE). The neuron will update the bias and weight parameters iteratively for each subsequent data pass to minimize the loss function. This update is typically done using a process known as backpropagation. After a user-defined number of iterations, the neuron will be optimized with bias and weight terms that best predict treatment assignment. A single neuron may be appropriate for simple classification problems with linear covariate associations. However, as the complexities of covariate associations increase, more neurons may be needed to learn complex functional forms.
-
-#### Single-Layer Neural Network
-
-Following the development of the artificial neuron, researchers began to model more complex processing units composed of interconnected artificial neurons organized in layers. This work culminated in creating the single-layer feed-forward neural network (NN), as shown in Figure [@fig-nn; @collier2021estimating; @keller2015neural]. NNs are referred to as single-layer because they have a single middle layer of interconnected artificial neurons. These NNs can learn very complex data representations by generating various non-linear representations of the data through multiple artificial neurons [@derry2023neural]. These non-linear outputs are passed into a final layer that pools the outputs of the individual neurons into a non-linear function, $f(x)$, generating a prediction ($\hat{y}$). By having multiple artificial neurons calculating predictions on various non-linear combinations of the input variables, these networks can learn complex non-linear and non-additive associations between covariates.
-
-![Structure of Single-Layer Neural Network](figures/nn.png){#fig-nn fig-align="center" width="493"}
-
-\newpage
-
-The single-layer NN comprises a series of artificial neurons organized into three layers [@derry2023neural]. The first layer is the input layer of $p$ variables, $X_i=(X_1, X_2, \dots, X_p)$, our observed covariates. These input variables are fully connected to the second layer---a hidden layer---which comprises $K$ hidden neurons, $A = (A_1, A_2, \dots, A_k)$. The hidden neurons are identical to the artificial neurons mentioned previously, but the activation function is swapped out for a non-linear function. Each hidden neuron calculates its prediction based on its unique non-linear combination of variable inputs and associated weight and bias parameters. The last layer is the output layer, which pools the non-linear outputs of the hidden neurons and passes them as inputs to a non-linear output function, $f(x)$, which generates the final prediction ($\hat{y}$). The interconnected neurons in NN allow it to learn more complex associations between covariates and treatment assignment than a single artificial neuron [@derry2023neural; @hernandez2019systematic].
-
-We can express a NN generally as [^1]:
-
-[^1]: This notation was adapted from @james2013introduction.
-
-$$
-\hat{y} = f(x) = B_0 + \sum_{k=1}^{K}B_kh_k(X) = B_0 + \sum_{k=1}^{K}B_kg(w_{k0}+\sum_{i=1}^{p}w_{ki}X_i)
-$$ {#eq-nn_gen}
-
-where each hidden unit $A_k, k =1,\dots,K$ is created from a weighted linear combination of input variables, $X_1,X_2, \dots,X_p$ that are applied to an activation function $g(z)$ resulting in an "activation" for each hidden neuron, $A_k$:
-
-$$
-A_k = h_k(X) = g(w_{k0}+\sum_{i=1}^{p}w_{ki}X_i)
-$$ {#eq-nn_activation}
-
-$w_{k0}$ and $w_{ki}$ are the bias and corresponding weights for each $A_k$ hidden neuron. We can regard these activations as individual predictions of each hidden neuron. These predictions are then pooled and passed to the output function ($f(x)$), which has its bias term, $B_0$, and produces a final prediction ($\hat{y}$).
-
-The learning process of a NN works similarly to that of a single neuron, but instead of learning only one set of weights and bias terms, it learns multiple sets simultaneously. The ultimate goal of the NN is to minimize the loss function by learning the correct weights and bias parameters. Unlike a single artificial neuron, NN can efficiently learn complex non-linear relationships between covariates and treatment assignments [@james2013introduction]. A handful of studies have evaluated the performance of NN in estimating propensity scores in a low-dimensional setting [@collier2021estimating; @keller2015neural; @Setoguchi.2008ulg; @Cannas.2019]. These studies suggest that NNs represent a suitable method for estimating the propensity score and generally outperform logistic regression in reducing bias and balancing covariates.
-
-The development of NNs has led to the creation of more complex NN architectures, such as DNNs or multilayer neural networks [@LeCun.201587]. These networks consist of multiple hidden layers and varying numbers of hidden neurons.
-
-#### Deep Neural Networks
-
-The DNN architecture captures even more complex relationships among covariates than a single-layer NN [@Pang.2019kdf; @hernandez2019systematic]. This effectiveness is due to the multiple hidden layers in the network, making it "deep". The diagram in @fig-nn shows a DNN with two hidden layers ($L_1, L_2$).
-
-![Structure of Deep Neural Network with Two Hidden Layers](figures/dnn.png){#fig-dnn fig-align="center"}
-
-The first hidden layer functions like the middle layer in an NN (as described in Equation @eq-nn_activation). The first layer in a DNN can be represented as:
-
-$$
-A_k^{(1)}=h_k^{(1)}(X) = g(w_{k0}^{(1)}+\sum_{i=1}^{p}w_{ki}^{(1)}X_i)
-$$ {#eq-dnn-1}
-
-Each hidden unit in the first layer, $A_k^{(1)}, k =1,\dots,K$ is created from a weighted linear combination of the input variables, $X_1,X_2, \dots,X_p$. The weighted linear combination is then applied to a non-linear activation function $g(z)$, resulting in output for each hidden neuron in the first layer, $A_k^{(1)}$.
-
-The second hidden layer $L_2$ takes as inputs the outputs of $A_k^{(1)}$ of the first hidden layer and computes a new non-linear transformation, $A_k^{(2)}$. The new activations of the second layer are calculated as follows:
-
-$$
-A_l^{(2)}=h_k^{(2)}(X) = g(w_{l0}^{(2)}+\sum_{k=1}^{K_1}w_{lk}^{(2)}A_k^{(1)})
-$$ {#eq-dnn-2}
-
-where each hidden unit in the second layer $A_l^{(2)}, l =1,\dots,K$ is a function of the output of the weighted non-linear combinations of $A_k^{(1)}$, this process can be extended to additional hidden layers. As data move from layer to layer, DNNs can approximate increasingly complex functional forms [@james2013introduction]. The complexity should inform the choice of the number of hidden layers in a DNN of the problem and the computational resources available [@james2013introduction]. While more hidden layers can allow the network to capture increasingly complex functional forms, they also have a higher computational cost. In general, three hidden layers are sufficient for capturing almost any functional form in problems outside of image and speech recognition [@james2013introduction].
-
-#### Deep Neural Networks in Causal Inference
+### Deep Neural Networks in Causal Inference
 
 The popularity of DNNs in causal inference has increased in recent years due to their ability to uncover complex relationships in high-dimensional data with improved precision compared to traditional statistical and machine learning methods [@Pang.2019kdf; @hernandez2019systematic]. This capability to capture intricate relationships in large-volume data makes DNN algorithms suitable for applications in propensity score analysis and other causal inference methods. DNNs have garnered substantial attention in industry and academic research, making substantial advances in image recognition and natural language processing [@james2013introduction]; the large language models now pervasive in educational discourse are themselves deep neural networks. Mature high-level libraries such as Keras have also made DNN models straightforward to build and train without specialized engineering expertise [@Pang.2019kdf].
 
@@ -301,7 +229,7 @@ Against this backdrop, a notable feature of the propensity score comparison lite
 
 \newpage
 
-## Method
+## Simulation Study
 
 This study is a statistical simulation that evaluates ten propensity score estimation methods --- logistic regression, a classification tree (CART), bagged CART, random forest, gradient boosted trees (GBM), Bayesian additive regression trees (BART), a Super Learner ensemble, and neural networks with one, two, and three hidden layers (NN-1, DNN-2, DNN-3) --- in recovering the ATE using propensity score weighting. We specifically examine the impact of different data conditions (i.e., low vs. high-dimensional context) and the inclusion of complexities in the population treatment and outcome models on the estimated ATE, covariate balance, and the quality of the resulting statistical inference. The choice of these specific conditions is motivated by the need to understand how the performance of these techniques varies across diverse data structures, which is crucial for determining their applicability and robustness in real-world scenarios. Additionally, assessing the impact of complexities in the treatment and outcome models provides insights into the strengths and limitations of each technique, guiding researchers in selecting the most appropriate method for their studies.
 
@@ -310,6 +238,8 @@ Our study uses a Monte Carlo simulation design informed by previous propensity s
 ### Data-Generation Mechanisms
 
 The data generation mechanism for our simulation was informed by a large-scale evaluation we conducted of an AI chatbot intervention, which used high-dimensional administrative data. We based the coefficient values of the covariates and error variances on those data. By basing our simulation on real-world data, we aim to address the limitations of statistical simulations that may not generalize well to real datasets [@huber2013performance].
+
+In summary, data for each design cell are generated in five steps: (1) draw and fix the cell's population --- the covariate correlation matrix, covariate roles, model coefficients, complexity terms, and calibrated intercept --- under a deterministic seed; (2) generate $n = 10{,}000$ correlated covariates of mixed types from that population; (3) compute each unit's true propensity score and assign treatment by Bernoulli draw; (4) generate the continuous outcome with a constant treatment effect of 0.3; and (5) repeat steps 2--4 for each of 1,000 replications with the population held fixed. Each step is detailed below.
 
 #### Covariates
 
@@ -381,7 +311,11 @@ $$ {#eq-outcome_d}
 
 where, as in the treatment model, $X_1, \dots, X_J$ denote the sampled outcome-model covariates in their sampled order.
 
-#### Propensity Score Estimation Methods
+### Simulation Scenarios
+
+In total, we tested three different covariate conditions (p = 20, 100, 200) with varying levels of complexity in the treatment and outcome models (Treatment population model = Base, Complex; Outcome population model = Base, Complex). We evaluated ten propensity score estimation methods: logit, CART, bagged CART, random forest, GBM, BART, Super Learner, NN-1, DNN-2, and DNN-3. The sample size was fixed at 10,000. By fully crossing all these conditions, we tested 120 scenarios; each simulated 1,000 times. One thousand replications matches or exceeds the comparison literature [@Setoguchi.2008ulg; @Cannas.2019] and was chosen with the precision of the coverage estimates in mind: the Monte Carlo standard error of an estimated coverage rate is at most $\pm 1.6$ percentage points (and $\pm 0.7$ at the nominal 95% level), while Monte Carlo error in the bias estimates is negligible relative to the effects of interest [@Morris.2019abs]. Monte Carlo uncertainty is reported alongside the results.
+
+### Propensity Score Estimation Methods
 
 Using the simulated data, we estimate propensity scores using standard logistic regression and popular machine learning techniques commonly used in the propensity score estimation literature. This estimation includes a CART, bagged-CART, random forest, gradient boosted trees, Bayesian additive regression trees, a Super Learner ensemble, and neural networks of increasing depth. The propensity scores are estimated using all $p$ covariates as main effects in all cases. This scenario is unique in that all confounders are included in the propensity score estimation, which is not typically the case in practice. However, given our interest in evaluating the ability of these methods to recover the true unbiased treatment effect, this approach is well-suited. Future research should examine the performance of these methods when a subset of confounders is omitted from the propensity score estimation model.
 
@@ -458,10 +392,6 @@ To gauge the performance of each propensity score estimation method, we used the
 -   **Weights**: a known issue with PSW is that extreme weights can result in biased treatment effects. Therefore, we examine the distribution of the estimated weights, including the maximum weight and the effective sample size implied by the weights [@Kish.1965]. We also report the ATE, its standard error, and coverage under weights truncated at the 1st and 99th percentiles [@Lee.2011tr].
 
 -   **Standard Error Calibration**: the ratio of the average estimated standard error to the empirical Monte Carlo standard deviation of the ATE estimates within a condition. Values below one indicate that the estimator understates the true sampling variability, which translates directly into under-coverage of the nominal 95% confidence interval.
-
-### Simulation Scenarios
-
-In total, we tested three different covariate conditions (p = 20, 100, 200) with varying levels of complexity in the treatment and outcome models (Treatment population model = Base, Complex; Outcome population model = Base, Complex). We evaluated ten propensity score estimation methods: logit, CART, bagged CART, random forest, GBM, BART, Super Learner, NN-1, DNN-2, and DNN-3. The sample size was fixed at 10,000. By fully crossing all these conditions, we tested 120 scenarios; each simulated 1,000 times. One thousand replications matches or exceeds the comparison literature [@Setoguchi.2008ulg; @Cannas.2019] and was chosen with the precision of the coverage estimates in mind: the Monte Carlo standard error of an estimated coverage rate is at most $\pm 1.6$ percentage points (and $\pm 0.7$ at the nominal 95% level), while Monte Carlo error in the bias estimates is negligible relative to the effects of interest [@Morris.2019abs]. Monte Carlo uncertainty is reported alongside the results.
 
 ### Software and Reproducibility
 
@@ -1013,6 +943,12 @@ res |>
 
 \newpage
 
+<!-- EMPIRICAL APPLICATION (co-author): JEBS convention is a real-data
+application as its own section here, after the simulation — Data (+Variables)
+and Results subsections, with a sensitivity analysis (see
+research/jebs_structure_survey.md; ECLS-K:2011 or HSLS:09 are the
+JEBS-conventional public candidates). -->
+
 ## Discussion and Conclusion
 
 Quasi-experimental methods have gained popularity in educational research for estimating treatment effects without randomization [@Imbens.2015; @rubin2005causal]. One such method is propensity score weighting, which balances observed covariates between treatment and control groups using an estimated propensity score. However, accurately estimating the propensity score model can be challenging, especially in high-dimensional data settings [@Hill.201183].
@@ -1041,3 +977,80 @@ Moving forward, several steps can be taken to ensure that these machine learning
 
 ::: {#refs}
 :::
+
+\newpage
+
+## Appendix A: Neural Network Architectures {#sec-appendix-nn}
+
+### The Artificial Neuron
+
+The building block for artificial neural networks was initially developed by psychologist Frank @rosenblatt1958perceptron with their idea of a perceptron or artificial neuron, see @fig-perceptron. An artificial neuron is a simplified mathematical model of neurons in our brain [@LeCun.201587]. Neurons are biological switches that take input signals from other neurons that cause the neuron to fire. Neurons can be thought of as simple processing units. In our brain, these individual neurons are connected into vast networks of billions of neurons, where the outputs of one neuron become inputs of another, allowing for the transmission of complex information [@LeCun.201587].
+
+![Structure of a Perceptron - Artificial Neuron](figures/perceptron.png){#fig-perceptron fig-align="center" width="437"}
+
+The artificial neuron receives a set of inputs $X_i = (X_1, X_2, \dots, X_p)$ with corresponding weights $w_i = (w_1, w_2, \dots ,w_p)$ that represent the strength of each input variable. The inputs are multiplied by their corresponding weights and then summed with a bias term $\beta_0$ to create a linear transformation of the inputs. The weight and bias terms are similar to the slope and intercept in linear regression. The linear transformation is then passed through an activation function $g(z)$ to generate an output ($\hat{y}$) that is either a 1 or 0, or a value between 0 and 1 if the activation function is set to be linear, such as the logistic function (also refered to as the sigmoid function).
+
+The artificial neuron in @eq-nn can be used to solve a binary classification problem. In our case, we are interested in classifying each student in our sample as belonging to the treatment or control condition based on observed covariates. If the activation function $g(z)$ is set to a logistic function, the desired propensity score will be guaranteed an output value between 0 and 1. For the neuron to make accurate predictions for each student, it must "learn" the correct weight and bias parameter specifications, similar to finding the correct slope and intercept in bivariate data.
+
+$$
+\hat{y} = g(z) = g(\beta_0 + \sum_{i=1}^{p}X_iw_i)
+$$ {#eq-nn}
+
+This learning process starts by feeding each observation in the sample into the neuron. The first pass initializes the weights and biases set to random numbers. The outcome variable is set to the binary indicator of treatment assignment, so a predicted probability of treatment assignment is calculated for each student. However, the initial pass of the data is likely to generate incorrect predictions as the weights and bias terms are initialized to random numbers. In other words, the prediction of treatment assignment ($\hat{y}$) will be far from the actual treatment assignment ($y$), leading to a high associated loss.
+
+It is important to note that this learning process is an optimization problem that can be solved through various optimization algorithms such as gradient descent or stochastic gradient descent [@goodfellow2016deep]. The choice of optimization algorithm will impact the speed and accuracy of the learning process.
+
+The goal of the artificial neuron and many machine learning algorithms is to correctly learn the values of the weights and bias parameters that minimize a loss function, such as the mean squared error (MSE). The neuron will update the bias and weight parameters iteratively for each subsequent data pass to minimize the loss function. This update is typically done using a process known as backpropagation. After a user-defined number of iterations, the neuron will be optimized with bias and weight terms that best predict treatment assignment. A single neuron may be appropriate for simple classification problems with linear covariate associations. However, as the complexities of covariate associations increase, more neurons may be needed to learn complex functional forms.
+
+### Single-Layer Neural Networks
+
+Following the development of the artificial neuron, researchers began to model more complex processing units composed of interconnected artificial neurons organized in layers. This work culminated in creating the single-layer feed-forward neural network (NN), as shown in Figure [@fig-nn; @collier2021estimating; @keller2015neural]. NNs are referred to as single-layer because they have a single middle layer of interconnected artificial neurons. These NNs can learn very complex data representations by generating various non-linear representations of the data through multiple artificial neurons [@derry2023neural]. These non-linear outputs are passed into a final layer that pools the outputs of the individual neurons into a non-linear function, $f(x)$, generating a prediction ($\hat{y}$). By having multiple artificial neurons calculating predictions on various non-linear combinations of the input variables, these networks can learn complex non-linear and non-additive associations between covariates.
+
+![Structure of Single-Layer Neural Network](figures/nn.png){#fig-nn fig-align="center" width="493"}
+
+\newpage
+
+The single-layer NN comprises a series of artificial neurons organized into three layers [@derry2023neural]. The first layer is the input layer of $p$ variables, $X_i=(X_1, X_2, \dots, X_p)$, our observed covariates. These input variables are fully connected to the second layer---a hidden layer---which comprises $K$ hidden neurons, $A = (A_1, A_2, \dots, A_k)$. The hidden neurons are identical to the artificial neurons mentioned previously, but the activation function is swapped out for a non-linear function. Each hidden neuron calculates its prediction based on its unique non-linear combination of variable inputs and associated weight and bias parameters. The last layer is the output layer, which pools the non-linear outputs of the hidden neurons and passes them as inputs to a non-linear output function, $f(x)$, which generates the final prediction ($\hat{y}$). The interconnected neurons in NN allow it to learn more complex associations between covariates and treatment assignment than a single artificial neuron [@derry2023neural; @hernandez2019systematic].
+
+We can express a NN generally as [^1]:
+
+[^1]: This notation was adapted from @james2013introduction.
+
+$$
+\hat{y} = f(x) = B_0 + \sum_{k=1}^{K}B_kh_k(X) = B_0 + \sum_{k=1}^{K}B_kg(w_{k0}+\sum_{i=1}^{p}w_{ki}X_i)
+$$ {#eq-nn_gen}
+
+where each hidden unit $A_k, k =1,\dots,K$ is created from a weighted linear combination of input variables, $X_1,X_2, \dots,X_p$ that are applied to an activation function $g(z)$ resulting in an "activation" for each hidden neuron, $A_k$:
+
+$$
+A_k = h_k(X) = g(w_{k0}+\sum_{i=1}^{p}w_{ki}X_i)
+$$ {#eq-nn_activation}
+
+$w_{k0}$ and $w_{ki}$ are the bias and corresponding weights for each $A_k$ hidden neuron. We can regard these activations as individual predictions of each hidden neuron. These predictions are then pooled and passed to the output function ($f(x)$), which has its bias term, $B_0$, and produces a final prediction ($\hat{y}$).
+
+The learning process of a NN works similarly to that of a single neuron, but instead of learning only one set of weights and bias terms, it learns multiple sets simultaneously. The ultimate goal of the NN is to minimize the loss function by learning the correct weights and bias parameters. Unlike a single artificial neuron, NN can efficiently learn complex non-linear relationships between covariates and treatment assignments [@james2013introduction]. A handful of studies have evaluated the performance of NN in estimating propensity scores in a low-dimensional setting [@collier2021estimating; @keller2015neural; @Setoguchi.2008ulg; @Cannas.2019]. These studies suggest that NNs represent a suitable method for estimating the propensity score and generally outperform logistic regression in reducing bias and balancing covariates.
+
+The development of NNs has led to the creation of more complex NN architectures, such as DNNs or multilayer neural networks [@LeCun.201587]. These networks consist of multiple hidden layers and varying numbers of hidden neurons.
+
+### Deep Neural Networks
+
+The DNN architecture captures even more complex relationships among covariates than a single-layer NN [@Pang.2019kdf; @hernandez2019systematic]. This effectiveness is due to the multiple hidden layers in the network, making it "deep". The diagram in @fig-nn shows a DNN with two hidden layers ($L_1, L_2$).
+
+![Structure of Deep Neural Network with Two Hidden Layers](figures/dnn.png){#fig-dnn fig-align="center"}
+
+The first hidden layer functions like the middle layer in an NN (as described in Equation @eq-nn_activation). The first layer in a DNN can be represented as:
+
+$$
+A_k^{(1)}=h_k^{(1)}(X) = g(w_{k0}^{(1)}+\sum_{i=1}^{p}w_{ki}^{(1)}X_i)
+$$ {#eq-dnn-1}
+
+Each hidden unit in the first layer, $A_k^{(1)}, k =1,\dots,K$ is created from a weighted linear combination of the input variables, $X_1,X_2, \dots,X_p$. The weighted linear combination is then applied to a non-linear activation function $g(z)$, resulting in output for each hidden neuron in the first layer, $A_k^{(1)}$.
+
+The second hidden layer $L_2$ takes as inputs the outputs of $A_k^{(1)}$ of the first hidden layer and computes a new non-linear transformation, $A_k^{(2)}$. The new activations of the second layer are calculated as follows:
+
+$$
+A_l^{(2)}=h_k^{(2)}(X) = g(w_{l0}^{(2)}+\sum_{k=1}^{K_1}w_{lk}^{(2)}A_k^{(1)})
+$$ {#eq-dnn-2}
+
+where each hidden unit in the second layer $A_l^{(2)}, l =1,\dots,K$ is a function of the output of the weighted non-linear combinations of $A_k^{(1)}$, this process can be extended to additional hidden layers. As data move from layer to layer, DNNs can approximate increasingly complex functional forms [@james2013introduction]. The complexity should inform the choice of the number of hidden layers in a DNN of the problem and the computational resources available [@james2013introduction]. While more hidden layers can allow the network to capture increasingly complex functional forms, they also have a higher computational cost. In general, three hidden layers are sufficient for capturing almost any functional form in problems outside of image and speech recognition [@james2013introduction].
+
