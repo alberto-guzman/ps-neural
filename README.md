@@ -58,7 +58,8 @@ example_sim_code/          reference implementations from prior literature
    seeds inside `Generate()`):
    `Rscript code/run_sim_P.R`, `Rscript code/run_sim_gbm.R`,
    `Rscript code/run_sim_NP.R` — or submit the corresponding Slurm scripts.
-   Total compute ~1,300 core-hours, ~40% of it GBM.
+   Total compute ~1,000 core-hours (measured in the 2026-07-19 shakedown;
+   ~40% of it GBM, ~30% Super Learner).
 4. **Combine:** `Rscript code/combine_res_fun.R` → `data/res_all_v2.rds`.
 5. **Render:** `quarto render propensity_over.qmd`.
 
