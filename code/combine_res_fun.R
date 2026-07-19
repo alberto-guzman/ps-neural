@@ -3,7 +3,9 @@
 # jobs (run_sim_P.R, run_sim_gbm.R, run_sim_NP.R) into one analysis-ready
 # tibble, data/res_all_v2.rds — one row per replication, with the design-cell
 # identifiers (p, scenarioT, scenarioY, method) bound to each row. This is
-# the file the manuscript (propensity_over.qmd) reads.
+# the analysis file for the manuscript; note propensity_over.qmd currently
+# reads the archived v1 results (res_all_nnmod.rds) and must be pointed at
+# res_all_v2.rds when the production results replace them.
 #
 # Run AFTER all three jobs finish: Rscript code/combine_res_fun.R
 # Note: SimDesign writes per-cell files named results-row-<k> — classic RDS

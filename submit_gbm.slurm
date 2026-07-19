@@ -1,4 +1,13 @@
 #!/bin/bash
+# Production job 2/3: GBM alone (see code/run_sim_gbm.R header for why it is
+# separate). Measured budget: ~2,700 core-hours => ~42h on 64 cores; the
+# 3-day limit leaves ~30h of headroom.
+#
+# !! UPDATE THE MODULE LOADS FOR YOUR CLUSTER before submitting: the versions
+# below are from the Pitt CRC circa 2023 and are almost certainly stale. The
+# simulation needs R >= 4.5 with the packages listed in code/run_sim_gbm.R
+# (no python/CUDA needed for this job). infra/aws/bootstrap.sh documents a
+# complete from-scratch environment build.
 #SBATCH --job-name=dnn_n10000_r1000_gbm_v2
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
@@ -12,9 +21,9 @@
 module purge
 module load gcc/8.2.0
 module load r/4.1.0
-module load python/anaconda3.7-2019.03
-module load cuda/11.0
 
+# keep worker-internal threading at 1: SimDesign already uses all 64 cores,
+# and code/02_analyse_fun.R additionally pins gbm's n.cores = 1
 export OMP_NUM_THREADS=1
 export OPENBLAS_NUM_THREADS=1
 

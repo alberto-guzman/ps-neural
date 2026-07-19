@@ -2,7 +2,7 @@
 ## WHAT DOES THIS FUNCTION DO?
 # The Generate function generates simulated data based on specified conditions.
 # The input is a tibble containing information about the sample size, number of covariates, and conditions for the population treatment and outcome models.
-# The function first generates correlated normal variables and transforms them into normal, Bernoulli, and uniform variables. It then selects a subset of the covariates for use in the population treatment and outcome models.
+# The function first generates correlated normal variables and transforms them into normal, uniform, and Bernoulli variables (in that column order). It then selects a subset of the covariates for use in the population treatment and outcome models.
 # The population treatment and outcome models are generated based on the specified conditions
 # and the selected covariates, and the treatment status is also generated.
 # The function returns a simulated data tibble that includes the original covariates, treatment status, and generated outcome.
@@ -98,7 +98,7 @@ Generate <- function(condition, fixed_objects = NULL) {
     X <- cbind(
       qnorm(vars_unif[, 1:num_norm_vars]),
       vars_unif[, (num_norm_vars + 1):(num_norm_vars + num_uniform_vars)],
-      qbinom(vars_unif[, (num_norm_vars + num_uniform_vars + 1):p], size = 1, prob = 0.5)
+      qbinom(vars_unif[, (num_norm_vars + num_uniform_vars + 1):(num_norm_vars + num_uniform_vars + num_bern_vars)], size = 1, prob = 0.5)
     )
     colnames(X) <- sprintf("v%d", 1:p)
     X

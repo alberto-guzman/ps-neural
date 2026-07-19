@@ -24,13 +24,11 @@ packages <- c(
   "here",
   "tidyverse",
   "MASS",
-  "Matrix",
   "psych",
   "rpart",
   "ipred",
   "randomForest",
   "survey",
-  "Hmisc",
   "SimDesign",
   "keras",
   "tensorflow",
@@ -64,11 +62,12 @@ Design <- createDesign(
 # Run Simulation
 ######################################################################
 
-# Pitt CRC virtualenv if present; elsewhere (e.g., AWS) reticulate discovers
-# the environment set up by keras::install_keras() on its own
+# Pitt CRC virtualenv if present; elsewhere reticulate auto-discovers the
+# "r-tensorflow" virtualenv that infra/aws/bootstrap.sh builds (do not rely
+# on keras::install_keras() — it pins TF 2.15, which has no python-3.12
+# wheels; see the bootstrap script's notes)
 crc_venv <- "/ihome/xqin/alg223/.virtualenvs/r-reticulate"
 if (dir.exists(crc_venv)) use_virtualenv(crc_venv)
-# use_condaenv("r-reticulate")
 
 # SimDesign does not create parent directories for save_results
 dir.create(here("data"), showWarnings = FALSE)

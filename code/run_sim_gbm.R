@@ -18,7 +18,6 @@ packages <- c(
   "here",
   "tidyverse",
   "MASS",
-  "Matrix",
   "psych",
   "rpart",
   "ipred",
@@ -32,7 +31,6 @@ packages <- c(
   "WeightIt",
   "dbarts",
   "survey",
-  "Hmisc",
   "SimDesign"
 )
 

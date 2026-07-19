@@ -2,11 +2,15 @@
 ## WHAT DOES THIS FUNCTION DO?
 # The Analyse function is used to estimate the average treatment effect (ATE) and related metrics for a given condition.
 # The function uses one of several methods, specified by the method argument, to estimate the propensity score.
-# The methods used to estimate the propensity score are
-# logistic regression (logit), classification and regression trees (cart), bagging (bag), random forest (forest),
-# and three neural network models (nn-1, dnn-2, and dnn-3). Once the propensity score is estimated,
-# the function uses survey-weighted regression to estimate the ATE, standard error of the ATE, p-value, and 95% confidence interval of the ATE.
-# The function also calculates the absolute standardized average mean (ASAM) for each covariate in the data.
+# The ten methods used to estimate the propensity score are: logistic
+# regression (logit), a classification tree (cart), classification bagging
+# (bag), random forest (forest), gradient boosted trees (gbm), Bayesian
+# additive regression trees (bart), a Super Learner stack (sl), and three
+# keras neural networks (nn-1, dnn-2, dnn-3). Once the propensity score is
+# estimated, the function uses survey-weighted regression to estimate the ATE,
+# its sandwich standard error, p-value, and 95% confidence interval, plus a
+# trimmed-weights sensitivity and weight/balance diagnostics — including the
+# average (and worst-covariate) standardized absolute mean difference (ASAM).
 #
 # 2026-07 revision notes (see git history for the original):
 # - bag now fits CLASSIFICATION bagging (factor response); the original passed a
