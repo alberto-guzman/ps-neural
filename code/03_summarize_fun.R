@@ -22,6 +22,7 @@ Summarise <- function(condition, results, fixed_objects = NULL) {
   max_ps_weight <- max(results$max_ps_weight)
   ess <- mean(results$ess)
   ASAM <- mean(results$ASAM)
+  max_ASAM <- mean(results$max_ASAM)
 
   # trimmed-weight sensitivity
   Bias_trim <- bias(results$ATE_trim, parameter = 0.3, type = "bias")
@@ -50,6 +51,7 @@ Summarise <- function(condition, results, fixed_objects = NULL) {
     max_ps_weight = max_ps_weight,
     ess = ess,
     ASAM = ASAM,
+    max_ASAM = max_ASAM,
     Bias_trim = Bias_trim,
     ATE_trim = ATE_trim,
     ATE_se_trim = ATE_se_trim,

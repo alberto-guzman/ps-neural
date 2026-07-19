@@ -247,15 +247,18 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     treatment_mean <- weighted.mean(treatment_data, treatment_weights)
     comparison_mean <- weighted.mean(comparison_data, comparison_weights)
 
-    treatment_var <- wtd.var(treatment_data, treatment_weights)
-    treatment_sd <- sqrt(treatment_var)
+    # standardize by the UNWEIGHTED treated-group SD so the denominator is
+    # constant across methods (the cobalt convention); a weighted SD would let
+    # each method's weights change its own yardstick
+    treatment_sd <- sd(treatment_data)
 
     # absolute standardized difference of means
     ASAM_list[i] <- abs((treatment_mean - comparison_mean) / treatment_sd)
   }
 
-  # calculate the mean of the absolute standardized differences of means
+  # mean and worst-covariate absolute standardized differences of means
   ASAM <- mean(ASAM_list)
+  max_ASAM <- max(ASAM_list)
 
   ret <- c(
     Std_In_Bias = Std_In_Bias,
@@ -270,6 +273,7 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     max_ps_weight = max_ps_weight,
     ess = ess,
     ASAM = ASAM,
+    max_ASAM = max_ASAM,
     p_val = p_val,
     ci_95 = unname(ci_95)
   )
