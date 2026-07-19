@@ -1,7 +1,23 @@
 ######################################################################
-# Canonical runner: keras-based methods (nn-1, dnn-2, dnn-3), serial
-# (TensorFlow does not play well with SimDesign's parallel workers)
-# Full crossed design; tree/logit methods run via run_sim_P.R
+# PRODUCTION RUNNER 3 of 3: the "NP" (non-parallel) keras job.
+#
+# Runs the three neural network methods (nn-1, dnn-2, dnn-3) over the
+# full crossed design (36 design rows x 1,000 replications). Historically
+# serial because TensorFlow cannot survive FORKED workers; note the 2026-07
+# AWS pilot demonstrated TF runs fine in SimDesign's fresh-process PSOCK
+# workers (parallel = TRUE, each worker owns its own TF session), which cuts
+# wall time from ~87 serial hours to a few — validate with a 2-replication
+# cluster test before switching parallel to TRUE here.
+#
+# Environment: needs a python with TensorFlow reachable by reticulate.
+# On Pitt CRC the virtualenv below is used if present; elsewhere, build the
+# environment with infra/aws/bootstrap.sh (which encodes the hard-won
+# version pins: python 3.11, tensorflow-cpu 2.16.2, tf-keras 2.16.0,
+# protobuf < 5) and export TF_USE_LEGACY_KERAS=1. GPU is NOT required —
+# these are small MLPs (~7-14s per replication on one CPU core).
+#
+# Outputs: data/sim_results_v2_NP/results-row-*  and sim_results_v2_NP.rds
+# Combine with code/combine_res_fun.R after all three jobs finish.
 ######################################################################
 
 packages <- c(

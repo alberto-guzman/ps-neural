@@ -1,5 +1,29 @@
-suppressMessages({library(tidyverse); library(MASS); library(psych); library(SimDesign)})
-setwd("~/Projects/inProgress/2018_propensity_neuralnet_paper")
+######################################################################
+# DGP PROPERTY AUDIT: empirical correctness tests for Generate().
+#
+# Run anytime with:  Rscript code/audit_dgp_properties.R
+# (~2 minutes; every line should print PASS. Re-run after ANY change to
+# 01_data_gen_fun.R, or on a new machine to confirm environment parity.)
+#
+# What it checks, at the worst case (n = 50,000 draws, p = 200):
+#   A1-A3  covariate marginals and the half/quarter/quarter type blocks
+#   B1     realized correlations track the smoothed population target
+#   C1-C2  role exclusions: outcome-only covariates are null in the
+#          treatment model and treatment-only covariates null in the
+#          outcome model (C1's null benchmark: E|z| ~ 0.80)
+#   D1     treatment assignment is genuinely Bernoulli(true PS), by decile
+#   E1     a correctly specified regression recovers the constant 0.3 effect
+#   F1     fitted outcome coefficients recover the population alphas
+#   G1     the calibrated marginal treatment rate is 0.50, deterministically
+#   H1     generation cost (informational)
+#
+# The script replays the seeded population block to recover the true roles
+# and coefficients — the replay must consume random draws in EXACTLY the
+# order Generate() does; F1 doubles as a check that it did.
+######################################################################
+
+suppressMessages({library(tidyverse); library(MASS); library(psych); library(SimDesign); library(here)})
+setwd(here::here())
 source("code/01_data_gen_fun.R")
 ok <- function(name, cond) cat(sprintf("%-62s %s\n", name, ifelse(isTRUE(cond), "PASS", "** FAIL **")))
 

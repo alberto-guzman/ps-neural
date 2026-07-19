@@ -1,6 +1,25 @@
 ######################################################################
-# Canonical runner: parallel-safe methods (logit, cart, bag, forest)
-# Full crossed design; keras-based methods run via run_sim_NP.R
+# PRODUCTION RUNNER 1 of 3: the "P" (parallel) job.
+#
+# Runs the six non-keras, non-GBM methods — logit, cart, bag, forest,
+# bart, sl — over the full crossed design (p = 20/100/200 x base/complex
+# treatment x base/complex outcome = 12 cells per method, 72 design rows),
+# 1,000 replications each, parallelized across replications by SimDesign.
+#
+# Companions: run_sim_gbm.R (GBM alone — its 5-fold CV of 10,000 trees is
+# ~80% of the study's total compute, so it gets its own job) and
+# run_sim_NP.R (the three keras neural networks). All three jobs simulate
+# IDENTICAL populations because the population seed inside Generate()
+# depends only on the design cell, never on the method or the job.
+#
+# Expected cost: ~600 core-hours (~10h on a 64-core node; timings measured
+# in the 2026-07 AWS validation, see infra/aws/validation_2026-07-18/).
+# Submit on Slurm with submit_dnn_R_P.slurm. Run from the repo root (the
+# script setwd()s to the project root via here()).
+#
+# Outputs: data/sim_results_v2_P/results-row-*  (per-cell replication data)
+#          sim_results_v2_P.rds                 (summarised, one row per cell)
+# Combine all three jobs' outputs with code/combine_res_fun.R.
 ######################################################################
 
 packages <- c(

@@ -1,6 +1,17 @@
 ######################################################################
-# Canonical runner: GBM only — split into its own Slurm job because 5-fold
-# CV of 10,000 trees makes it the longest block (~30 min/rep at p=200)
+# PRODUCTION RUNNER 2 of 3: GBM only.
+#
+# GBM lives in its own Slurm job because its default configuration
+# (10,000 trees x 5-fold cross-validation, single-threaded to avoid
+# oversubscribing SimDesign's worker pool) makes it ~80% of the study's
+# total compute: ~25-30 min per replication at p = 200, ~2,700 core-hours
+# for its 12 cells x 1,000 replications (~42h on a 64-core node).
+#
+# Populations are identical to the other jobs (cell-derived seeds in
+# Generate()). Submit with submit_gbm.slurm from the repo root.
+#
+# Outputs: data/sim_results_v2_gbm/results-row-*  and sim_results_v2_gbm.rds
+# Combine with code/combine_res_fun.R after all three jobs finish.
 ######################################################################
 
 packages <- c(
