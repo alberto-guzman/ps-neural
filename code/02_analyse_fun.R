@@ -122,20 +122,24 @@ Analyse <- function(condition, dat, fixed_objects = NULL) {
     mod <- randomForest(factor(T) ~ . - Y - trueps, data = dat)
     ps <- predict(mod, type = "prob")[, 2]
   } else if (method == "gbm") {
-    # estimate the propensity score using boosted trees exactly as MatchIt
-    # delivers them for distance = "gbm" (replicated from MatchIt 4.7.2
-    # source): bernoulli deviance, 10,000 trees, depth 3, shrinkage 0.01,
-    # bag.fraction 1, iteration selected by 5-fold cross-validated deviance,
-    # in-sample predictions. Same hyperparameters as WeightIt's default —
-    # the packages differ only in the selection rule (CV deviance vs balance);
-    # the CV rule keeps every learner in this study tuned for prediction.
-    # n.cores = 1 pins gbm's internal CV parallelism (compute plumbing only —
-    # SimDesign already parallelizes across replications; letting gbm detect
-    # cores would oversubscribe the node)
-    mod <- gbm(T ~ . - Y - trueps, data = dat, distribution = "bernoulli",
+    # estimate the propensity score using boosted trees with the hyperparameters
+    # MatchIt and WeightIt share as their default (verified from both sources):
+    # bernoulli deviance, 10,000 trees, depth 3, shrinkage 0.01, no subsampling.
+    # SELECTION-RULE DEVIATION (stated in the manuscript): the number of
+    # boosting iterations is selected on a single random 20% validation split
+    # (gbm's train.fraction/"test" mechanism) rather than MatchIt's 5-fold
+    # cross-validated deviance — one 10,000-tree fit instead of six, a ~5x
+    # feasibility saving that mirrors the validation-based early stopping used
+    # for the neural networks. Selection remains prediction-based: no learner
+    # sees the balance metrics used for evaluation. Predictions are in-sample,
+    # as in MatchIt. NOTE: gbm assigns the LAST train.fraction share of rows
+    # to validation by position, so rows are shuffled first (ours are iid, but
+    # the shuffle makes that explicit and future-proof).
+    shuf <- sample.int(nrow(dat))
+    mod <- gbm(T ~ . - Y - trueps, data = dat[shuf, ], distribution = "bernoulli",
                n.trees = 10000, interaction.depth = 3, shrinkage = 0.01,
-               bag.fraction = 1, cv.folds = 5, keep.data = FALSE, n.cores = 1)
-    best_iter <- gbm.perf(mod, method = "cv", plot.it = FALSE)
+               bag.fraction = 1, train.fraction = 0.8, keep.data = FALSE)
+    best_iter <- gbm.perf(mod, method = "test", plot.it = FALSE)
     ps <- predict(mod, newdata = dat, n.trees = best_iter, type = "response")
   } else if (method == "bart") {
     # estimate the propensity score using Bayesian additive regression trees

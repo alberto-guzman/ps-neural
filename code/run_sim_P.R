@@ -6,8 +6,8 @@
 # treatment x base/complex outcome = 12 cells per method, 72 design rows),
 # 1,000 replications each, parallelized across replications by SimDesign.
 #
-# Companions: run_sim_gbm.R (GBM alone — its 5-fold CV of 10,000 trees is
-# ~80% of the study's total compute, so it gets its own job) and
+# Companions: run_sim_gbm.R (GBM alone — its 10,000-tree fits remain the
+# study's largest block, so it keeps its own job) and
 # run_sim_NP.R (the three keras neural networks). All three jobs simulate
 # IDENTICAL populations because the population seed inside Generate()
 # depends only on the design cell, never on the method or the job.

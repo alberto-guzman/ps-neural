@@ -24,7 +24,7 @@ code/
                            sandwich SEs, trimming sensitivity, diagnostics
   03_summarize_fun.R       Summarise(): per-cell performance metrics (glossary in header)
   run_sim_P.R              production job 1: logit/cart/bag/forest/bart/sl  (~10h on 64 cores)
-  run_sim_gbm.R            production job 2: GBM alone                      (~42h on 64 cores)
+  run_sim_gbm.R            production job 2: GBM alone                      (~9h on 64 cores)
   run_sim_NP.R             production job 3: keras neural networks          (see header)
   combine_res_fun.R        merges the three jobs into data/res_all_v2.rds
   audit_dgp_properties.R   rerunnable empirical correctness tests for Generate()
@@ -58,7 +58,7 @@ example_sim_code/          reference implementations from prior literature
    seeds inside `Generate()`):
    `Rscript code/run_sim_P.R`, `Rscript code/run_sim_gbm.R`,
    `Rscript code/run_sim_NP.R` — or submit the corresponding Slurm scripts.
-   Total compute ~3,400 core-hours, ~80% of it GBM.
+   Total compute ~1,300 core-hours, ~40% of it GBM.
 4. **Combine:** `Rscript code/combine_res_fun.R` → `data/res_all_v2.rds`.
 5. **Render:** `quarto render propensity_over.qmd`.
 
@@ -72,13 +72,16 @@ example_sim_code/          reference implementations from prior literature
   true repeated-sampling property.
 - **50% treatment rate by calibration.** The treatment-model intercept is
   root-found per population so E[e(X)] = 0.50 in every cell.
-- **Methods as practitioners encounter them.** Logit, GBM, and BART are the
-  literal software defaults (Stata `teffects`, WeightIt, MatchIt — sources
-  audited in the manuscript); CART and random forest match MatchIt's
-  implementations (including out-of-bag prediction for forest); bagged CART
-  follows Lee et al. (2010); Super Learner and the networks are the
-  deliberately-configured tier. No learner is tuned on the balance metrics
-  used for evaluation.
+- **Methods as practitioners encounter them.** Logit and BART are the literal
+  software defaults (Stata `teffects`, WeightIt, MatchIt — sources audited in
+  the manuscript); GBM uses the MatchIt/WeightIt shared default
+  hyperparameters with ONE stated deviation (iteration selection on a single
+  20% validation split instead of MatchIt's 5-fold CV — a ~5x feasibility
+  saving mirroring the networks' early stopping); CART and random forest
+  match MatchIt's implementations (including out-of-bag prediction for
+  forest); bagged CART follows Lee et al. (2010); Super Learner and the
+  networks are the deliberately-configured tier. No learner is tuned on the
+  balance metrics used for evaluation.
 - **Weights are used untrimmed as the primary analysis** (a numerical bound at
   1e-6 only); 1st/99th-percentile truncation is reported as a labeled
   remedial sensitivity. All inference treats estimated weights as fixed

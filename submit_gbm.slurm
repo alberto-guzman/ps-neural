@@ -1,7 +1,7 @@
 #!/bin/bash
 # Production job 2/3: GBM alone (see code/run_sim_gbm.R header for why it is
-# separate). Measured budget: ~2,700 core-hours => ~42h on 64 cores; the
-# 3-day limit leaves ~30h of headroom.
+# separate). Measured budget under validation-split selection: ~550
+# core-hours => ~9h on 64 cores; the 3-day limit is ample.
 #
 # !! UPDATE THE MODULE LOADS FOR YOUR CLUSTER before submitting: the versions
 # below are from the Pitt CRC circa 2023 and are almost certainly stale. The
