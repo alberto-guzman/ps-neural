@@ -1,0 +1,53 @@
+== AWS VALIDATION REPORT ==
+design rows completed: 120 of 132
+methods: bag, bart, cart, dnn-2, dnn-3, forest, gbm, logit, nn-1, sl 
+any NA ATE: FALSE  | any NA ATE_se: FALSE 
+
+# A tibble: 30 × 7
+   method     p cells mean_mins_per_rep max_mins_per_rep mean_abs_bias     max_w
+   <chr>  <dbl> <int>             <dbl>            <dbl>         <dbl>     <dbl>
+ 1 bag       20     4              0.16             0.18         0.802    1   e6
+ 2 bag      100     4              0.66             0.7          0.7      1   e6
+ 3 bag      200     4              1.5              1.67         0.391    1   e6
+ 4 bart      20     4              0.14             0.15         0.016    3.47e1
+ 5 bart     100     4              0.16             0.16         0.053    1.25e2
+ 6 bart     200     4              0.17             0.17         0.063    1.23e2
+ 7 cart      20     4              0.01             0.01         0.026    4.44e0
+ 8 cart     100     4              0.03             0.04         0.168    4.94e0
+ 9 cart     200     4              0.07             0.08         0.123    5.86e0
+10 dnn-2     20     4              0.19             0.42         0.034    8.78e0
+11 dnn-2    100     4              0.14             0.26         0.036    6.09e1
+12 dnn-2    200     4              0.11             0.14         0.06     1.37e2
+13 dnn-3     20     4              0.23             0.54         0.038    6.71e0
+14 dnn-3    100     4              0.12             0.14         0.038    4.9 e1
+15 dnn-3    200     4              0.12             0.13         0.081    2.29e2
+16 forest    20     4              0.08             0.08         0.022    3.4 e1
+17 forest   100     4              0.29             0.3          0.142    3.15e1
+18 forest   200     4              0.58             0.59         0.063    1.68e1
+19 gbm       20     4              2.56             3.19         0.022    1.17e1
+20 gbm      100     4             12.5             13.7          0.112    3.46e1
+21 gbm      200     4             25.6             28.3          0.068    2.5 e1
+22 logit     20     4              0                0.01         0.037    1.78e1
+23 logit    100     4              0.01             0.01         0.032    2.11e2
+24 logit    200     4              0.03             0.03         0.049    4.22e2
+25 nn-1      20     4              0.16             0.25         0.031    1.04e1
+26 nn-1     100     4              0.12             0.16         0.057    1.19e2
+27 nn-1     200     4              0.13             0.14         0.069    1.91e2
+28 sl        20     4              0.57             0.57         0.021    2.04e1
+29 sl       100     4              1.72             1.76         0.035    9.09e1
+30 sl       200     4              2.8              2.88         0.058    9.56e2
+
+Projected full-run core-hours by method (1000 reps):
+# A tibble: 10 × 2
+   method core_hours_1000reps
+   <chr>                <dbl>
+ 1 bag                    154
+ 2 bart                    31
+ 3 cart                     7
+ 4 dnn-2                   29
+ 5 dnn-3                   31
+ 6 forest                  63
+ 7 gbm                   2711
+ 8 logit                    3
+ 9 nn-1                    27
+10 sl                     339

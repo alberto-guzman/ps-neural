@@ -61,7 +61,7 @@ files <- c("sim_results_v2_P_val.rds",
            "sim_results_v2_NP_val.rds")
 res <- bind_rows(lapply(files, function(f) as_tibble(read_result(f))))
 cat("== AWS VALIDATION REPORT ==\n")
-cat("design rows completed:", nrow(res), "of 132\n")
+cat("design rows completed:", nrow(res), "of 120\n")
 cat("methods:", paste(sort(unique(res$method)), collapse = ", "), "\n")
 cat("any NA ATE:", any(is.na(res$ATE)), " | any NA ATE_se:", any(is.na(res$ATE_se)), "\n\n")
 res |>
